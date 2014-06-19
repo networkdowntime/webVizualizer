@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Schema Viewer</title>
+<script src="viz.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./dragscrollzoom.js"></script>
+<script src="./jquery.mousewheel.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+	var naturalWidth;
+	var naturalHeight;
+	var direction = 0;
+	var halfStep = 0.1;
+	var scale = 1;
+	
+	var dotFile = "Unset";
+	var image;
+	
+	function initialize() {
+		image = $($("#imgDiv").children("svg:first")[0]);
+		console.log(image);
+
+		naturalWidth = image.width();
+		naturalHeight = image.height();
+		
+		console.log(image);
+//		console.log($('#scrollDiv').children("div:first").width(), $('#scrollDiv').children("div:first").height(), naturalWidth, naturalHeight)
+	}
+	
+	$(document).ready(function() {
+		$.get("graphFile.gv", function(response) {
+		     var dotFile = response;
+		     
+		     var format = "svg"; // dot, plain, svg, xdot
+		     var engine = "dot"; // dot, neato
+		     
+		     var result = Viz(dotFile, format, engine);
+		     
+		     //console.log(result);
+		     $("#imgDiv").html(result);
+
+		     initialize();
+		});
+
+		
+
+		$('#scrollDiv').css('cursor', 'pointer');
+
+		$("#scrollDiv").bind("mousewheel", function() {
+	         return false;
+	     });
+		
+		$('#scrollDiv').dragscrollzoom();
+		
+		$('#scrollDiv').on('mousewheel', function(event) {
+			var divToMove = $(this).children("div:first");
+			
+			var svg = $("#imgDiv").children("svg:first");
+			
+			var width = svg.width(); // current image width
+			var height = svg.height(); // current image height
+
+			var divWidth = svg.width(); // current image width
+			var divHeight = svg.height(); // current image height
+
+			var x = event.pageX - divToMove.position().left; // mouse x position in div
+	        var y = event.pageY - divToMove.position().top; // mouse y position in div
+
+			var left = parseInt(divToMove.css('left').substring(0, divToMove.css('left').length - 2));
+			var top = parseInt(divToMove.css('top').substring(0, divToMove.css('top').length - 2));
+
+			var natX = x / scale;
+			var natY = y / scale;
+			
+		    if (event.deltaY >= 0) { // zoom in
+		    	direction = 1;
+				setScale();
+
+		    } else if (event.deltaY < 0) { // zoom out
+		    	direction = -1;
+				setScale();
+		    }
+
+			var newY = natY * scale;
+			var deltaY = y - newY;
+			var newTop = (top + deltaY );
+			$("#imgDiv").css('top', newTop + "px");
+
+			var newX = natX * scale;
+			var deltaX = x - newX;
+			var newLeft = (left + deltaX );
+			console.log(x, newX, deltaX, left, newLeft);
+			$("#imgDiv").css('left', newLeft + "px");
+		});
+		
+	})
+	
+	function setScale() {
+		scale = scale + (direction * halfStep);
+		
+		if (scale < 0.1 ) scale = 0.1;
+		if (scale > 2) scale = 2;
+
+		var newWidth = naturalWidth * scale;
+		var newHeight = naturalHeight * scale;
+		
+		image.width(newWidth);
+		image.height(newHeight);		
+	}
+</script>
+<div id="scrollDiv" class="noborder" style="position: 'relative'; width: auto; height: 750px;">
+	<div id="imgDiv">
+	</div>
+</div>
+
+</body>
+</html>
