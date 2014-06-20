@@ -1,5 +1,8 @@
 package testClasses;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.math.*;
 
@@ -9,6 +12,8 @@ public class TestClass1 {
 	String fieldVar1; // no assignment
 	String fieldVar2 = "foo"; // has assignment
 	String fieldVar3, fieldVar4; // multiple vars on one line
+	ArrayList<TestClass2> list = new ArrayList<TestClass2>();
+	HashMap<String, List<String>> foo;
 	
 	public enum MyEnum1 {
 		A, B;

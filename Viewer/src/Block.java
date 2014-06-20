@@ -15,7 +15,7 @@ public class Block extends DependentBase {
 			System.out.print("\t");
 			b = b.parent;
 		}
-		System.out.println("\tCreating Block: ");
+		Viewer.log(1, "Creating Block: ");
 	}
 	
 	public void addChildBlock(Block block) {

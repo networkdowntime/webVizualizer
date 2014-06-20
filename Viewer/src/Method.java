@@ -11,7 +11,7 @@ public class Method extends Block {
 		super(null);
 		this.parent = clazz;
 		this.name = name;
-		System.out.println("\t\t\tCreating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
+		Viewer.log(3, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
 	}
 
 	public String getName() {
@@ -29,7 +29,7 @@ public class Method extends Block {
 	}
 
 	public void validate() {
-		System.out.println("\tValidating Method: " + getName());
+		Viewer.log(1, "Validating Method: " + getName());
 		super.validate();
 	}
 }

@@ -1,9 +1,13 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import net.networkdowntime.renderer.GraphvizDotRenderer;
+import net.networkdowntime.renderer.GraphvizNeatoRenderer;
+import net.networkdowntime.renderer.GraphvizRenderer;
 import japa.parser.*;
 import japa.parser.ast.*;
 import japa.parser.ast.body.*;
@@ -159,7 +163,9 @@ public class Viewer {
 				String type = processType(depth + 1, base, field.getType());
 
 				if (type != null) {
-					base.addUnresolvedClass(type);
+					// log(depth +1, "!!!FieldDeclaration " + type.toString());
+					//
+					// base.addUnresolvedClass(type);
 					if (field.getVariables() != null) {
 						for (VariableDeclarator vd : field.getVariables()) {
 							base.addVariable(vd.getId().getName(), type);
@@ -298,7 +304,8 @@ public class Viewer {
 				FieldAccessExpr ex = ((FieldAccessExpr) expression);
 				// System.out.println(ex.getField());
 				// System.out.println(ex.getScope());
-				base.addUnresolvedClass(ex.getScope().toString());
+
+				// base.addUnresolvedClass(ex.getScope().toString());
 				processExpression(depth + 1, base, ex.getScope());
 				// System.out.println(ex.getField());
 
@@ -397,6 +404,7 @@ public class Viewer {
 				String type = processType(depth + 1, base, ex.getType());
 
 				if (type != null) {
+					log(depth + 1, "!!!VariableDeclarationExpr " + ex.getType().toString());
 					base.addUnresolvedClass(ex.getType().toString());
 					if (ex.getVars() != null) {
 						for (VariableDeclarator vd : ex.getVars()) {
@@ -510,7 +518,16 @@ public class Viewer {
 			if (type instanceof ClassOrInterfaceType) {
 				ClassOrInterfaceType t = (ClassOrInterfaceType) type;
 
-				base.addUnresolvedClass(type.toString());
+				String typeStr = type.toString();
+				if (typeStr.contains("<")) { // Generics
+
+					String genericizedClass = typeStr.substring(0, typeStr.indexOf("<"));
+					log(depth + 1, "Generic Type - " + genericizedClass);
+					base.addUnresolvedClass(genericizedClass);
+
+				} else {
+					base.addUnresolvedClass(typeStr);
+				}
 
 				processType(depth + 1, base, t.getScope());
 				processTypes(depth + 1, base, t.getTypeArgs());
@@ -551,7 +568,7 @@ public class Viewer {
 		if (typeDeclaration != null) {
 			log(depth, "[" + typeDeclaration.getClass().getName() + "] - " + typeDeclaration.getName());
 
-			Package pkg = prj.getOrCreateAndGetPackage(cu.getPackage().getName().toString());
+			Package pkg = prj.getOrCreateAndGetPackage(cu.getPackage().getName().toString(), true);
 
 			Class base;
 			if (parent != null) {
@@ -663,8 +680,8 @@ public class Viewer {
 
 		Project prj = new Project();
 
-		// File baseFile = new File("../TLX_PRODUCTION/source");
-		File baseFile = new File("src/testClasses");
+		File baseFile = new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml");
+		// File baseFile = new File("src/testClasses");
 
 		List<File> fileList = getFiles(baseFile);
 
@@ -686,30 +703,46 @@ public class Viewer {
 		}
 		System.out.println("\n");
 		prj.validate();
+
+		GraphvizRenderer renderer = new GraphvizDotRenderer();
+
+		File graphFile = new File("graphFile.gv");
+		try {
+			FileWriter fw = new FileWriter(graphFile);
+			fw.write(prj.createGraph(renderer));
+			fw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private static List<File> getFiles(File baseDir) {
 		List<File> fileList = new ArrayList<File>();
 
-		String[] files = baseDir.list();
-		String path = baseDir.getPath();
+		if (!baseDir.getAbsolutePath().contains(".svn")) {
+			System.out.println(baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
 
-		for (String s : files) {
-			File file = new File(path + File.separator + s);
-			if (file.isDirectory()) {
-				fileList.addAll(getFiles(file));
-			} else {
-				fileList.add(file);
+			String[] files = baseDir.list();
+			String path = baseDir.getPath();
+
+			for (String s : files) {
+				File file = new File(path + File.separator + s);
+				if (file.isDirectory()) {
+					fileList.addAll(getFiles(file));
+				} else {
+					fileList.add(file);
+				}
 			}
 		}
 		return fileList;
 
 	}
 
-	private static void log(int depth, String str) {
-		 for (int i = 0; i < depth; i++) {
-		 System.err.print("\t");
-		 }
-		 System.err.println(str);
+	public static void log(int depth, String str) {
+		// for (int i = 0; i < depth; i++) {
+		// System.out.print("\t");
+		// }
+		// System.out.println(str);
 	}
 }

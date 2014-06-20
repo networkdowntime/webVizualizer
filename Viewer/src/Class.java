@@ -1,7 +1,10 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import net.networkdowntime.renderer.GraphvizRenderer;
 
 
 public class Class extends DependentBase {
@@ -26,7 +29,7 @@ public class Class extends DependentBase {
 		this.name = name;
 		this.isInterface = isInterface;
 		this.isAbstract = isAbstract;
-		System.out.println("\t\tCreating Class: " + pkg.getName() + "." + name);
+		Viewer.log(2, "Creating Class: " + pkg.getName() + "." + name);
 	}
 
 	public void setExtendsStr(String extndsString) {
@@ -57,12 +60,12 @@ public class Class extends DependentBase {
 			boolean isClass = Character.isUpperCase(pkgOrClassName.charAt(0));
 
 			if (!isClass) {
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(name);
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(name, false);
 				this.packageDependencies.add(pkg1);
 			} else {
 				String pkgName = name.substring(0, name.lastIndexOf("."));
 				String className = pkgOrClassName;
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(pkgName);
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(pkgName, false);
 				this.packageDependencies.add(pkg1);
 				pkg1.getOrCreateAndGetClass(className);
 			}
@@ -87,7 +90,7 @@ public class Class extends DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		System.out.println("\tClass.searchForUnresolvedClass(" + className + ")");
+		Viewer.log(1, "Class.searchForUnresolvedClass(" + className + ")");
 
 		Class matchedClass = super.searchForUnresolvedClass(className);
 
@@ -98,7 +101,7 @@ public class Class extends DependentBase {
 	}
 
 	public void validate() {
-		System.out.println("\nValidating class: " + getCanonicalName());
+		Viewer.log(1, "Validating class: " + getCanonicalName());
 
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(name, extndsStr);
@@ -115,6 +118,65 @@ public class Class extends DependentBase {
 		for (Method method : methods.values()) {
 			method.validate();
 		}
+	}
+
+	public String createGraph(GraphvizRenderer renderer) {
+		System.out.println("\tClass: " + this.name);
+
+		HashSet<String> refsToSkip = new HashSet<String>();
+
+		StringBuffer sb = new StringBuffer();
+
+		sb.append(renderer.getBeginRecord(this.pkg.name + "." + this.name, this.name, ""));
+
+		for (Method method : methods.values()) {
+			// sb.append(renderer.addRecordField(method.name, method.name));
+		}
+
+		sb.append(renderer.getEndRecord());
+
+		if (extnds != null) {
+			boolean exclude = false;
+			for (String excludePkg : Project.excludePkgs) {
+				if (pkg.name.startsWith(excludePkg))
+					exclude = true;
+			}
+			if (!exclude)
+				sb.append(renderer.addEdge(this.pkg.name + "." + this.name, extnds.pkg.name + "." + extnds.name, "", true));
+			
+			Integer count = this.unresolvedClassCount.get(extnds.name);
+			if (count != null && count.intValue() == 1) {
+				refsToSkip.add(extnds.name);
+			}
+		}
+
+		for (Class clazz : this.impls) {
+			sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, "", true));
+			Integer count = this.unresolvedClassCount.get(clazz.name);
+			if (count != null && count.intValue() == 1) {
+				boolean exclude = false;
+				for (String excludePkg : Project.excludePkgs) {
+					if (clazz.pkg.name.startsWith(excludePkg))
+						exclude = true;
+				}
+				if (!exclude)
+					refsToSkip.add(clazz.name);
+			}
+		}
+
+		for (Class clazz : this.classDependencies.values()) {
+			if (!refsToSkip.contains(clazz.name)) {
+				boolean exclude = false;
+				for (String excludePkg : Project.excludePkgs) {
+					if (clazz.pkg.name.startsWith(excludePkg))
+						exclude = true;
+				}
+				if (!exclude)
+					sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, ""));
+			}
+		}
+
+		return sb.toString();
 	}
 
 }
