@@ -17,7 +17,7 @@ $.fn.dragscrollzoom = function( options ){
 		},options || {});
 	 
 	
-	var dragscroll= {
+	var dragscroll = {
 		mouseDownHandler : function(event) {
 			// mousedown, left click, check propagation
 
@@ -58,11 +58,11 @@ $.fn.dragscrollzoom = function( options ){
 			
 			
 			// Save where the cursor is
-			event.data.lastCoord={left: event.clientX, top: event.clientY}
+			event.data.lastCoord={left: event.clientX, top: event.clientY};
 			if (event.data.preventDefault) {
                 event.preventDefault();
                 return false;
-            }
+            };
 
 		},
 		mouseUpHandler : function(event) { // Stop scrolling
@@ -73,14 +73,14 @@ $.fn.dragscrollzoom = function( options ){
                 return false;
             }
 		}
-	}
+	};
 	
 	// set up the initial events
 	this.each(function() {
 		// closure object data for each scrollable element
 		var data = {scrollable : $(this),
 					acceptPropagatedEvent : settings.acceptPropagatedEvent,
-                    preventDefault : settings.preventDefault }
+                    preventDefault : settings.preventDefault };
 		// Set mouse initiating event on the desired descendant
 		$(this).bind('mousedown', data, dragscroll.mouseDownHandler);
 	});

@@ -1,10 +1,47 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title></title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    </head>
-    <body>
-        <div>Static content 1</div>
-    </body>
+<head>
+<title>System Analyzer</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="./css/analyzer.css">
+<link rel="stylesheet" type="text/css"
+	href="./css/jquery-ui-1.10.4.min.css">
+<script src="./js/jquery-2.1.1.min.js"></script>
+<script src="./js/jquery-ui-1.10.4.min.js"></script>
+<script src="./js/analyzer.js"></script>
+<script src="./js/viz.js"></script>
+<script src="./js/dragscrollzoom.js"></script>
+<script src="./js/jquery.mousewheel.js"></script>
+
+</head>
+<body>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			analyzer = new analyzer();
+			analyzer.init();
+		});
+	</script>
+
+	<div class="header">
+		<div class="headerMenu" id="mainMenu">
+			<img class="mainMenu" src="images/menu.png" />
+		</div>
+		<div class="headerTitle">System Analyzer</div>
+		<div class="headerHelp">?</div>
+	</div>
+
+	<div id="dbAnalyzer" class="sidebar">
+		<div><input id="username" type="text" placeholder="Username"/></div>
+		<div><input id="password" type="password" placeholder="Password"/></div>
+		<div><input id="jdbcUrl" type="text" placeholder="JDBC URL"/></div>
+		<div><button id="connect">Connect</button></div>
+		<div>Filter</div>
+		<div>Schema Selector</div>
+		<div>Table Selector</div>
+	</div>
+
+	<div id="javaAnalyzer" class="sidebar">Java Analyzer</div>
+
+
+</body>
 </html>
