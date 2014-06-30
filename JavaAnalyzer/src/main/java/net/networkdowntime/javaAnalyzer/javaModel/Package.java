@@ -1,6 +1,8 @@
+package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 
@@ -13,7 +15,7 @@ public class Package {
 
 	public Package(String name, boolean inPath) {
 		this.name = name;
-		Viewer.log(1, "Creating Package: " + name);
+		JavaAnalyzer.log(1, "Creating Package: " + name);
 	}
 
 	public void setProject(Project prj) {

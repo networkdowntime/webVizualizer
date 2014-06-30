@@ -1,9 +1,11 @@
+package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 
@@ -29,7 +31,7 @@ public class Class extends DependentBase {
 		this.name = name;
 		this.isInterface = isInterface;
 		this.isAbstract = isAbstract;
-		Viewer.log(2, "Creating Class: " + pkg.getName() + "." + name);
+		JavaAnalyzer.log(2, "Creating Class: " + pkg.getName() + "." + name);
 	}
 
 	public void setExtendsStr(String extndsString) {
@@ -90,7 +92,7 @@ public class Class extends DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		Viewer.log(1, "Class.searchForUnresolvedClass(" + className + ")");
+		JavaAnalyzer.log(1, "Class.searchForUnresolvedClass(" + className + ")");
 
 		Class matchedClass = super.searchForUnresolvedClass(className);
 
@@ -101,7 +103,7 @@ public class Class extends DependentBase {
 	}
 
 	public void validate() {
-		Viewer.log(1, "Validating class: " + getCanonicalName());
+		JavaAnalyzer.log(1, "Validating class: " + getCanonicalName());
 
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(name, extndsStr);

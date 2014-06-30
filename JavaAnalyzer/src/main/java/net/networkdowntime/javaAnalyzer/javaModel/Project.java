@@ -1,3 +1,4 @@
+package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.Map;
 

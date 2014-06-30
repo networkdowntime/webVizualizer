@@ -1,5 +1,8 @@
+package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 
 
 public abstract class DependentBase {
@@ -30,7 +33,7 @@ public abstract class DependentBase {
 	public void addUnresolvedAnnotations(String annotationName) {
 		if (!this.unresolvedAnnotations.contains(annotationName)) {
 			this.unresolvedAnnotations.add(annotationName);
-			Viewer.log(0, "Adding unresolved annotation: " + annotationName);
+			JavaAnalyzer.log(0, "Adding unresolved annotation: " + annotationName);
 		}
 	}
 
@@ -44,7 +47,7 @@ public abstract class DependentBase {
 				count = 0;
 			this.unresolvedClasses.add(className);
 			this.unresolvedClassCount.put(className, count.intValue() + 1);
-			Viewer.log(0, "Adding unresolved class: " + className);
+			JavaAnalyzer.log(0, "Adding unresolved class: " + className);
 		}
 	}
 
@@ -77,7 +80,7 @@ public abstract class DependentBase {
 
 	public void addVariable(String name, String type) {
 		if (!varNameTypeMap.containsKey(name)) {
-			Viewer.log(0, "Adding variable: " + type + " " + name);
+			JavaAnalyzer.log(0, "Adding variable: " + type + " " + name);
 			varNameTypeMap.put(name, type);
 		}
 		// ToDo - Add logic to investigate the type and determine if it belongs to classDependency or unresolvedClasses
@@ -98,7 +101,7 @@ public abstract class DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		Viewer.log(1, "DependentBase.searchForUnresolvedClass(" + className + ")");
+		JavaAnalyzer.log(1, "DependentBase.searchForUnresolvedClass(" + className + ")");
 		Class matchedClass = classDependencies.get(className);
 		
 		if (matchedClass == null) {
@@ -112,26 +115,26 @@ public abstract class DependentBase {
 		Class c = findClass();
 
 		if (this instanceof Method) {
-			Viewer.log(0, ((Method) this).name);
+			JavaAnalyzer.log(0, ((Method) this).name);
 		} else {
-			Viewer.log(0, "Validating Block");
+			JavaAnalyzer.log(0, "Validating Block");
 		}
 
 		for (String s : this.unresolvedAnnotations) {
-			Viewer.log(0, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
+			JavaAnalyzer.log(0, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
 			Class clazz = searchForUnresolvedClass(s);
 			if (clazz != null) {
-				Viewer.log(0, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
+				JavaAnalyzer.log(0, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
 		}
 
 		for (String s : this.unresolvedClasses) {
-			Viewer.log(0, "Class " + c.getName() + ": Searching for unresolved class: " + s);
+			JavaAnalyzer.log(0, "Class " + c.getName() + ": Searching for unresolved class: " + s);
 			Class clazz = searchForUnresolvedClass(s);
 			if (clazz != null) {
-				Viewer.log(0, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
+				JavaAnalyzer.log(0, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 			}
 		}
@@ -143,12 +146,12 @@ public abstract class DependentBase {
 				type = type.substring(0, type.indexOf("<"));
 			}
 			
-			Viewer.log(0, "Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName);
+			JavaAnalyzer.log(0, "Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName);
 			if (!isPrimative(type) || !"this".equals(type)) {
 				Class clazz = searchForUnresolvedClass(type);
 
 				if (clazz != null) {
-					Viewer.log(0, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
+					JavaAnalyzer.log(0, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
 					addResolvedClass(clazz);
 					varNameClassMap.put(varName, clazz);
 				}

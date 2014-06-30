@@ -1,3 +1,4 @@
+package net.networkdowntime.javaAnalyzer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -5,6 +6,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import net.networkdowntime.javaAnalyzer.javaModel.*;
+import net.networkdowntime.javaAnalyzer.javaModel.Class;
+import net.networkdowntime.javaAnalyzer.javaModel.Package;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizNeatoRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -27,7 +31,7 @@ import japa.parser.ast.type.WildcardType;
 // ToDo: Need to research and handle ContinueStmt
 // ToDo: Glossing over the modifiers and name for TypeDefinitionStmt for now
 
-public class Viewer {
+public class JavaAnalyzer {
 
 	private static String modifiersToString(int i) {
 		String retval = "";
@@ -681,7 +685,7 @@ public class Viewer {
 		Project prj = new Project();
 
 		File baseFile = new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml");
-		// File baseFile = new File("src/testClasses");
+		// File baseFile = new File("src/main/test/testClasses");
 
 		List<File> fileList = getFiles(baseFile);
 

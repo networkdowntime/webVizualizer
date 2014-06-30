@@ -1,5 +1,8 @@
+package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+
+import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 
 
 public class Method extends Block {
@@ -11,7 +14,7 @@ public class Method extends Block {
 		super(null);
 		this.parent = clazz;
 		this.name = name;
-		Viewer.log(3, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
+		JavaAnalyzer.log(3, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
 	}
 
 	public String getName() {
@@ -29,7 +32,7 @@ public class Method extends Block {
 	}
 
 	public void validate() {
-		Viewer.log(1, "Validating Method: " + getName());
+		JavaAnalyzer.log(1, "Validating Method: " + getName());
 		super.validate();
 	}
 }
