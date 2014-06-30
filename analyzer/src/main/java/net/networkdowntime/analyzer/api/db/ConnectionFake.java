@@ -15,7 +15,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import net.networkdowntime.db.erdiagrams.ERDiagramCreator;
 import net.networkdowntime.db.erdiagrams.database.DatabaseAbstraction;
@@ -27,8 +26,8 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-@Path("db/connection")
-public class Connection {
+@Path("db/connectionFake")
+public class ConnectionFake {
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
@@ -51,12 +50,12 @@ public class Connection {
 	@Path("/supportedDatabases")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSupportedDatabases() {
-
+		
 		List<String> types = new ArrayList<String>();
-
-		for (DBType type : DatabaseAbstractionFactory.DBType.values()) {
-			types.add(type.toString());
-		}
+		types.add("MySql");
+		types.add("Oracle");
+		types.add("SqlServer");
+		
 		return types;
 	}
 
@@ -69,46 +68,52 @@ public class Connection {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public HashMap<String, Object> getConnection(@FormParam("dbType") String dbType, @FormParam("username") String userName,
 			@FormParam("password") String password, @FormParam("jdbcUrl") String url) {
-
+		
 		System.out.println("dbType: " + dbType);
 		System.out.println("username: " + userName);
 		System.out.println("password: " + password);
 		System.out.println("jdbcUrl: " + url);
-
+		
 		HashMap<String, Object> response = new HashMap<String, Object>();
-
-		creator = new ERDiagramCreator();
-		dba = creator.setConnection(DBType.valueOf(dbType), userName, password, url);
-
-		dba.testConnection();
 
 		return response;
 	}
+
+	List<String> response = new ArrayList<String>();
 
 	@GET
 	@Path("/scanSchemas")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void getScanSchemas(@QueryParam("schemas[]") List<String> schemasToScan, @Context HttpServletRequest request) {
-
+		response = new ArrayList<String>();
+		
 		for (String schema : schemasToScan) {
-			System.out.println("Schema To Scan: " + schema);
+			System.out.println(schema);
+			
+			if ("System".equals(schema)) {
+				response.add("table1");
+			} else if ("Test".equals(schema)) {
+				response.add("table2");
+			}
 		}
-		creator.analyzeDatabase(dba, schemasToScan);
 	}
 
 	@GET
 	@Path("/schemasWithTables")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSchemasWithTables() {
-		return dba.getAllSchemaNamesWithTables();
+		List<String> response = new ArrayList<String>();
+		response.add("System");
+		response.add("Test");
+		return response;
 	}
 
 	@GET
 	@Path("/scannedTables")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getScannedTables() {
-		return creator.getAllScannedTables();
+		return response;
 	}
 
 	@POST
@@ -116,22 +121,29 @@ public class Connection {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getDot(GraphFilter filter) {
-		System.out.println("showAllColumnsOnTables: " + filter.isShowAllColumnsOnTables());
 		System.out.println("includeTablesWithMoreXRows: " + filter.getIncludeTablesWithMoreXRows());
 		System.out.println("Excluded Tables:");
 		for (String s : filter.getTablesToExclude()) {
 			System.out.println("\t" + s);
 		}
-		System.out.println("pkFilter: " + filter.getPkFilter().toString());
-		System.out.println("connectWithFKs: " + filter.isConnectWithFKs());
-		System.out.println("showLabelsOnFKs: " + filter.isShowLabelsOnFKs());
-		System.out.println("excludeFKForColumnsNamed: ");
-		for (String s : filter.getExcludeFKForColumnsNamed()) {
-			System.out.println("\t" + s);
-		}
-		System.out.println("fkFilter: " + filter.getFkFilter().toString());
 
-		return creator.createGraphvizString(filter);
+		StringBuffer resp = new StringBuffer("graph G {\n");
+		resp.append("run -- intr;\n");
+		resp.append("intr -- runbl;\n");
+		resp.append("runbl -- run;\n");
+		resp.append("run -- kernel;\n");
+		resp.append("kernel -- zombie;\n");
+		resp.append("kernel -- sleep;\n");
+		resp.append("kernel -- runmem;\n");
+		resp.append("sleep -- swap;\n");
+		resp.append("swap -- runswap;\n");
+		resp.append("runswap -- new;\n");
+		resp.append("runswap -- runmem;\n");
+		resp.append("new -- runmem;\n");
+		resp.append("sleep -- runmem;\n");
+		resp.append("}");
+		return resp.toString();
+		
 	}
 
 }

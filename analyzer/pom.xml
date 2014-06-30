@@ -134,10 +134,24 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.14.2</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>net.networkdowntime</groupId>
 			<artifactId>dbAnalyzer</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
+		<dependency>
+			<groupId>net.networkdowntime</groupId>
+			<artifactId>javaAnalyzer</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 	</dependencies>
 
 </project>

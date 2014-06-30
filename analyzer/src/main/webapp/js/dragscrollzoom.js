@@ -1,11 +1,64 @@
+var naturalWidth;
+var naturalHeight;
+var direction = 0;
+var halfStep = 0.1;
+var scale = 1;
+var image;
+
+function initializeDragScrollZoom() {
+	image = $($("#imgDiv").children("svg:first")[0]);
+
+	naturalWidth = image.width();
+	naturalHeight = image.height();
+
+	direction = 0;
+	halfStep = 0.1;
+	scale = 1;
+
+	var viewWidth = $("#scrollDiv").width();
+	var viewHeight = $("#scrollDiv").height();
+	
+	var divToMove = $("#scrollDiv").children("div:first");
+	
+	left = -1 * (naturalWidth - viewWidth) / 2;
+	tp = -1 * (naturalHeight - viewHeight) / 2;
+
+	divToMove.css("top", tp+"px");
+	divToMove.css("left", left+"px");
+
+	console.log("naturalWidth: ", naturalWidth, "naturalHeight:", naturalHeight, "left:", left, "top:", tp);
+}
+
 ;(function($){ // secure $ jQuery alias
 
+
+function setScale() {
+	scale = scale + (direction * halfStep);
+	
+	if (scale < 0.1 ) scale = 0.1;
+	if (scale > 2) scale = 2;
+
+	var newWidth = naturalWidth * scale;
+	var newHeight = naturalHeight * scale;
+	
+	image.width(newWidth);
+	image.height(newHeight);		
+}
+	
 $.fn.dragscrollzoom = function( options ){
 
+	$(this).css('overflow', 'hidden');
+	$(this).css('z-index', '1');
+	$(this).css('height', '100%');
+	$(this).css('cursor', 'pointer');
+	$(this).bind("mousewheel", function() {
+        return false;
+    });
+	
 	var divToMove = $(this).children("div:first");
 
 	divToMove.css("z-index", "-1");
-	divToMove.css("position", "absolute");
+	divToMove.css("position", "relative");
 	divToMove.css("top", "0px");
 	divToMove.css("left", "0px");
 	
@@ -83,6 +136,47 @@ $.fn.dragscrollzoom = function( options ){
                     preventDefault : settings.preventDefault };
 		// Set mouse initiating event on the desired descendant
 		$(this).bind('mousedown', data, dragscroll.mouseDownHandler);
+
+		$(this).on('mousewheel', function(event) {
+			var divToMove = $(this).children("div:first");
+			
+			var svg = $("#imgDiv").children("svg:first");
+			
+			var width = svg.width(); // current image width
+			var height = svg.height(); // current image height
+
+			var divWidth = svg.width(); // current image width
+			var divHeight = svg.height(); // current image height
+
+			var x = event.pageX - divToMove.position().left; // mouse x position in div
+	        var y = event.pageY - divToMove.position().top; // mouse y position in div
+
+			var left = parseInt(divToMove.css('left').substring(0, divToMove.css('left').length - 2));
+			var top = parseInt(divToMove.css('top').substring(0, divToMove.css('top').length - 2));
+
+			var natX = x / scale;
+			var natY = y / scale;
+			
+		    if (event.deltaY >= 0) { // zoom in
+		    	direction = 1;
+				setScale();
+
+		    } else if (event.deltaY < 0) { // zoom out
+		    	direction = -1;
+				setScale();
+		    }
+
+			var newY = natY * scale;
+			var deltaY = y - newY;
+			var newTop = (top + deltaY );
+			$("#imgDiv").css('top', newTop + "px");
+
+			var newX = natX * scale;
+			var deltaX = x - newX;
+			var newLeft = (left + deltaX );
+			console.log(x, newX, deltaX, left, newLeft);
+			$("#imgDiv").css('left', newLeft + "px");
+		});
 	});
 }; //end plugin dragscrollzoom
 

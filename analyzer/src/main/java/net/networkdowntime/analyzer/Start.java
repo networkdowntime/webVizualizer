@@ -2,6 +2,9 @@ package net.networkdowntime.analyzer;
 
 import java.io.IOException;
 
+import org.glassfish.grizzly.filterchain.Filter;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
@@ -37,22 +40,26 @@ public class Start {
 
 	public static void main(String[] args) throws IOException {
 		// Initialize Grizzly HttpServer
-		// Taken from: http://grizzly-nio.net/2013/08/grizzly-httpserver-spring-jersey-serve-static-content-from-a-folder-and-from-a-jar/
-		
+		// Taken from:
+		// http://grizzly-nio.net/2013/08/grizzly-httpserver-spring-jersey-serve-static-content-from-a-folder-and-from-a-jar/
+
 		HttpServer server = new HttpServer();
 		NetworkListener listener = new NetworkListener("System Analyzer", "localhost", PORT_NUMBER);
+
 		server.addListener(listener);
 
-//		ServletContainer container = new ServletContainer();
-		
-//		String[] contexts = new String[] {"/api", "/api/db"};
-		
+		// ServletContainer container = new ServletContainer();
+
+		// String[] contexts = new String[] {"/api", "/api/db"};
+
 		// Initialize and add Spring-aware Jersey resource
 		WebappContext ctx = new WebappContext("ctx", "/api");
 		final ServletRegistration reg = ctx.addServlet("spring", new SpringServlet());
 		reg.addMapping("/*");
+		reg.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters", "com.sun.jersey.api.container.filter.LoggingFilter");
 		reg.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
-		ctx.addContextInitParameter("contextConfigLocation", "classpath:spring-context.xml");
+		ctx.addContextInitParameter("contextConfigLocation", "file:src/main/resources/spring-context.xml");
+		// ctx.addContextInitParameter("contextConfigLocation", "classpath:spring-context.xml");
 		ctx.addListener("org.springframework.web.context.ContextLoaderListener");
 		ctx.addListener("org.springframework.web.context.request.RequestContextListener");
 		ctx.deploy(server);
@@ -60,15 +67,9 @@ public class Start {
 		// Add the StaticHttpHandler to serve static resources from the static1 folder
 		server.getServerConfiguration().addHttpHandler(new StaticHttpHandler("src/main/webapp/"), "/");
 
-HttpHandler handler = new HttpHandler() {
-	
-	@Override
-	public void service(Request request, Response response) throws Exception {
-		// TODO Auto-generated method stub
 		
-	}
-};
-		// Add the CLStaticHttpHandler to serve static resources located at the static2 folder from the jar file jersey1-grizzly2-spring-1.0-SNAPSHOT.jar
+		// Add the CLStaticHttpHandler to serve static resources located at the static2 folder from the jar file
+		// jersey1-grizzly2-spring-1.0-SNAPSHOT.jar
 		// server.getServerConfiguration().addHttpHandler(
 		// new CLStaticHttpHandler(new URLClassLoader(new URL[] {
 		// new File("target/jersey1-grizzly2-spring-1.0-SNAPSHOT.jar").toURI().toURL()}), "webapp/static2/"),

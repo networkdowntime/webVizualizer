@@ -1,0 +1,82 @@
+Might be able to adapt this to save the images to a PDF: from http://nesterko.com/blog/2012/01/30/measuring-homophily-in-network-data-and-how-to-export-from-d3-js-to-pdf/
+
+	var html = d3.select("svg")
+        	.attr("title", "test2")
+	        .attr("version", 1.1)
+        	.attr("xmlns", "http://www.w3.org/2000/svg")
+	        .node().parentNode.innerHTML;
+	d3.select("body").append("div")
+	        .attr("id", "download")
+	        .html("Right-click on this preview and choose Save as<br />Left-Click to dismiss<br />")
+	        .append("img")
+	        .attr("src", "data:image/svg+xml;base64,"+ btoa(html));
+
+Or maybe follow this to save as an image: http://stackoverflow.com/questions/3975499/convert-svg-to-image-jpeg-png-etc-in-the-browser
+
+General ToDos:
+	Disable view pane if there is nothing to show
+	Add Loading spinner to view pane
+	For sidebars, add menu loading spinners when waiting for data
+	Improve/standardize transitions on sidebars
+
+DB ToDos:
+
+	Need to add ability to filter by Created/Updated timestamps.  Would allow the user to identify tables based on most recent usage
+
+	Need to improve the aesthetics of the generated graphs.  Probably though the use of SVG Filters
+
+	Add Option to save connection information.  Preferably using the browser's password save feature.
+
+	Add Auto-Connect to DB on load
+
+	Add Support for multiple saved DB Connections
+
+	Add ability to guess missing FK constraints based on naming convention
+
+	Add deep table scan to gives you information on the structure of the data in the tables:
+		Such as the number of distinct values in each column.
+		Usage frequency maps
+
+	Allow the DB structure to be persisted to disk and reloaded.  Will reduce the round trips to the DB and allow you to work offline.
+
+	Allow for export of the shown tables and or FK constraints
+
+	Add support for SQL Server, Postgres
+
+Java ToDos:
+	Add Java to the analyzer
+		Select/Scan Directory
+		Add Library Resources
+		Package Selector
+			Scan Packages
+			Show Package Dependencies
+		Class Selector - allows inclusion/exclusion of classes
+	Add JSP parser
+
+	Show possible method call paths.  Select method/JSP and it generates a directed graph of the method calls
+		Call path complexity report.
+
+	Add Support for detecting if a class is a Web Service (Spring, Jersey, Jackson, ...)
+
+	Show probable dead code.  Computes all method call paths.  
+	Remove all methods used in call paths for system inputs (Web Service, Servlet, JSP, Spring, Struts, ...).  Display remaining method call paths.
+
+	Overlay log file analysis on graph.  Allows you to identify dead system inputs.  Hot-spot stacktraces in the logs to the causing class.
+
+	Live Updates.  Watches the timestamps on the scanned files/directories and auto-updates the graph
+
+	View code: class view, method view (syntax highlighting)
+
+	Add round-trip
+		Create packages with the viewer
+		Create classes with the viewer
+		Define class relationships with the viewer
+		Remove classes/methods/references with the viewer
+		Direct editing of the class from the code viewer
+
+
+Hybrid ToDos:
+	Show tables used by the Java Code
+		AutoDetect table names in Strings, Property Files, JPA, Hibernate, Top Link, ...
+	
+	Show tables that don't appear to be used by the Java Code

@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>System Analyzer</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="./css/analyzer.css">
-<link rel="stylesheet" type="text/css"
-	href="./css/jquery-ui-1.10.4.min.css">
-<script src="./js/jquery-2.1.1.min.js"></script>
-<script src="./js/jquery-ui-1.10.4.min.js"></script>
-<script src="./js/analyzer.js"></script>
-<script src="./js/viz.js"></script>
-<script src="./js/dragscrollzoom.js"></script>
-<script src="./js/jquery.mousewheel.js"></script>
+	<title>System Analyzer</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<link rel="stylesheet" type="text/css" href="./css/analyzer.css">
+	<link rel="stylesheet" type="text/css" href="./css/jquery-ui-1.10.4.min.css">
+	<script src="./js/jquery-2.1.1.min.js"></script>
+	<script src="./js/jquery-ui-1.10.4.min.js"></script>
+	<script src="./js/analyzer.js"></script>
+	<script src="./js/viz.js"></script>
+	<script src="./js/dragscrollzoom.js"></script>
+	<script src="./js/jquery.mousewheel.js"></script>
+	<script type="text/javascript" src="js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="js/jquery.collapsible.js"></script>
 
 </head>
 <body>
 	<script type="text/javascript">
+		var dotFile = "Unset";
+
 		$(document).ready(function() {
 			analyzer = new analyzer();
 			analyzer.init();
+
+			$('#scrollDiv').dragscrollzoom();
+			
 		});
 	</script>
 
@@ -29,18 +36,64 @@
 		<div class="headerTitle">System Analyzer</div>
 		<div class="headerHelp">?</div>
 	</div>
-
-	<div id="dbAnalyzer" class="sidebar">
-		<div><input id="username" type="text" placeholder="Username"/></div>
-		<div><input id="password" type="password" placeholder="Password"/></div>
-		<div><input id="jdbcUrl" type="text" placeholder="JDBC URL"/></div>
-		<div><button id="connect">Connect</button></div>
-		<div>Filter</div>
-		<div>Schema Selector</div>
-		<div>Table Selector</div>
+	<div class="mainBody">
+		<div id="dbAnalyzer" class="sidebar">
+	
+			<div class="collapsible" id="connectionDiv">Connection<span></span></div>
+			<div class="container" id="connectionContainer">
+				<div class="content">
+					<form>
+					<div><select id="dbType"></select></div>
+					<div><input id="username" type="text" placeholder="Username" value=''/></div>
+					<div><input id="password" type="password" placeholder="Password" value=''/></div>
+					<div><input id="jdbcUrl" type="text" placeholder="JDBC URL" value=''/></div>
+					</form>
+					<div><button id="connect">Connect</button></div>
+				</div>
+			</div>
+			
+			<div class="collapsible" id="schemasDiv">Available Schemas<span></span></div>
+			<div class="container" id="schemasContainer">
+				<div class="content">
+				</div>
+			</div>
+	
+			<div class="collapsible" id="tablesDiv">Table Selector<span></span></div>
+			<div class="container" id="tablesContainer">
+				<div class="content">
+				</div>
+			</div>
+	
+			<div class="collapsible" id="filterDiv">Filter<span></span></div>
+			<div class="container" id="filterContainer">
+				<div class="content">
+					<div><div class="filterLabel">Layout:</div><select id="dbLayout"></select></div>
+					<div><div class="filterLabel">Show All Columns:</div><input id="showAllColumnsOnTables" type="checkbox" checked/></div>
+					<div><div class="filterLabel">Table Row Count Limit:</div><input id="includeTablesWithMoreXRows" type="number" value="0" size="6" title="-1 shows only empty tables. 0 shows all tables"/></div>
+					<div><div class="filterLabel">PK Filter:</div><select id="pkFilter"></select></div>
+					<div><div class="filterLabel">FK Filter:</div><select id="fkFilter"></select></div>
+					<div><div class="filterLabel">Connect By FKs:</div><input id="connectWithFKs" type="checkbox" checked/></div>
+					<div><div class="filterLabel">Labels On FK Connections:</div><input id="showLabelsOnFKs" type="checkbox"/></div>
+					<div><div class="filterLabel">Exclude FKs By Col Name:</div></div>
+					<div><input id="excludeFKForColumnsNamed" type="text" class="excludeFKForColumnsNamed" value=""/></div>
+					<div><button id="connectionRender">Render</button></div>
+				</div>
+			</div>
+	
+		</div>
+ 	 	<div id="javaAnalyzer" class="sidebar">
+			<div class="collapsible" id="sourceDiv">Source<span></span></div>
+			<div class="container" id="sourceContainer">
+				<div class="content">
+					<div><div class="sourceLabel">Source Dir:</div><input id="sourceDir" type="text" placeholder="Path to your code" value=''/><button id="sourceScan">Scan</button></div>
+				</div>
+			</div>
+ 	 	</div>
+ 		<div id="scrollDiv">
+   			<div id="imgDiv">
+			</div>
+ 		</div>
 	</div>
-
-	<div id="javaAnalyzer" class="sidebar">Java Analyzer</div>
 
 
 </body>

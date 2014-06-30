@@ -1,4 +1,4 @@
-package net.networkdowntime.analyzer.api.db;
+package net.networkdowntime.analyzer.api.java;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,8 +27,8 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-@Path("db/connection")
-public class Connection {
+@Path("code/java")
+public class Scanner {
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
