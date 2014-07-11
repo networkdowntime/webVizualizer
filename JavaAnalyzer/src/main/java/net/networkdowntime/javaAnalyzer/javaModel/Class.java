@@ -1,4 +1,5 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
+import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 
@@ -122,7 +124,7 @@ public class Class extends DependentBase {
 		}
 	}
 
-	public String createGraph(GraphvizRenderer renderer) {
+	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
 		System.out.println("\tClass: " + this.name);
 
 		HashSet<String> refsToSkip = new HashSet<String>();
@@ -131,8 +133,17 @@ public class Class extends DependentBase {
 
 		sb.append(renderer.getBeginRecord(this.pkg.name + "." + this.name, this.name, ""));
 
-		for (Method method : methods.values()) {
-			// sb.append(renderer.addRecordField(method.name, method.name));
+		if (filter.isShowFields()) {
+			for (String field : this.varNameClassMap.keySet()) {
+				Class clazz = this.varNameClassMap.get(field);
+				sb.append(renderer.addRecordField(field, field + ": " + clazz.name));
+			}
+		}
+		
+		if (filter.isShowMethods()) {
+			for (Method method : methods.values()) {
+				sb.append(renderer.addRecordField(method.name, method.name));
+			}
 		}
 
 		sb.append(renderer.getEndRecord());
@@ -145,7 +156,7 @@ public class Class extends DependentBase {
 			}
 			if (!exclude)
 				sb.append(renderer.addEdge(this.pkg.name + "." + this.name, extnds.pkg.name + "." + extnds.name, "", true));
-			
+
 			Integer count = this.unresolvedClassCount.get(extnds.name);
 			if (count != null && count.intValue() == 1) {
 				refsToSkip.add(extnds.name);
@@ -156,11 +167,7 @@ public class Class extends DependentBase {
 			sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, "", true));
 			Integer count = this.unresolvedClassCount.get(clazz.name);
 			if (count != null && count.intValue() == 1) {
-				boolean exclude = false;
-				for (String excludePkg : Project.excludePkgs) {
-					if (clazz.pkg.name.startsWith(excludePkg))
-						exclude = true;
-				}
+				boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
 				if (!exclude)
 					refsToSkip.add(clazz.name);
 			}
@@ -168,11 +175,7 @@ public class Class extends DependentBase {
 
 		for (Class clazz : this.classDependencies.values()) {
 			if (!refsToSkip.contains(clazz.name)) {
-				boolean exclude = false;
-				for (String excludePkg : Project.excludePkgs) {
-					if (clazz.pkg.name.startsWith(excludePkg))
-						exclude = true;
-				}
+				boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
 				if (!exclude)
 					sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, ""));
 			}

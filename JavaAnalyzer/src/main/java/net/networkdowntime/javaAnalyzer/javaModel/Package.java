@@ -1,13 +1,18 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
+import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
+import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 
 public class Package {
 
+	File file;
 	String name;
 	boolean inPath = false;
 	Project prj;
@@ -72,21 +77,25 @@ public class Package {
 		}
 	}
 
-	public String createGraph(GraphvizRenderer renderer) {
+	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
 		System.out.println("Package: " + this.name);
-		
+
 		StringBuffer sb = new StringBuffer();
 		sb.append(renderer.getBeginCluster(name));
 
-		for (Class clazz : classes.values()) {
+		if (filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM) {
+			for (Class clazz : classes.values()) {
 
-			if (clazz.name == null) {
-				System.err.println("!!!" + this.name + ": class with null name");
-			} else {
-				sb.append(clazz.createGraph(renderer));
+				if (clazz.name == null) {
+					System.err.println("!!!" + this.name + ": class with null name");
+				} else {
+					if (!filter.getClassesToExclude().contains(clazz.name)) {
+						sb.append(clazz.createGraph(renderer, filter));
+					}
+				}
 			}
 		}
-
+		
 		sb.append(renderer.getEndCluster());
 		return sb.toString();
 	}

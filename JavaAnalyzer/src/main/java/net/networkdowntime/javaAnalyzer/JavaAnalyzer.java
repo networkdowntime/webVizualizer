@@ -1,14 +1,19 @@
 package net.networkdowntime.javaAnalyzer;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 import net.networkdowntime.javaAnalyzer.javaModel.*;
 import net.networkdowntime.javaAnalyzer.javaModel.Class;
 import net.networkdowntime.javaAnalyzer.javaModel.Package;
+import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizNeatoRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -32,6 +37,27 @@ import japa.parser.ast.type.WildcardType;
 // ToDo: Glossing over the modifiers and name for TypeDefinitionStmt for now
 
 public class JavaAnalyzer {
+
+	private static final boolean LOG = true;
+
+	public static void main(String[] args) {
+		Project prj = new Project();
+
+		// prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml"));
+		prj.addFile(new File("src/test/java/testClasses"));
+		prj.addFile(new File("src/test/java/testClasses"));
+		prj.validate();
+
+		File graphFile = new File("graphFile.gv");
+		try {
+			FileWriter fw = new FileWriter(graphFile);
+			fw.write(prj.createGraph(new JavaFilter()));
+			fw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 
 	private static String modifiersToString(int i) {
 		String retval = "";
@@ -88,7 +114,7 @@ public class JavaAnalyzer {
 		}
 	}
 
-	private static void processTypeDeclarations(int depth, Project prj, Class base, CompilationUnit cu, List<TypeDeclaration> typeDeclarations) {
+	public static void processTypeDeclarations(int depth, Project prj, Class base, CompilationUnit cu, List<TypeDeclaration> typeDeclarations) {
 		if (typeDeclarations != null) {
 			for (TypeDeclaration typeDeclaration : typeDeclarations) {
 				processTypeDeclaration(depth, prj, base, cu, typeDeclaration);
@@ -680,73 +706,12 @@ public class JavaAnalyzer {
 		}
 	}
 
-	public static void main(String[] args) {
-
-		Project prj = new Project();
-
-		File baseFile = new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml");
-		// File baseFile = new File("src/main/test/testClasses");
-
-		List<File> fileList = getFiles(baseFile);
-
-		for (File file : fileList) {
-			try {
-				if (file.getName().endsWith(".java")) {
-					CompilationUnit cu = JavaParser.parse(file);
-					if (cu.getTypes() == null) {
-						log(0, file.getAbsolutePath() + " has no classes");
-					} else {
-						processTypeDeclarations(0, prj, null, cu, cu.getTypes());
-					}
-				}
-			} catch (ParseException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		System.out.println("\n");
-		prj.validate();
-
-		GraphvizRenderer renderer = new GraphvizDotRenderer();
-
-		File graphFile = new File("graphFile.gv");
-		try {
-			FileWriter fw = new FileWriter(graphFile);
-			fw.write(prj.createGraph(renderer));
-			fw.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	private static List<File> getFiles(File baseDir) {
-		List<File> fileList = new ArrayList<File>();
-
-		if (!baseDir.getAbsolutePath().contains(".svn")) {
-			System.out.println(baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
-
-			String[] files = baseDir.list();
-			String path = baseDir.getPath();
-
-			for (String s : files) {
-				File file = new File(path + File.separator + s);
-				if (file.isDirectory()) {
-					fileList.addAll(getFiles(file));
-				} else {
-					fileList.add(file);
-				}
-			}
-		}
-		return fileList;
-
-	}
-
 	public static void log(int depth, String str) {
-		// for (int i = 0; i < depth; i++) {
-		// System.out.print("\t");
-		// }
-		// System.out.println(str);
+		if (LOG) {
+			for (int i = 0; i < depth; i++) {
+				System.out.print("\t");
+			}
+			System.out.println(str);
+		}
 	}
 }
