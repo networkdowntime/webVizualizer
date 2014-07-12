@@ -1,6 +1,7 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 
@@ -19,8 +20,8 @@ public abstract class DependentBase {
 
 	// HashSet<String> unresolvedMethods = new HashSet<String>();
 
-	HashMap<String, String> varNameTypeMap = new HashMap<String, String>(); // This is the unqualified Type
-	HashMap<String, Class> varNameClassMap = new HashMap<String, Class>();
+	HashMap<String, String> varNameTypeMap = new LinkedHashMap<String, String>(); // This is the unqualified Type
+	HashMap<String, Class> varNameClassMap = new LinkedHashMap<String, Class>();
 
 	public void setClass(DependentBase clazz) {
 		this.parent = clazz;
@@ -28,6 +29,32 @@ public abstract class DependentBase {
 
 	public DependentBase getParent() {
 		return parent;
+	}
+
+	
+	public void addPotentialClass(String className) {
+		boolean found = false;
+
+		DependentBase base = this;
+
+		while (base != null) {
+			System.out.println("Checking Base (" + base.getClass().getName() + "," + base.getClass().hashCode() + "): ");
+
+			for (String s : base.varNameTypeMap.keySet()) {
+				System.out.print(s + ", ");
+			}
+			if (base.varNameTypeMap.size() > 0)
+				System.out.println();
+			
+			if (base.varNameTypeMap.containsKey(className) || base.unresolvedAnnotations.contains(className)) {
+				found = true;
+			}
+			base = base.parent;
+		}
+
+		if (!found) {
+			addUnresolvedClass(className);
+		}
 	}
 
 	public void addUnresolvedAnnotations(String annotationName) {
@@ -80,7 +107,8 @@ public abstract class DependentBase {
 
 	public void addVariable(String name, String type) {
 		if (!varNameTypeMap.containsKey(name)) {
-			JavaAnalyzer.log(0, "Adding variable: " + type + " " + name);
+			JavaAnalyzer.log(0, "Adding variable to (" + this.getClass().getName() + "," + this.getClass().hashCode() + "): " + type + " " + name);
+
 			varNameTypeMap.put(name, type);
 		}
 		// ToDo - Add logic to investigate the type and determine if it belongs to classDependency or unresolvedClasses

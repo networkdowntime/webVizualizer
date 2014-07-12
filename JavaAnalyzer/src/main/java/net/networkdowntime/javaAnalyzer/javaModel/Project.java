@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.libs.com.zwitserloot.cmdreader.Excludes;
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
@@ -158,10 +159,18 @@ public class Project {
 		return retval;
 	}
 
-	public List<String> getClassNames() {
+	public List<String> getClassNames(List<String> excludePackages) {
 		List<String> retval = new ArrayList<String>();
 		
+		HashSet<String> excludeSet = new HashSet<String>();
+		excludeSet.addAll(excludePackages);
+		
 		for (Package p : packages.values()) {
+			
+			boolean exclude = excludeSet.contains(p.name);
+			
+			if (!exclude)
+
 			for (Class c : p.classes.values())
 				retval.add(c.name);
 		}
@@ -208,7 +217,7 @@ public class Project {
 		return clazz;
 	}
 
-	public static final String[] excludePkgs = { "java.", "javax." };
+//	public static final String[] excludePkgs = { "java.", "javax." };
 
 	public String createGraph(JavaFilter filter) {
 		GraphvizRenderer renderer = new GraphvizDotRenderer();

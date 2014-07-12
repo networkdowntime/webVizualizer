@@ -27,7 +27,15 @@ public class Method extends Block {
 		this.paramMap = paramMap;
 
 		for (String name : paramMap.keySet()) {
+			JavaAnalyzer.log(0, "Adding Method Parameter: " + name);
 			this.addVariable(name, paramMap.get(name));
+			
+			for (String s : varNameTypeMap.keySet()) {
+				System.out.print(s + ", ");
+			}
+			if (varNameTypeMap.size() > 0)
+				System.out.println();
+
 		}
 	}
 

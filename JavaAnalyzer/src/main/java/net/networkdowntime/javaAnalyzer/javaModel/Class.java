@@ -3,6 +3,7 @@ package net.networkdowntime.javaAnalyzer.javaModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class Class extends DependentBase {
 	boolean isEnum = false;
 
 	List<Package> packageDependencies = new ArrayList<Package>();
-	Map<String, Method> methods = new HashMap<String, Method>();
+	Map<String, Method> methods = new LinkedHashMap<String, Method>();
 	List<String> imports = new ArrayList<String>();
 
 	Class extnds = null; // this is deferred for now
@@ -149,11 +150,7 @@ public class Class extends DependentBase {
 		sb.append(renderer.getEndRecord());
 
 		if (extnds != null) {
-			boolean exclude = false;
-			for (String excludePkg : Project.excludePkgs) {
-				if (pkg.name.startsWith(excludePkg))
-					exclude = true;
-			}
+			boolean exclude = filter.getPackagesToExclude().contains(extnds.pkg.name);
 			if (!exclude)
 				sb.append(renderer.addEdge(this.pkg.name + "." + this.name, extnds.pkg.name + "." + extnds.name, "", true));
 

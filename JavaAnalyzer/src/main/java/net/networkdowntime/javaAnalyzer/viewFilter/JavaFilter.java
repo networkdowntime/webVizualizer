@@ -22,8 +22,8 @@ import lombok.Data;
 
 public @Data class JavaFilter {
 
-	@JsonProperty("pkFilter")
-	DiagramType diagramType = DiagramType.PACKAGE_DIAGRAM;
+	@JsonProperty("diagramType")
+	DiagramType diagramType = DiagramType.CLASS_ASSOCIATION_DIAGRAM;
 	
 	HashSet<String> packagesToExclude = new HashSet<String>();
 	HashSet<String> classesToExclude = new HashSet<String>();

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.math.*;
 
 @MyAnnotation1(author="Ryan Wiles", currentRevision=1, date="5/28/14", lastModified="5/28/14", lastModifiedBy="Ryan Wiles", reviewers={})
 public class TestClass1 {

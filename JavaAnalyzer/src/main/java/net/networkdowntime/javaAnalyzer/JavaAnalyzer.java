@@ -45,7 +45,7 @@ public class JavaAnalyzer {
 
 		// prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml"));
 		prj.addFile(new File("src/test/java/testClasses"));
-		prj.addFile(new File("src/test/java/testClasses"));
+//		prj.addFile(new File("src/test/java/testClasses"));
 		prj.validate();
 
 		File graphFile = new File("graphFile.gv");
@@ -165,8 +165,28 @@ public class JavaAnalyzer {
 				processExpression(depth + 1, base, field.getDefaultValue());
 
 			} else if (member instanceof ConstructorDeclaration) {
-				log(0, "!!! Not implemented ConstructorDeclaration");
+				ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) member;
+				constructorDeclaration.getModifiers();
 
+				String params = "";
+				LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+
+				if (constructorDeclaration.getParameters() != null) {
+					for (Parameter param : constructorDeclaration.getParameters()) {
+						params += (params.isEmpty()) ? "" : ", ";
+						params += param.getType();// + " " + param.getId().getName();
+
+						paramMap.put(param.getId().getName(), param.getType().toString());
+						// TODO: Add in method/class dependencies based on param Types
+					}
+				}
+
+				Method method = ((Class) base).getOrCreateAndGetMethod(constructorDeclaration.getName() + "(" + params + ")");
+				method.setParamMap(paramMap);
+
+				if (constructorDeclaration.getBlock() != null) {
+					processStatement(depth + 1, method, constructorDeclaration.getBlock());
+				}
 			} else if (member instanceof EmptyMemberDeclaration) {
 				log(0, "!!! Not implemented EmptyMemberDeclaration");
 
@@ -229,10 +249,6 @@ public class JavaAnalyzer {
 
 				Method method = ((Class) base).getOrCreateAndGetMethod(methodDeclaration.getName() + "(" + params + ")");
 				method.setParamMap(paramMap);
-
-				// log(depth, \t" + modifiersToString(methodDeclaration.getModifiers()) + " " +
-				// methodDeclaration.getType().toString() + " "
-				// + methodDeclaration.getName() + "(" + params + ")");
 
 				if (methodDeclaration.getBody() != null) {
 					processStatement(depth + 1, method, methodDeclaration.getBody());
@@ -372,6 +388,7 @@ public class JavaAnalyzer {
 			} else if (expression instanceof NameExpr) {
 				NameExpr ex = ((NameExpr) expression);
 
+				base.addPotentialClass(ex.toString());
 				// Nothing to do here
 
 			} else if (expression instanceof NormalAnnotationExpr) {
