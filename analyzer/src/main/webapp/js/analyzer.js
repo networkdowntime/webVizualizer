@@ -7,6 +7,7 @@ var fake = "";
 var layouts = { 'dot' : 'Top Down', 'neato' : 'Natural' };
 var pkFilter = { 'All' : 'All', 'NoPK' : 'No PK', 'HasPK' : 'Has PK' };
 var fkFilter = { 'All' : 'All', 'NoFK' : 'No FK', 'HasFK' : 'Has FK' };
+var javaDiagramType = { 'PACKAGE_DIAGRAM' : 'Package Diagram', 'CLASS_ASSOCIATION_DIAGRAM' : 'Class Diagram' };
 
 function dbAnalyzerInit(menuItem) {
 	
@@ -153,14 +154,138 @@ function dbAnalyzerInit(menuItem) {
 
 }
 
+
+
 function javaAnalyzerInit(menuItem) {
+
+	$.each(layouts, function(value, label) {
+		$("#javaLayout").append("<option value='"+value+"'>"+label+"</option>");
+	});
+	
+	$.each(javaDiagramType, function(value, label) {
+		$("#javaDiagramType").append("<option value='"+value+"'>"+label+"</option>");
+	});
+	
 	sourceDir = $.cookie("sourceDir");
 	if (sourceDir != null) $("#sourceDir").val(sourceDir);
 	
 	$("#sourceScan").click(function() {
+		sourceDir = $("#sourceDir").val();
+		console.log(sourceDir);
+		$.ajax({
+		    url:'/api/code/javaScanner' + fake + '/file',
+		    type:'POST',
+		    data: { path: sourceDir },
+		    dataType: 'json',
+		    contentType: "application/json",
+		    success:function(res){
+		    	$.cookie("sourceDir", sourceDir);
+		    	loadPackages();
+		    	loadClasses();
+				drawGraph();
+		    },
+		    error:function(res){
+		        alert("Bad thing happend! " + res.statusText);
+		        alert("Bad thing happend! " + res);
+		    }
+		});
 		
-	})
+	});
+	
+	function loadPackages() {
+		container = $("#packagesDiv").next();
+		packagesDiv = $(container).children(".content");
+		$(packagesDiv).empty();
+		$.get('/api/code/javaScanner' + fake + '/packages', function(data) {
+    	    $(container).css('overflow-y', 'hidden');
+	    	$(data).each(function() {
+	    		$("<div><input class='packages' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(packagesDiv).slideDown(250);
+	    	});
+    	    $(container).css('overflow-y', '');
+    		fixSideBarMaxHeight(null, true)
+    	    $(".packages").change(function() {
+    	    	loadClasses();
+    			drawGraph();
+    	    });
+	    });
+	}
+
+	function loadClasses() {
+		var uncheckedPackages = $.makeArray( $.map($(".packages"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
+
+		container = $("#classesDiv").next();
+		classesDiv = $(container).children(".content");
+		$(classesDiv).empty();
+		$.ajax({
+		    url:'/api/code/javaScanner' + fake + '/classes',
+		    type:'POST',
+		    data: JSON.stringify(uncheckedPackages),
+		    dataType: 'json',
+		    contentType: "application/json",
+		    success:function(data){
+	    	    $(container).css('overflow-y', 'hidden');
+		    	$(data).each(function() {
+		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(classesDiv).slideDown(250);
+		    	});
+	    	    $(container).css('overflow-y', '');
+	    	    $(".classes").change(function() {
+	    			drawGraph();
+	    	    });
+	    		fixSideBarMaxHeight(null, true);
+				drawGraph();
+		    },
+		    error:function(res){
+		        alert("Bad thing happend! " + res.statusText);
+		        alert("Bad thing happend! " + res);
+		    }
+		});
+	}
+
+	$("#javaRender").click(function() {
+		drawGraph();
+	});
+		
+	function drawGraph() {
+		var uncheckedPackages = $.makeArray( $.map($(".packages"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
+		var uncheckedClasses = $.makeArray( $.map($(".classes"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
+
+		filter = {
+			diagramType : $("#javaDiagramType option:selected").val(), // PACKAGE_DIAGRAM, CLASS_ASSOCIATION_DIAGRAM, METHOD_CALL_DIAGRAM
+			showFields : $("#showFields").prop('checked'), // boolean
+			showMethods : $("#showMethods").prop('checked'), //boolean
+			packagesToExclude : uncheckedPackages, //["CREATED_BY", "UPDATED_BY"], // Set<String>
+			classesToExclude : uncheckedClasses // NoFK, HasFK, All
+		};
+		
+		$.ajax({
+		    url:'/api/code/javaScanner' + fake + '/dot',
+		    type:'POST',
+		    data: JSON.stringify(filter),
+		    dataType: 'text',
+		    contentType: "application/json",
+		    success:function(res){
+			     var dotFile = res;
+			     
+			     var format = "svg"; // dot, plain, svg, xdot
+			     var engine = $("#javaLayout option:selected").val(); // dot, neato
+			     
+			     var result = Viz(dotFile, format, engine);
+			     
+			     //console.log(result);
+			     $("#imgDiv").html(result);
+			     initializeDragScrollZoom();
+		    },
+		    error:function(res){
+		        alert("Bad thing happend! " + res.statusText);
+		        alert("Bad thing happend! " + res);
+		    }
+		});
+	
+	}
+
 }
+
+
 
 function fixSideBarMaxHeight(divChanging, animateChange) {
 	

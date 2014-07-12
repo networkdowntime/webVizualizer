@@ -88,6 +88,30 @@
 					<div><div class="sourceLabel">Source Dir:</div><input id="sourceDir" type="text" placeholder="Path to your code" value=''/><button id="sourceScan">Scan</button></div>
 				</div>
 			</div>
+
+			<div class="collapsible" id="packagesDiv">Packages<span></span></div>
+			<div class="container" id="packagesContainer">
+				<div class="content">
+				</div>
+			</div>
+
+			<div class="collapsible" id="classesDiv">Classes<span></span></div>
+			<div class="container" id="classesContainer">
+				<div class="content">
+				</div>
+			</div>
+
+			<div class="collapsible" id="javaFilterDiv">Filter<span></span></div>
+			<div class="container" id="javaFilterContainer">
+				<div class="content">
+					<div><div class="filterLabel">Layout:</div><select id="javaLayout"></select></div>
+					<div><div class="filterLabel">Type:</div><select id="javaDiagramType"></select></div>
+					<div><div class="filterLabel">Show Fields:</div><input id="showFields" type="checkbox"/></div>
+					<div><div class="filterLabel">Show Methods:</div><input id="showMethods" type="checkbox" checked/></div>
+					<div><button id="javaRender">Render</button></div>
+				</div>
+			</div>
+	
  	 	</div>
  		<div id="scrollDiv">
    			<div id="imgDiv">

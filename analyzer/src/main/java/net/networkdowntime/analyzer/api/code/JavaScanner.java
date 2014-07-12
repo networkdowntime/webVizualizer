@@ -107,9 +107,22 @@ public class JavaScanner {
 	@Path("/classes")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getClasses() {
-		return project.getClassNames();
+		return project.getClassNames(new ArrayList<String>());
 	}
 
+	@POST
+	@Path("/classes")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public List<String> postClasses(List<String> excludePackages) {
+		System.out.println("excludePackages: " + excludePackages);
+		if (excludePackages != null) {
+			for (String s : excludePackages)
+			System.out.println("\t" + s);
+			
+		}
+		return project.getClassNames(excludePackages);
+	}
 	
 	@POST
 	@Path("/dot")
@@ -128,6 +141,7 @@ public class JavaScanner {
 			System.out.println("\t" + s);
 		}
 
+		project.validate();
 		return project.createGraph(filter);
 	}
 
