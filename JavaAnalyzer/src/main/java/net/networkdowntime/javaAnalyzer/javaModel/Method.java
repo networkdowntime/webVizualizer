@@ -1,5 +1,4 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
@@ -29,18 +28,13 @@ public class Method extends Block {
 		for (String name : paramMap.keySet()) {
 			JavaAnalyzer.log(0, "Adding Method Parameter: " + name);
 			this.addVariable(name, paramMap.get(name));
-			
-			for (String s : varNameTypeMap.keySet()) {
-				System.out.print(s + ", ");
-			}
-			if (varNameTypeMap.size() > 0)
-				System.out.println();
-
 		}
 	}
 
-	public void validate() {
+	public void validatePassOne() {
 		JavaAnalyzer.log(1, "Validating Method: " + getName());
-		super.validate();
+		super.validatePassOne();
 	}
+	
+	
 }

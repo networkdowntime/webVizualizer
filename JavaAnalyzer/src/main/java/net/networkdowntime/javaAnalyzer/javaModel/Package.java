@@ -2,6 +2,7 @@ package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
@@ -17,6 +18,7 @@ public class Package {
 	boolean inPath = false;
 	Project prj;
 	Map<String, Class> classes = new HashMap<String, Class>();
+	boolean fromFile = false;
 
 	public Package(String name, boolean inPath) {
 		this.name = name;
@@ -36,28 +38,21 @@ public class Package {
 		return clazz;
 	}
 
+	public Class getOrCreateAndGetClass(String name, boolean fileScanned) {
+		Class clazz = getOrCreateAndGetClass(name);
+		clazz.fromFile = fileScanned;
+		return clazz;
+	}
+
 	public Class searchForUnresolvedClass(String classInitiatingSearch, String classToSearchFor) {
-		// System.out.println("Package " + name + ": Searching for unresolved class: " + classToSearchFor + " by " +
-		// classInitiatingSearch);
-
-		// for (String s : classes.keySet()) {
-		// System.out.println("\t\tContains: " + s);
-		// }
-
-		// System.out.println("\tChecking for: " + name + "." + classInitiatingSearch + "." + classToSearchFor);
 		Class clazz = classes.get(name + "." + classInitiatingSearch + "." + classToSearchFor);
 		if (clazz == null) {
-			// System.out.println("\tChecking for: " + name + "." + classToSearchFor);
-
 			clazz = classes.get(classToSearchFor);
 		}
 		if (clazz == null && classInitiatingSearch != null) {
 			clazz = prj.searchForClass(name, classToSearchFor);
 		}
 
-		// if (clazz == null) {
-		// System.out.println("Package " + name + ": No match found for " + classToSearchFor);
-		// }
 		return clazz;
 	}
 
@@ -71,32 +66,76 @@ public class Package {
 		return name;
 	}
 
-	public void validate() {
+	public void validatePassOne() {
 		for (Class clazz : classes.values()) {
-			clazz.validate();
+			clazz.validatePassOne();
+		}
+	}
+
+	public void validatePassTwo() {
+		for (Class clazz : classes.values()) {
+			clazz.validatePassTwo();
 		}
 	}
 
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
-		System.out.println("Package: " + this.name);
+		JavaAnalyzer.log(0, "Package: " + this.name);
 
 		StringBuffer sb = new StringBuffer();
-		sb.append(renderer.getBeginCluster(name));
 
-		if (filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM) {
-			for (Class clazz : classes.values()) {
+		if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
+			sb.append(renderer.getBeginRecord(this.name, this.name, ""));
+			sb.append(renderer.getEndRecord());
 
-				if (clazz.name == null) {
-					System.err.println("!!!" + this.name + ": class with null name");
-				} else {
-					if (!filter.getClassesToExclude().contains(clazz.name)) {
-						sb.append(clazz.createGraph(renderer, filter));
+			HashMap<String, Integer> referencedPackages = new HashMap<String, Integer>();
+			for (Class c : classes.values()) {
+				if ((filter.isFromFile() && c.fromFile) || !filter.isFromFile()) {
+					for (Package p : c.packageDependencies) {
+						if ((filter.isFromFile() && p.fromFile) || !filter.isFromFile()) {
+							Integer count = referencedPackages.get(p.name);
+							if (count == null)
+								count = 0;
+							referencedPackages.put(p.name, count);
+						}
+					}
+
+					for (Class c1 : c.classDependencies.values()) {
+						if ((filter.isFromFile() && c1.fromFile) || !filter.isFromFile()) {
+							Integer count = referencedPackages.get(c1.pkg.name);
+							if (count == null)
+								count = 0;
+							referencedPackages.put(c1.pkg.name, count + 1);
+						}
 					}
 				}
 			}
+
+			for (String pkgName : referencedPackages.keySet()) {
+				if (!filter.getPackagesToExclude().contains(pkgName)) {
+					Integer count = referencedPackages.get(pkgName);
+					sb.append(renderer.addEdge(this.name, pkgName, count.toString(), false));
+				}
+			}
+
+		} else {
+
+			sb.append(renderer.getBeginCluster(name));
+
+			for (Class clazz : classes.values()) {
+
+				if ((filter.isFromFile() && clazz.fromFile) || !filter.isFromFile()) {
+					if (clazz.name == null) {
+						System.err.println("!!!" + this.name + ": class with null name");
+					} else {
+						if (!filter.getClassesToExclude().contains(this.name + "." + clazz.name)) {
+							sb.append(clazz.createGraph(renderer, filter));
+						}
+					}
+				}
+			}
+			sb.append(renderer.getEndCluster());
 		}
-		
-		sb.append(renderer.getEndCluster());
+
 		return sb.toString();
 	}
 }

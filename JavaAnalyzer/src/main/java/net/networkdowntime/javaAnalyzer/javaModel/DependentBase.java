@@ -18,10 +18,11 @@ public abstract class DependentBase {
 	HashSet<String> unresolvedClasses = new HashSet<String>();
 	HashMap<String, Integer> unresolvedClassCount = new HashMap<String, Integer>(); 
 
-	// HashSet<String> unresolvedMethods = new HashSet<String>();
+	HashMap<String, HashSet<String>> unresolvedMethods = new HashMap<String, HashSet<String>>();
 
 	HashMap<String, String> varNameTypeMap = new LinkedHashMap<String, String>(); // This is the unqualified Type
 	HashMap<String, Class> varNameClassMap = new LinkedHashMap<String, Class>();
+	HashMap<Class, HashSet<Method>> methodCallMap = new HashMap<Class, HashSet<Method>>(); 
 
 	public void setClass(DependentBase clazz) {
 		this.parent = clazz;
@@ -38,14 +39,6 @@ public abstract class DependentBase {
 		DependentBase base = this;
 
 		while (base != null) {
-			System.out.println("Checking Base (" + base.getClass().getName() + "," + base.getClass().hashCode() + "): ");
-
-			for (String s : base.varNameTypeMap.keySet()) {
-				System.out.print(s + ", ");
-			}
-			if (base.varNameTypeMap.size() > 0)
-				System.out.println();
-			
 			if (base.varNameTypeMap.containsKey(className) || base.unresolvedAnnotations.contains(className)) {
 				found = true;
 			}
@@ -80,29 +73,36 @@ public abstract class DependentBase {
 
 	public void addResolvedClass(Class clazz) {
 		classDependencies.put(clazz.getName(), clazz);
+		
+		if (this instanceof Class) {
+			clazz.addReferencedByClass((Class) this);
+		}
 		if (parent != null) {
 			parent.addResolvedClass(clazz);
 		}
 	}
 
 	private boolean isPrimative(String name) {
+		boolean retval = false;
+
 		if (name.equals("boolean"))
-			return true;
-		if (name.equals("byte"))
-			return true;
-		if (name.equals("short"))
-			return true;
-		if (name.equals("int"))
-			return true;
-		if (name.equals("long"))
-			return true;
-		if (name.equals("float"))
-			return true;
-		if (name.equals("double"))
-			return true;
-		if (name.equals("char"))
-			return true;
-		return false;
+			retval = true;
+		else if (name.equals("byte"))
+			retval = true;
+		else if (name.equals("short"))
+			retval = true;
+		else if (name.equals("int"))
+			retval = true;
+		else if (name.equals("long"))
+			retval = true;
+		else if (name.equals("float"))
+			retval = true;
+		else if (name.equals("double"))
+			retval = true;
+		else if (name.equals("char"))
+			retval = true;
+
+		return retval;
 	}
 
 	public void addVariable(String name, String type) {
@@ -139,7 +139,18 @@ public abstract class DependentBase {
 		return matchedClass;
 	}
 
-	public void validate() {
+	public Class searchForVariableClass(String variableName) {
+		JavaAnalyzer.log(1, "DependentBase.searchForVariable(" + variableName + ")");
+		Class matchedClass = varNameClassMap.get(variableName);
+		
+		if (matchedClass == null) {
+			if (parent != null)
+				matchedClass =  parent.searchForVariableClass(variableName);
+		}
+		return matchedClass;
+	}
+
+	public void validatePassOne() {
 		Class c = findClass();
 
 		if (this instanceof Method) {
@@ -174,8 +185,8 @@ public abstract class DependentBase {
 				type = type.substring(0, type.indexOf("<"));
 			}
 			
-			JavaAnalyzer.log(0, "Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName);
-			if (!isPrimative(type) || !"this".equals(type)) {
+			JavaAnalyzer.log(0, "Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName + " " + isPrimative(type) + " " + "this".equals(type));
+			if (!(isPrimative(type) || "this".equals(type))) {
 				Class clazz = searchForUnresolvedClass(type);
 
 				if (clazz != null) {
@@ -189,10 +200,67 @@ public abstract class DependentBase {
 		if (this instanceof Block) {
 			Block b = (Block) this;
 			for (Block block : b.childBlocks) {
-				block.validate();
+				block.validatePassOne();
 			}
 		}
 
+	}
+
+	public void validatePassTwo() {
+		JavaAnalyzer.log(0, "DependentBase.validatePassTwo()");
+		
+		for (String typeOrVarName : unresolvedMethods.keySet()) {
+			Class clazz = null;
+			
+			if ("this".equals(typeOrVarName)) {
+				clazz = findClass();
+			} else if ("super".equals(typeOrVarName)) {
+				clazz = findClass().extnds;
+			} else if ("String".equals(typeOrVarName)) {
+				searchForUnresolvedClass("String");
+			} else if ("null".equals(typeOrVarName) || typeOrVarName == null) {
+			} else {
+				clazz = searchForVariableClass(typeOrVarName);
+				
+				if (clazz == null) {
+					clazz = searchForUnresolvedClass(typeOrVarName);
+				}
+			}
+			
+			if (clazz != null) {
+				JavaAnalyzer.log(1, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
+
+				for (String methodName : unresolvedMethods.get(typeOrVarName)) {
+					HashSet<Method> methods = methodCallMap.get(clazz);
+					if (methods == null) {
+						methods = new HashSet<Method>();
+						methodCallMap.put(clazz, methods);
+					}
+					
+					Method method = clazz.getOrCreateAndGetMethod(methodName + "()");
+					methods.add(method);
+
+//					JavaAnalyzer.log(0, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
+
+				}
+			}
+		}
+		
+		if (this instanceof Block) {
+			Block b = (Block) this;
+			for (Block block : b.childBlocks) {
+				block.validatePassTwo();
+			}
+		}
+	}
+
+	public void addUnresolvedMethodCall(String typeOrVarName, String methodName) {
+		HashSet<String> methods = unresolvedMethods.get(varNameTypeMap);
+		if (methods == null) {
+			methods = new HashSet<String>();
+			unresolvedMethods.put(typeOrVarName, methods);
+		}
+		methods.add(methodName);
 	}
 
 }

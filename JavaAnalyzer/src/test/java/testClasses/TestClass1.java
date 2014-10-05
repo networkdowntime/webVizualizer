@@ -44,7 +44,7 @@ public class TestClass1 {
 		
 		localVar1 = localVar2;
 		
-		String strVar1 = "foo".toUpperCase(Locale.US);
+		String strVar1 = "foo".toUpperCase(Locale.US).toLowerCase();
 	}
 	
 	public long currentTime() {

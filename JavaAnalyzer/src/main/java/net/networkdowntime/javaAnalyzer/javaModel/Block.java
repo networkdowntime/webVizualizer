@@ -12,12 +12,6 @@ public class Block extends DependentBase {
 
 	public Block(Block parent) {
 		this.parent = parent;
-
-		DependentBase b = this.parent;
-		while (b != null) {
-			System.out.print("\t");
-			b = b.parent;
-		}
 		JavaAnalyzer.log(1, "Creating Block: ");
 	}
 
@@ -25,4 +19,11 @@ public class Block extends DependentBase {
 		this.childBlocks.add(block);
 	}
 
+	@Override
+	public void addUnresolvedClass(String className) {
+		System.out.println("Adding class to block: " + className);
+		super.addUnresolvedClass(className);
+	}
+
+	
 }

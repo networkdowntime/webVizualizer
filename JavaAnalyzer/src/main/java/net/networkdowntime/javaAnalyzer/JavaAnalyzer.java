@@ -13,6 +13,7 @@ import java.util.Set;
 import net.networkdowntime.javaAnalyzer.javaModel.*;
 import net.networkdowntime.javaAnalyzer.javaModel.Class;
 import net.networkdowntime.javaAnalyzer.javaModel.Package;
+import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizNeatoRenderer;
@@ -43,15 +44,26 @@ public class JavaAnalyzer {
 	public static void main(String[] args) {
 		Project prj = new Project();
 
-		// prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml"));
+		long time = System.currentTimeMillis();
+		
+//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source"));
+//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml"));
+//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/titlemax"));
 		prj.addFile(new File("src/test/java/testClasses"));
-//		prj.addFile(new File("src/test/java/testClasses"));
+		
+		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
+		time = System.currentTimeMillis();
+		
 		prj.validate();
+		System.out.println("Time to validate (ms): " + (System.currentTimeMillis() - time));
 
 		File graphFile = new File("graphFile.gv");
 		try {
 			FileWriter fw = new FileWriter(graphFile);
-			fw.write(prj.createGraph(new JavaFilter()));
+			JavaFilter filter = new JavaFilter();
+			filter.setDiagramType(DiagramType.PACKAGE_DIAGRAM);
+			filter.setFromFile(true);
+			fw.write(prj.createGraph(filter));
 			fw.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -275,9 +287,11 @@ public class JavaAnalyzer {
 
 	}
 
-	private static void processExpression(int depth, DependentBase base, Expression expression) {
+	private static String processExpression(int depth, DependentBase base, Expression expression) {
 		if (expression != null) {
 			log(depth, "[" + expression.getClass().getName() + "] - " + expression.toString());
+
+			System.out.println("[" + expression.getClass().getName() + "] - " + expression.toString());
 
 			if (expression instanceof ArrayAccessExpr) {
 				ArrayAccessExpr ex = ((ArrayAccessExpr) expression);
@@ -378,17 +392,20 @@ public class JavaAnalyzer {
 
 			} else if (expression instanceof MethodCallExpr) {
 				MethodCallExpr ex = ((MethodCallExpr) expression);
-				// System.out.println("method call scope: " + ex.getScope());
-				// base.addUnresolvedClass(ex.getScope().toString()); // Name of the class
-				processExpression(depth + 1, base, ex.getScope());
-				// System.out.println("method call name: " + ex.getName());
+				//System.out.println("method call scope: " + ex.getScope());
+//				base.addUnresolvedClass(ex.getScope().toString()); // Name of the class
+				String typeOrVarName = processExpression(depth + 1, base, ex.getScope());
+				System.out.println("method call name: " + typeOrVarName + " -> " + ex.getName());
 
+				base.addUnresolvedMethodCall(typeOrVarName, ex.getName());
+				
 				processExpressions(depth + 1, base, ex.getArgs());
 
 			} else if (expression instanceof NameExpr) {
 				NameExpr ex = ((NameExpr) expression);
 
 				base.addPotentialClass(ex.toString());
+				return ex.toString();
 				// Nothing to do here
 
 			} else if (expression instanceof NormalAnnotationExpr) {
@@ -426,17 +443,20 @@ public class JavaAnalyzer {
 			} else if (expression instanceof StringLiteralExpr) {
 				StringLiteralExpr ex = ((StringLiteralExpr) expression);
 
-				// Nothing to do here
+				base.addUnresolvedClass("String");
+				return "String";
 
 			} else if (expression instanceof SuperExpr) {
 				SuperExpr ex = ((SuperExpr) expression);
 
 				processExpression(depth + 1, base, ex.getClassExpr());
+				return "super";
 
 			} else if (expression instanceof ThisExpr) {
 				ThisExpr ex = ((ThisExpr) expression);
 
 				processExpression(depth + 1, base, ex.getClassExpr());
+				return base.findClass().getName();
 
 			} else if (expression instanceof UnaryExpr) {
 				UnaryExpr ex = ((UnaryExpr) expression);
@@ -466,6 +486,7 @@ public class JavaAnalyzer {
 				log(0, "!!! Unknown - [" + expression.getClass().getName() + "] - " + expression.toString());
 			}
 		}
+		return null;
 	}
 
 	private static void processStatement(int depth, Block block, Statement stmt) {
@@ -615,13 +636,13 @@ public class JavaAnalyzer {
 		if (typeDeclaration != null) {
 			log(depth, "[" + typeDeclaration.getClass().getName() + "] - " + typeDeclaration.getName());
 
-			Package pkg = prj.getOrCreateAndGetPackage(cu.getPackage().getName().toString(), true);
+			Package pkg = prj.getOrCreateAndGetPackage(cu.getPackage().getName().toString(), true, true);
 
 			Class base;
 			if (parent != null) {
-				base = pkg.getOrCreateAndGetClass(parent.getName() + "." + typeDeclaration.getName());
+				base = pkg.getOrCreateAndGetClass(parent.getName() + "." + typeDeclaration.getName(), true);
 			} else {
-				base = pkg.getOrCreateAndGetClass(typeDeclaration.getName());
+				base = pkg.getOrCreateAndGetClass(typeDeclaration.getName(), true);
 			}
 
 			log(depth, cu.getPackage().getName().toString());

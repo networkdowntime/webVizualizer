@@ -30,4 +30,5 @@ public @Data class JavaFilter {
 	
 	boolean showMethods = false;
 	boolean showFields = false;
+	boolean fromFile = false;
 }

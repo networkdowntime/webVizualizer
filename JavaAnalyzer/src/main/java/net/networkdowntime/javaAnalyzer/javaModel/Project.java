@@ -7,14 +7,13 @@ import japa.parser.ast.CompilationUnit;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.libs.com.zwitserloot.cmdreader.Excludes;
 import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
@@ -26,7 +25,7 @@ public class Project {
 	private Set<File> files = new HashSet<File>();
 	private HashSet<String> scannedFiles = new HashSet<String>();
 	Map<String, Package> packages = new HashMap<String, Package>();
-	
+
 	public Project() {
 		getOrCreateAndGetPackage("java.lang", false);
 	}
@@ -34,14 +33,9 @@ public class Project {
 	public List<File> getFiles() {
 		List<File> retval = new ArrayList<File>();
 		retval.addAll(this.files);
-		retval.sort(new Comparator<File>() {
 
-			@Override
-			public int compare(File file1, File file2) {
-				return file1.compareTo(file2);
-			}
-
-		});
+		Collections.sort(retval, (File f1, File f2) -> f1.compareTo(f2));
+		
 		return retval;
 	}
 
@@ -72,18 +66,19 @@ public class Project {
 			JavaAnalyzer.log(0, file.getAbsolutePath() + " does not exist");
 		}
 	}
-	
+
 	/**
 	 * Scans the selected file or directory and adds it to the project
 	 * 
 	 * Preconditions: file exists
+	 * 
 	 * @param fileToScan
 	 */
 	private void scanFile(File fileToScan) {
-	
+
 		List<File> filesToScan = new ArrayList<File>();
 		filesToScan.addAll(getFiles(fileToScan));
-	
+
 		for (File f : filesToScan) {
 			try {
 				if (f.getName().endsWith(".java")) {
@@ -101,14 +96,14 @@ public class Project {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("\n");
-	
+		JavaAnalyzer.log(0, "\n");
+
 	}
 
 	private void deindexFile(File fileToDeindex) {
 		// To Do Implement better deindexing
 		// Simple implementation is to just redo everything
-		
+
 		scannedFiles = new HashSet<String>();
 		packages = new HashMap<String, Package>();
 		getOrCreateAndGetPackage("java.lang", false);
@@ -122,7 +117,7 @@ public class Project {
 		List<File> fileList = new ArrayList<File>();
 
 		if (!baseDir.getAbsolutePath().contains(".svn")) {
-			System.out.println(baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
+			// System.out.println(baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
 
 			String[] files = baseDir.list();
 			String path = baseDir.getPath();
@@ -152,28 +147,34 @@ public class Project {
 
 	public List<String> getPackageNames() {
 		List<String> retval = new ArrayList<String>();
-		
+
 		for (Package p : packages.values()) {
 			retval.add(p.name);
 		}
+		
+		Collections.sort(retval, (String s1, String s2) -> s1.compareTo(s2));
+
 		return retval;
 	}
 
 	public List<String> getClassNames(List<String> excludePackages) {
 		List<String> retval = new ArrayList<String>();
-		
+
 		HashSet<String> excludeSet = new HashSet<String>();
 		excludeSet.addAll(excludePackages);
-		
+
 		for (Package p : packages.values()) {
-			
+
 			boolean exclude = excludeSet.contains(p.name);
-			
+
 			if (!exclude)
 
-			for (Class c : p.classes.values())
-				retval.add(c.name);
+				for (Class c : p.classes.values())
+					retval.add(p.name + "." + c.name);
 		}
+
+		Collections.sort(retval, (String s1, String s2) -> s1.compareTo(s2));
+		
 		return retval;
 	}
 
@@ -192,10 +193,24 @@ public class Project {
 		return pkg;
 	}
 
+	public Package getOrCreateAndGetPackage(String name, boolean inPath, boolean fileScanned) {
+		Package pkg = getOrCreateAndGetPackage(name, inPath);
+		pkg.fromFile = fileScanned;
+		return pkg;
+	}
+
 	public void validate() {
+		int classCount = 0;
 		for (Package pkg : packages.values()) {
-			pkg.validate();
+			pkg.validatePassOne();
+			classCount += pkg.classes.size();
 		}
+		
+		for (Package pkg : packages.values()) {
+			pkg.validatePassTwo();
+		}
+		System.out.println("Validated " + packages.size() + " packages");
+		System.out.println("Validated " + classCount + " classes");
 	}
 
 	public Class searchForClass(String pkgDoingSearch, String name) {
@@ -217,7 +232,7 @@ public class Project {
 		return clazz;
 	}
 
-//	public static final String[] excludePkgs = { "java.", "javax." };
+	// public static final String[] excludePkgs = { "java.", "javax." };
 
 	public String createGraph(JavaFilter filter) {
 		GraphvizRenderer renderer = new GraphvizDotRenderer();
@@ -230,9 +245,12 @@ public class Project {
 			Package pkg = packages.get(pkgName);
 			// if (pkg.inPath) {
 			boolean exclude = filter.getPackagesToExclude().contains(pkg.name);
-			
-			if (!exclude)
-				sb.append(pkg.createGraph(renderer, filter));
+
+			if (!exclude) {
+				if ((filter.isFromFile() && pkg.fromFile) || !filter.isFromFile()) {
+					sb.append(pkg.createGraph(renderer, filter));
+				}
+			}
 		}
 
 		sb.append(renderer.getFooter());
