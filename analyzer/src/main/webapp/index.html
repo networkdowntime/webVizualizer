@@ -12,8 +12,8 @@
 	<script src="./js/viz.js"></script>
 	<script src="./js/dragscrollzoom.js"></script>
 	<script src="./js/jquery.mousewheel.js"></script>
-	<script type="text/javascript" src="js/jquery.cookie.js"></script>
-	<script type="text/javascript" src="js/jquery.collapsible.js"></script>
+	<script src="./js/jquery.cookie.js"></script>
+	<script src="./js/jquery.collapsible.js"></script>
 
 </head>
 <body>
@@ -74,8 +74,8 @@
 					<div><div class="filterLabel">FK Filter:</div><select id="fkFilter"></select></div>
 					<div><div class="filterLabel">Connect By FKs:</div><input id="connectWithFKs" type="checkbox" checked/></div>
 					<div><div class="filterLabel">Labels On FK Connections:</div><input id="showLabelsOnFKs" type="checkbox"/></div>
-					<div><div class="filterLabel">Exclude FKs By Col Name:</div></div>
-					<div><input id="excludeFKForColumnsNamed" type="text" class="excludeFKForColumnsNamed" value=""/></div>
+					<div><div class="filterLabel">Exclude FKs By Col Name:</div><input id="excludeFKForColumnsNamed" type="text" class="excludeFKForColumnsNamed" value=""/></div>
+					<div><div class="filterLabel">Exclude Tables Containing:</div><input id="excludeTablesContaining" type="text" class="excludeTablesContaining" value=""/></div>
 					<div><button id="connectionRender">Render</button></div>
 				</div>
 			</div>
@@ -108,6 +108,7 @@
 					<div><div class="filterLabel">Type:</div><select id="javaDiagramType"></select></div>
 					<div><div class="filterLabel">Show Fields:</div><input id="showFields" type="checkbox"/></div>
 					<div><div class="filterLabel">Show Methods:</div><input id="showMethods" type="checkbox" checked/></div>
+					<div><div class="filterLabel">From Scanned File:</div><input id="fromFile" type="checkbox" checked/></div>
 					<div><button id="javaRender">Render</button></div>
 				</div>
 			</div>

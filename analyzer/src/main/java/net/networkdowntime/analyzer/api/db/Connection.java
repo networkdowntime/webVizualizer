@@ -129,6 +129,10 @@ public class Connection {
 		for (String s : filter.getExcludeFKForColumnsNamed()) {
 			System.out.println("\t" + s);
 		}
+		System.out.println("excludeTablesContaining: ");
+		for (String s : filter.getExcludeTablesContaining()) {
+			System.out.println("\t" + s);
+		}
 		System.out.println("fkFilter: " + filter.getFkFilter().toString());
 
 		return creator.createGraphvizString(filter);

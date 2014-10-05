@@ -7,7 +7,7 @@ var fake = "";
 var layouts = { 'dot' : 'Top Down', 'neato' : 'Natural' };
 var pkFilter = { 'All' : 'All', 'NoPK' : 'No PK', 'HasPK' : 'Has PK' };
 var fkFilter = { 'All' : 'All', 'NoFK' : 'No FK', 'HasFK' : 'Has FK' };
-var javaDiagramType = { 'PACKAGE_DIAGRAM' : 'Package Diagram', 'CLASS_ASSOCIATION_DIAGRAM' : 'Class Diagram' };
+var javaDiagramType = { 'PACKAGE_DIAGRAM' : 'Package Diagram', 'CLASS_ASSOCIATION_DIAGRAM' : 'Class Diagram', 'UNREFERENCED_CLASSES' : 'Unreferenced Classes' };
 
 function dbAnalyzerInit(menuItem) {
 	
@@ -121,7 +121,8 @@ function dbAnalyzerInit(menuItem) {
 			pkFilter : $("#pkFilter option:selected").val(), // NoPK, HasPK, All
 			connectWithFKs : $("#connectWithFKs").prop('checked'), // boolean
 			showLabelsOnFKs : $("#showLabelsOnFKs").prop('checked'), //boolean
-			excludeFKForColumnsNamed : [], //["CREATED_BY", "UPDATED_BY"], // Set<String>
+			excludeFKForColumnsNamed : $("#excludeFKForColumnsNamed").val().split(","), //["CREATED_BY", "UPDATED_BY"], // Set<String>
+			excludeTablesContaining : $("#excludeTablesContaining").val().split(","), //["_HISTORY", "_BACKUP"], // Set<String>
 			fkFilter : $("#fkFilter option:selected").val() // NoFK, HasFK, All
 		};
 		
@@ -232,7 +233,6 @@ function javaAnalyzerInit(menuItem) {
 	    			drawGraph();
 	    	    });
 	    		fixSideBarMaxHeight(null, true);
-				drawGraph();
 		    },
 		    error:function(res){
 		        alert("Bad thing happend! " + res.statusText);
@@ -253,6 +253,7 @@ function javaAnalyzerInit(menuItem) {
 			diagramType : $("#javaDiagramType option:selected").val(), // PACKAGE_DIAGRAM, CLASS_ASSOCIATION_DIAGRAM, METHOD_CALL_DIAGRAM
 			showFields : $("#showFields").prop('checked'), // boolean
 			showMethods : $("#showMethods").prop('checked'), //boolean
+			fromFile : $("#fromFile").prop('checked'), //boolean
 			packagesToExclude : uncheckedPackages, //["CREATED_BY", "UPDATED_BY"], // Set<String>
 			classesToExclude : uncheckedClasses // NoFK, HasFK, All
 		};
