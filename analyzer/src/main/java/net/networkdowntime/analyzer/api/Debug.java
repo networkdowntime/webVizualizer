@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
+
 @Component
 @Path("/debug")
 public class Debug {
@@ -29,7 +31,26 @@ public class Debug {
 	public String getIt() {
 		String retval = "Debug Page<br><br>";
 		for (Method method : this.getClass().getMethods()) {
-			retval += "<a href=\"/api/debug/" + method.getName() + "\">" + method.getName() + "</a><br>";
+			switch (method.getName()) {
+			case "getIt":
+				break;
+			case "wait":
+				break;
+			case "equals":
+				break;
+			case "toString":
+				break;
+			case "hashCode":
+				break;
+			case "getClass":
+				break;
+			case "notify":
+				break;
+			case "notifyAll":
+				break;
+			default:
+				retval += "<a href=\"/api/debug/" + method.getName() + "\">" + method.getName()	+ "</a><br>";
+			}
 		}
 		return retval;
 	}
@@ -63,14 +84,53 @@ public class Debug {
 	@GET
 	@Path("/getStringArr")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> getStringArr() {
+	public String[] getStringArr() {
+		return new String[] {"String1","String2","String3"};
+	}
+
+	@GET
+	@Path("/setStringArr")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String[] setStringArr(String[] retval) {
+		return retval;
+	}
+
+	@GET
+	@Path("/getStringList")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<String> getStringList() {
 		List<String> retval = new ArrayList<String>();
 		retval.add("String1");
 		retval.add("String2");
 		retval.add("String3");
 		return retval;
 	}
-	
+
+	@GET
+	@Path("/setStringList")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<String> setStringList(List<String> retval) {
+		return retval;
+	}
+
+	@GET
+	@Path("/getStringMap")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Map<String,String> getStringMap() {
+		Map<String,String> retval = new HashMap<String,String>();
+		retval.put("String1", "Value1");
+		retval.put("String2", "Value2");
+		retval.put("String3", "Value3");
+		return retval;
+	}
+
+	@GET
+	@Path("/setStringMap")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Map<String,String> setStringMap(Map<String,String> retval) {
+		return retval;
+	}
+
 	@GET
 	@Path("/getString")
 	@Consumes(MediaType.APPLICATION_JSON)

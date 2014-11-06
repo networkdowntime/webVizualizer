@@ -113,6 +113,33 @@ function dbAnalyzerInit(menuItem) {
 		return $.makeArray( $.map($(".tables"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
 	}
 	
+	$("#connectionSave").click(function() {
+		var svg = $("#imgDiv").html();
+		
+		var xhr = new XMLHttpRequest();
+		var url = "/api/db/connection/toPng";
+		var params = "svg=" + encodeURIComponent(svg);
+		xhr.responseType = 'blob';
+		xhr.open("POST", url, true);
+
+		//Send the proper header information along with the request
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xhr.onload = function(e) {
+		  if (this.status == 200) {
+			var blob = new Blob([this.response], {type: 'image/png'});
+			var downloadUrl = URL.createObjectURL(blob);
+			var a = document.createElement("a");
+			a.href = downloadUrl;
+		    a.download = "schema.png";
+		    document.body.appendChild(a);
+		    a.click();
+		    $(a).remove();
+		  }
+		};
+
+		xhr.send(params);
+	})
+	
 	$("#connectionRender").click(function() {
 		filter = {
 			showAllColumnsOnTables : $("#showAllColumnsOnTables").prop('checked'), // boolean
@@ -137,7 +164,8 @@ function dbAnalyzerInit(menuItem) {
 			     
 			     var format = "svg"; // dot, plain, svg, xdot
 			     var engine = $("#dbLayout option:selected").val(); // dot, neato
-			     
+
+			     seed = 1;
 			     var result = Viz(dotFile, format, engine);
 			     
 			     //console.log(result);

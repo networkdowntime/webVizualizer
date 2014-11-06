@@ -51,6 +51,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>batik</groupId>
+			<artifactId>batik-rasterizer</artifactId>
+			<version>1.6-1</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.glassfish.grizzly</groupId>
 			<artifactId>grizzly-http-servlet</artifactId>
 			<version>${grizzly-version}</version>
