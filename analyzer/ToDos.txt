@@ -21,9 +21,11 @@ General ToDos:
 
 DB ToDos:
 
+	Add support for multiple concurrent database connections
+	
 	Need to add ability to filter by Created/Updated timestamps.  Would allow the user to identify tables based on most recent usage
 
-	Need to improve the aesthetics of the generated graphs.  Probably though the use of SVG Filters
+	Need to improve the aesthetics of the generated graphs.  Probably though the use of SVG Filters and maybe d3js
 
 	Add Option to save connection information.  Preferably using the browser's password save feature.
 
@@ -41,8 +43,14 @@ DB ToDos:
 
 	Allow for export of the shown tables and or FK constraints
 
-	Add support for SQL Server, Postgres
+	Add support for Postgres
+	
+	Add an inclusive filter for table names (only show tables like/in the filter list)
+	
+	Add ability to save a filter settings under a name and then load it again.  Providing the ability to switch between different views of the database. 
 
+	Add ability to show additional details on a table (constraints, all columns, additional details)
+	
 Java ToDos:
 	Add Java to the analyzer
 		Select/Scan Directory

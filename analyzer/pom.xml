@@ -21,6 +21,16 @@
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
+			<resource>
+				<directory>src/main</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+				<excludes>
+					<exclude>java/**/*</exclude>
+					<exclude>resources/**/*</exclude>
+				</excludes>
+			</resource>
 		</resources>
 
 		<plugins>
@@ -49,6 +59,41 @@
 					<mainClass>net.networkdowntime.analyzer.Start</mainClass>
 				</configuration>
 			</plugin>
+					
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<!-- use transformer to handle merge of META-INF/services - see http://java.net/jira/browse/JERSEY-440?focusedCommentId=14822&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_14822 -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>net.networkdowntime.analyzer.Start</mainClass>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+							</transformers>
+							<filters>
+								<!-- filter to address "Invalid signature file" issue - see http://stackoverflow.com/a/6743609/589215 -->
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+        
 		</plugins>
 	</build>
 
@@ -60,6 +105,11 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.codehaus.sonar</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>5.1</version>
+		</dependency>
 		<dependency>
 			<groupId>batik</groupId>
 			<artifactId>batik-rasterizer</artifactId>
