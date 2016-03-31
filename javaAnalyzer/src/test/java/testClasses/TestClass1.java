@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 @MyAnnotation1(author="Ryan Wiles", currentRevision=1, date="5/28/14", lastModified="5/28/14", lastModifiedBy="Ryan Wiles", reviewers={})
-public class TestClass1 {
+public class TestClass1 implements TestInterface1{
 
 	String fieldVar1; // no assignment
 	String fieldVar2 = "foo"; // has assignment
@@ -50,5 +50,12 @@ public class TestClass1 {
 	public long currentTime() {
 		return System.currentTimeMillis();
 	}
+	
+	private class TestInnerClass {
+		
+	}
+}
+
+class TestClass3 {
 	
 }

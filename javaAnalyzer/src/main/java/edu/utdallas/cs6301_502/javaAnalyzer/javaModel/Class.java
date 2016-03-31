@@ -5,13 +5,11 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
-
-// Does not look like I am handling creating the references for implements
 
 public class Class extends DependentBase {
 
@@ -29,16 +27,24 @@ public class Class extends DependentBase {
 	Class extnds = null; // this is deferred for now
 	String extndsStr = null;
 	List<Class> impls = new ArrayList<Class>();
+	List<String> implsStrings = new ArrayList<String>();
 	boolean fromFile = false;
 
 	HashSet<Class> referencedByClass = new HashSet<Class>();
 
-	public Class(Package pkg, String name, boolean isInterface, boolean isAbstract) {
+	public Class(Package pkg, String name, boolean isInterface,
+			boolean isAbstract, boolean isEnum, boolean isAnnotation) {
 		this.pkg = pkg;
 		this.name = name;
 		this.isInterface = isInterface;
 		this.isAbstract = isAbstract;
-		JavaAnalyzer.log(2, "Creating Class: " + pkg.getName() + "." + name);
+		this.isEnum = isEnum;
+		this.isAnnotation = isAnnotation;
+		AstVisitor.log(2, "Creating Class: " + pkg.getName() + "." + name);
+	}
+
+	public void addImplsStr(String implsString) {
+		this.implsStrings.add(implsString);
 	}
 
 	public void setExtendsStr(String extndsString) {
@@ -48,7 +54,7 @@ public class Class extends DependentBase {
 	public String getName() {
 		return this.name;
 	}
-	
+
 	public String getExtends() {
 		return this.extndsStr;
 	}
@@ -78,12 +84,14 @@ public class Class extends DependentBase {
 			boolean isClass = Character.isUpperCase(pkgOrClassName.charAt(0));
 
 			if (!isClass) {
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(name, false);
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(name,
+						false);
 				this.packageDependencies.add(pkg1);
 			} else {
 				String pkgName = name.substring(0, name.lastIndexOf("."));
 				String className = pkgOrClassName;
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(pkgName, false);
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(pkgName,
+						false);
 				this.packageDependencies.add(pkg1);
 				pkg1.getOrCreateAndGetClass(className);
 			}
@@ -108,7 +116,7 @@ public class Class extends DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		JavaAnalyzer.log(1, "Class.searchForUnresolvedClass(" + className + ")");
+		AstVisitor.log(1, "Class.searchForUnresolvedClass(" + className + ")");
 
 		Class matchedClass = super.searchForUnresolvedClass(className);
 
@@ -119,17 +127,27 @@ public class Class extends DependentBase {
 	}
 
 	public void validatePassOne() {
-		JavaAnalyzer.log(1, "Validating Pass One class: " + getCanonicalName());
+		AstVisitor.log(1, "Validating Pass One class: " + getCanonicalName());
 
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(name, extndsStr);
 			if (clazz != null) {
 				extnds = clazz;
 				addResolvedClass(clazz);
+				AstVisitor.log(2, "Resolved extends to class: " + clazz.getCanonicalName());
 			}
 		}
 
-		// ToDo: Need to properly handle implements
+		if (implsStrings != null) {
+			for (String implString : implsStrings) {
+				Class clazz = pkg.searchForUnresolvedClass(name, implString);
+				if (clazz != null) {
+					impls.add(clazz);
+					addResolvedClass(clazz);
+					AstVisitor.log(2, "Resolved implements to class: " + clazz.getCanonicalName());
+				}
+			}
+		}
 
 		super.validatePassOne();
 
@@ -139,7 +157,7 @@ public class Class extends DependentBase {
 	}
 
 	public void validatePassTwo() {
-		JavaAnalyzer.log(1, "Validating Pass Two class: " + getCanonicalName());
+		AstVisitor.log(1, "Validating Pass Two class: " + getCanonicalName());
 
 		super.validatePassTwo();
 
@@ -149,22 +167,25 @@ public class Class extends DependentBase {
 			method.validatePassTwo();
 		}
 	}
-	
+
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
-		JavaAnalyzer.log(1, "Class: " + this.name);
+		AstVisitor.log(1, "Class: " + this.name);
 
 		HashSet<String> refsToSkip = new HashSet<String>();
 
 		StringBuffer sb = new StringBuffer();
 
-		if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && this.referencedByClass.size() == 0)
+		if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && this.referencedByClass
+				.size() == 0)
 				|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
-			sb.append(renderer.getBeginRecord(this.pkg.name + "." + this.name, this.name, ""));
+			sb.append(renderer.getBeginRecord(this.pkg.name + "." + this.name,
+					this.name, ""));
 
 			if (filter.isShowFields()) {
 				for (String field : this.varNameClassMap.keySet()) {
 					Class clazz = this.varNameClassMap.get(field);
-					sb.append(renderer.addRecordField(field, field + ": " + clazz.name));
+					sb.append(renderer.addRecordField(field, field + ": "
+							+ clazz.name));
 				}
 			}
 
@@ -176,12 +197,17 @@ public class Class extends DependentBase {
 
 			sb.append(renderer.getEndRecord());
 
-			// Add edge for extending another class, if only 1 reference to that class don't add a reference edge later
+			// Add edge for extending another class, if only 1 reference to that
+			// class don't add a reference edge later
 			if (extnds != null) {
-				boolean exclude = filter.getPackagesToExclude().contains(extnds.pkg.name);
-				exclude = exclude || filter.getClassesToExclude().contains(extnds.pkg.name + "." + extnds.name);
+				boolean exclude = filter.getPackagesToExclude().contains(
+						extnds.pkg.name);
+				exclude = exclude
+						|| filter.getClassesToExclude().contains(
+								extnds.pkg.name + "." + extnds.name);
 				if (!exclude) {
-					sb.append(renderer.addEdge(this.pkg.name + "." + this.name, extnds.pkg.name + "." + extnds.name, "", true));
+					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
+							extnds.pkg.name + "." + extnds.name, "", true));
 
 					Integer count = this.unresolvedClassCount.get(extnds.name);
 					if (count != null && count.intValue() == 1) {
@@ -190,13 +216,18 @@ public class Class extends DependentBase {
 				}
 			}
 
-			// Add edges for implementing interfaces, if only 1 reference to that class don't add a reference edge later
+			// Add edges for implementing interfaces, if only 1 reference to
+			// that class don't add a reference edge later
 			for (Class clazz : this.impls) {
-				sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, "", true));
+				sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
+						clazz.pkg.name + "." + clazz.name, "", true));
 				Integer count = this.unresolvedClassCount.get(clazz.name);
 				if (count != null && count.intValue() == 1) {
-					boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
-					exclude = exclude || filter.getClassesToExclude().contains(clazz.pkg.name + "." + clazz.name);
+					boolean exclude = filter.getPackagesToExclude().contains(
+							clazz.pkg.name);
+					exclude = exclude
+							|| filter.getClassesToExclude().contains(
+									clazz.pkg.name + "." + clazz.name);
 					if (!exclude)
 						refsToSkip.add(clazz.name);
 				}
@@ -204,13 +235,20 @@ public class Class extends DependentBase {
 
 			for (Class clazz : this.classDependencies.values()) {
 				if (!refsToSkip.contains(clazz.name)) {
-					boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
-					exclude = exclude || filter.getClassesToExclude().contains(clazz.pkg.name + "." + clazz.name);
+					boolean exclude = filter.getPackagesToExclude().contains(
+							clazz.pkg.name);
+					exclude = exclude
+							|| filter.getClassesToExclude().contains(
+									clazz.pkg.name + "." + clazz.name);
 					if (!exclude) {
-						if ((filter.isFromFile() && clazz.fromFile) || !filter.isFromFile()) {
-							if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && clazz.referencedByClass.size() == 0)
+						if ((filter.isFromFile() && clazz.fromFile)
+								|| !filter.isFromFile()) {
+							if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && clazz.referencedByClass
+									.size() == 0)
 									|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
-								sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, ""));
+								sb.append(renderer.addEdge(this.pkg.name + "."
+										+ this.name, clazz.pkg.name + "."
+										+ clazz.name, ""));
 							}
 						}
 					}

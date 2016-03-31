@@ -2,9 +2,7 @@ package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
-
+import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
 public class Block extends DependentBase {
 
@@ -12,7 +10,7 @@ public class Block extends DependentBase {
 
 	public Block(Block parent) {
 		this.parent = parent;
-		JavaAnalyzer.log(1, "Creating Block: ");
+		AstVisitor.log(1, "Creating Block: ");
 	}
 
 	public void addChildBlock(Block block) {

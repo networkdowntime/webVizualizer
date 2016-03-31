@@ -1,9 +1,5 @@
 package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
-import japa.parser.JavaParser;
-import japa.parser.ParseException;
-import japa.parser.ast.CompilationUnit;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,8 +9,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseException;
+import com.github.javaparser.ast.CompilationUnit;
+
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -46,10 +46,11 @@ public class Project {
 	 */
 	public void addFile(File file) {
 		if (file.exists()) {
+			AstVisitor.log(1, "Attempting to add " + ((file.isDirectory()) ? "directory" : file) + ": " + file.getAbsolutePath() + "; exists: " + file.exists());
 			files.add(file);
 			scanFile(file);
 		} else {
-			JavaAnalyzer.log(0, file.getAbsolutePath() + " does not exist");
+			AstVisitor.log(0, file.getAbsolutePath() + " does not exist");
 		}
 	}
 
@@ -63,7 +64,7 @@ public class Project {
 			files.remove(file);
 			deindexFile(file);
 		} else {
-			JavaAnalyzer.log(0, file.getAbsolutePath() + " does not exist");
+			AstVisitor.log(0, file.getAbsolutePath() + " does not exist");
 		}
 	}
 
@@ -82,12 +83,13 @@ public class Project {
 		for (File f : filesToScan) {
 			try {
 				if (f.getName().endsWith(".java")) {
+					AstVisitor.log(2, "Attempting to scan java file: " + f.getAbsolutePath());
 					CompilationUnit cu = JavaParser.parse(f);
 					if (cu.getTypes() == null) {
-						JavaAnalyzer.log(0, f.getAbsolutePath() + " has no classes");
+						AstVisitor.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
-						JavaAnalyzer.processTypeDeclarations(0, this, null, cu, cu.getTypes());
 						scannedFiles.add(f.getAbsolutePath());
+						AstVisitor.processTypeDeclarations(0, this, null, cu, cu.getTypes());
 					}
 				}
 			} catch (ParseException e) {
@@ -96,7 +98,7 @@ public class Project {
 				e.printStackTrace();
 			}
 		}
-		JavaAnalyzer.log(0, "\n");
+		AstVisitor.log(0, "\n");
 
 	}
 
@@ -117,13 +119,14 @@ public class Project {
 		List<File> fileList = new ArrayList<File>();
 
 		if (!baseDir.getAbsolutePath().contains(".svn")) {
-			// System.out.println(baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
+//			 AstVisitor.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
 
 			String[] files = baseDir.list();
 			String path = baseDir.getPath();
 
 			for (String s : files) {
 				File file = new File(path + File.separator + s);
+//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
 				if (file.isDirectory()) {
 					fileList.addAll(getFiles(file));
 				} else {

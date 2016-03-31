@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.github.javaparser.ast.type.VoidType;
+
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
@@ -14,16 +16,15 @@ import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
-import japa.parser.ast.*;
-import japa.parser.ast.body.*;
-import japa.parser.ast.expr.*;
-import japa.parser.ast.stmt.*;
-import japa.parser.ast.type.ClassOrInterfaceType;
-import japa.parser.ast.type.PrimitiveType;
-import japa.parser.ast.type.ReferenceType;
-import japa.parser.ast.type.Type;
-import japa.parser.ast.type.VoidType;
-import japa.parser.ast.type.WildcardType;
+import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.ReferenceType;
+import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.WildcardType;
 
 
 // ToDo: Need to research and handle MemberValuePair

@@ -3,8 +3,8 @@ package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -21,7 +21,7 @@ public class Package {
 
 	public Package(String name, boolean inPath) {
 		this.name = name;
-		JavaAnalyzer.log(1, "Creating Package: " + name);
+		AstVisitor.log(1, "Creating Package: " + name);
 	}
 
 	public void setProject(Project prj) {
@@ -31,7 +31,7 @@ public class Package {
 	public Class getOrCreateAndGetClass(String name) {
 		Class clazz = classes.get(name);
 		if (clazz == null) {
-			clazz = new Class(this, name, false, false);
+			clazz = new Class(this, name, false, false, false, false);
 			classes.put(name, clazz);
 		}
 		return clazz;
@@ -78,7 +78,7 @@ public class Package {
 	}
 
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
-		JavaAnalyzer.log(0, "Package: " + this.name);
+		AstVisitor.log(0, "Package: " + this.name);
 
 		StringBuffer sb = new StringBuffer();
 
