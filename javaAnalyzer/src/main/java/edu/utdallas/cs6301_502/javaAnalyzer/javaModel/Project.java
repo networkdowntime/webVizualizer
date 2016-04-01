@@ -89,7 +89,7 @@ public class Project {
 						AstVisitor.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
 						scannedFiles.add(f.getAbsolutePath());
-						AstVisitor.processTypeDeclarations(0, this, null, cu, cu.getTypes());
+						AstVisitor.processTypeDeclarations(0, f.getName(), this, null, cu, cu.getTypes());
 					}
 				}
 			} catch (ParseException e) {
