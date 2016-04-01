@@ -191,7 +191,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 		base.setIsAnnotation(true);
 		classStack.push(base);
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
 		
 		base = classStack.pop();
 	}
@@ -200,105 +202,150 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(AnnotationMemberDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ArrayAccessExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ArrayCreationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ArrayInitializerExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(AssertStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(AssignExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(BinaryExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(BlockComment n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(BlockStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(BooleanLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(BreakStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(CastExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(CatchClause n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(CharLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ClassExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
@@ -325,7 +372,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 		
 		classStack.push(base);
 		
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 
 		base = classStack.pop();
 	}
@@ -334,84 +384,120 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ClassOrInterfaceType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(CompilationUnit n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ConditionalExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ConstructorDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ContinueStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(DoStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(DoubleLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(EmptyMemberDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(EmptyStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(EmptyTypeDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(EnclosedExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(EnumConstantDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
@@ -428,7 +514,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		classStack.push(base);
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 		
 		base = classStack.pop();
 	}
@@ -437,378 +526,540 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ExplicitConstructorInvocationStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ExpressionStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(FieldAccessExpr n, Object arg) {
 		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(FieldDeclaration n, Object arg) {
 		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ForeachStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ForStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(IfStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ImportDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(InitializerDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(InstanceOfExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(IntegerLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(IntegerLiteralMinValueExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(JavadocComment n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(LabeledStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(LambdaExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(LineComment n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(LongLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(LongLiteralMinValueExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MarkerAnnotationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MemberValuePair n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MethodCallExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MethodDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MethodReferenceExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(MultiTypeParameter n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(NameExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString() + "; " + n.getParentNode().getClass().getName());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(NormalAnnotationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(NullLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ObjectCreationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(PackageDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString().trim());
 		this.pkg = project.getOrCreateAndGetPackage(n.getName().getName(), true, true);
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(Parameter n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(PrimitiveType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(QualifiedNameExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ReferenceType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ReturnStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(SingleMemberAnnotationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(StringLiteralExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(SuperExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(SwitchEntryStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(SwitchStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(SynchronizedStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ThisExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(ThrowStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(TryStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(TypeDeclarationStmt n, Object arg) {
 		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(TypeExpr n, Object arg) {
 		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(TypeParameter n, Object arg) {
 		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(UnaryExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(UnknownType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(VariableDeclarationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(VariableDeclarator n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(VariableDeclaratorId n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(VoidType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(WhileStmt n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 	@Override
 	public void visit(WildcardType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		depth++;
 		super.visit(n, arg);
+		depth--;
+
 	}
 
 }
