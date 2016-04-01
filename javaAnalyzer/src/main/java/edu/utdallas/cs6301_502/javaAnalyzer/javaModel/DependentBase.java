@@ -53,14 +53,14 @@ public abstract class DependentBase {
 	public void addUnresolvedAnnotations(String annotationName) {
 		if (!this.unresolvedAnnotations.contains(annotationName)) {
 			this.unresolvedAnnotations.add(annotationName);
-			AstVisitor.log(0, "Adding unresolved annotation: " + annotationName);
+			AstVisitor.log(3, "Adding unresolved annotation: " + annotationName);
 		}
 	}
 
 	public void addUnresolvedInterface(String interfaceName) {
 		if (!this.unresolvedInterfaces.contains(interfaceName)) {
 			this.unresolvedInterfaces.add(interfaceName);
-			AstVisitor.log(0, "Adding unresolved interface: " + interfaceName);
+			AstVisitor.log(3, "Adding unresolved interface: " + interfaceName);
 		}
 	}
 
@@ -74,7 +74,7 @@ public abstract class DependentBase {
 				count = 0;
 			this.unresolvedClasses.add(className);
 			this.unresolvedClassCount.put(className, count.intValue() + 1);
-			AstVisitor.log(0, "Adding unresolved class: " + className);
+			AstVisitor.log(3, "Adding unresolved class: " + className);
 		}
 	}
 
@@ -136,7 +136,7 @@ public abstract class DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		AstVisitor.log(1, "DependentBase.searchForUnresolvedClass(" + className + ")");
+		AstVisitor.log(5, "DependentBase.searchForUnresolvedClass(" + className + ")");
 		Class matchedClass = classDependencies.get(className);
 		
 		if (matchedClass == null) {
@@ -161,36 +161,36 @@ public abstract class DependentBase {
 		Class c = findClass();
 
 		if (this instanceof Method) {
-			AstVisitor.log(0, ((Method) this).name);
+			AstVisitor.log(4, ((Method) this).name);
 		} else {
-			AstVisitor.log(0, "Validating Block");
+			AstVisitor.log(4, "Validating Block");
 		}
 
 		for (String s : this.unresolvedInterfaces) {
-			AstVisitor.log(0, "Class " + c.getName() + ": Searching for unresolved interfaces: " + s);
+			AstVisitor.log(4, "Class " + c.getName() + ": Searching for unresolved interfaces: " + s);
 			Class clazz = searchForUnresolvedClass(s);
 			if (clazz != null) {
-				AstVisitor.log(0, "Matched unresolved interface: " + s + " to " + clazz.getCanonicalName());
+				AstVisitor.log(5, "Matched unresolved interface: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
 		}
 
 		for (String s : this.unresolvedAnnotations) {
-			AstVisitor.log(0, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
+			AstVisitor.log(4, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
 			Class clazz = searchForUnresolvedClass(s);
 			if (clazz != null) {
-				AstVisitor.log(0, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
+				AstVisitor.log(5, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
 		}
 
 		for (String s : this.unresolvedClasses) {
-			AstVisitor.log(0, "Class " + c.getName() + ": Searching for unresolved class: " + s);
+			AstVisitor.log(4, "Class " + c.getName() + ": Searching for unresolved class: " + s);
 			Class clazz = searchForUnresolvedClass(s);
 			if (clazz != null) {
-				AstVisitor.log(0, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
+				AstVisitor.log(5, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 			}
 		}

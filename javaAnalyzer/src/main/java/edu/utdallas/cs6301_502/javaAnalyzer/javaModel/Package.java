@@ -66,12 +66,14 @@ public class Package {
 	}
 
 	public void validatePassOne() {
+		AstVisitor.log(2, "Validate Pass One: package " + name);
 		for (Class clazz : classes.values()) {
 			clazz.validatePassOne();
 		}
 	}
 
 	public void validatePassTwo() {
+		AstVisitor.log(2, "Validate Pass Two: package " + name);
 		for (Class clazz : classes.values()) {
 			clazz.validatePassTwo();
 		}

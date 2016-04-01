@@ -2,15 +2,13 @@ package edu.utdallas.cs6301_502.javaAnalyzer;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.PackageDeclaration;
@@ -107,13 +105,14 @@ import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
 
 public class AstVisitor extends VoidVisitorAdapter {
 	// begin dump the AST
+	int depth = 0;
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 	
 	private static final boolean LOG = true;
 	CompilationUnit cu = null;
 	
-	int depth = 0;
+	Set<String> imports = new LinkedHashSet<String>();
 	Project project = null;
 	Stack<Class> classStack = new Stack<Class>();
 	Class base = null;
@@ -178,6 +177,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 	}
 
+	private void addImports() {
+		for (String importStr : imports) {
+			base.addImport(importStr);
+		}
+	}
 	@Override
 	public void visit(AnnotationDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
@@ -189,6 +193,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsAnnotation(true);
+		addImports();
+		
 		classStack.push(base);
 
 		depth++;
@@ -359,6 +365,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsInterface(n.isInterface());
+		addImports();
 		
 		for (ClassOrInterfaceType type : n.getExtends()) {
 			base.setExtendsStr(type.getName());
@@ -366,8 +373,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 		
 		for (ClassOrInterfaceType type : n.getImplements()) {
-			base.setExtendsStr(type.getName());
-			base.addUnresolvedClass(type.getName());
+			base.addImplsStr(type.getName());
+			base.addUnresolvedInterface(type.getName());
 		}
 		
 		classStack.push(base);
@@ -511,6 +518,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsEnum(true);
+		addImports();
 
 		classStack.push(base);
 
@@ -544,7 +552,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 	@Override
 	public void visit(FieldAccessExpr n, Object arg) {
-		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);
@@ -554,7 +562,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 	@Override
 	public void visit(FieldDeclaration n, Object arg) {
-		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);
@@ -805,7 +813,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(PackageDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString().trim());
+		
 		this.pkg = project.getOrCreateAndGetPackage(n.getName().getName(), true, true);
+		
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -836,6 +846,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(QualifiedNameExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		if (n.getParentNode() instanceof ImportDeclaration) {
+			imports.add(n.toString());
+		}
+		
 		depth++;
 		super.visit(n, arg);
 		depth--;

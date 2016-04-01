@@ -27,6 +27,7 @@ public class Project {
 	Map<String, Package> packages = new HashMap<String, Package>();
 
 	public Project() {
+		AstVisitor.log(0, "Creating a new Project");
 		getOrCreateAndGetPackage("java.lang", false);
 	}
 
@@ -46,7 +47,8 @@ public class Project {
 	 */
 	public void addFile(File file) {
 		if (file.exists()) {
-			AstVisitor.log(1, "Attempting to add " + ((file.isDirectory()) ? "directory" : file) + ": " + file.getAbsolutePath() + "; exists: " + file.exists());
+			String type = ((file.isDirectory()) ? "directory" : "file");
+			AstVisitor.log(1, "Attempting to add " + type + ": " + file.getAbsolutePath() + "; " + type + " exists: " + file.exists());
 			files.add(file);
 			scanFile(file);
 		} else {
@@ -83,7 +85,8 @@ public class Project {
 		for (File f : filesToScan) {
 			try {
 				if (f.getName().endsWith(".java")) {
-					AstVisitor.log(2, "Attempting to scan java file: " + f.getAbsolutePath());
+					AstVisitor.log(0, "");
+					AstVisitor.log(1, "Attempting to parse java file: " + f.getAbsolutePath());
 					CompilationUnit cu = JavaParser.parse(f);
 					if (cu.getTypes() == null) {
 						AstVisitor.log(1, f.getAbsolutePath() + " has no classes");
@@ -204,6 +207,7 @@ public class Project {
 
 	public void validate() {
 		int classCount = 0;
+		AstVisitor.log(1, "Beginning Validation:");
 		for (Package pkg : packages.values()) {
 			pkg.validatePassOne();
 			classCount += pkg.classes.size();
@@ -212,8 +216,10 @@ public class Project {
 		for (Package pkg : packages.values()) {
 			pkg.validatePassTwo();
 		}
-		System.out.println("Validated " + packages.size() + " packages");
-		System.out.println("Validated " + classCount + " classes");
+		AstVisitor.log(1, "Validation Completed");
+		
+		AstVisitor.log(0, "Validated " + packages.size() + " packages");
+		AstVisitor.log(0, "Validated " + classCount + " classes");
 	}
 
 	public Class searchForClass(String pkgDoingSearch, String name) {

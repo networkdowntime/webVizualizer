@@ -79,6 +79,7 @@ public class Class extends DependentBase {
 
 	public void addImport(String name) {
 		if (name != null && name.length() > 0) {
+			AstVisitor.log(4, "Adding import for: " + name);
 			imports.add(name);
 			String pkgOrClassName = name.substring(name.lastIndexOf(".") + 1);
 			boolean isClass = Character.isUpperCase(pkgOrClassName.charAt(0));
@@ -116,7 +117,7 @@ public class Class extends DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(String className) {
-		AstVisitor.log(1, "Class.searchForUnresolvedClass(" + className + ")");
+		AstVisitor.log(5, "Class.searchForUnresolvedClass(" + className + ")");
 
 		Class matchedClass = super.searchForUnresolvedClass(className);
 
@@ -127,24 +128,26 @@ public class Class extends DependentBase {
 	}
 
 	public void validatePassOne() {
-		AstVisitor.log(1, "Validating Pass One class: " + getCanonicalName());
+		AstVisitor.log(3, "Validating Pass One class: " + getCanonicalName());
 
+		AstVisitor.log(4, "Checking for extends:");
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(name, extndsStr);
 			if (clazz != null) {
 				extnds = clazz;
 				addResolvedClass(clazz);
-				AstVisitor.log(2, "Resolved extends to class: " + clazz.getCanonicalName());
+				AstVisitor.log(5, "Resolved extends to class: " + clazz.getCanonicalName());
 			}
 		}
 
+		AstVisitor.log(4, "Checking for implements:");
 		if (implsStrings != null) {
 			for (String implString : implsStrings) {
 				Class clazz = pkg.searchForUnresolvedClass(name, implString);
 				if (clazz != null) {
 					impls.add(clazz);
 					addResolvedClass(clazz);
-					AstVisitor.log(2, "Resolved implements to class: " + clazz.getCanonicalName());
+					AstVisitor.log(5, "Resolved implements to class: " + clazz.getCanonicalName());
 				}
 			}
 		}
