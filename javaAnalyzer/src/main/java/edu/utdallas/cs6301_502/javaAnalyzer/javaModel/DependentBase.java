@@ -224,7 +224,7 @@ public abstract class DependentBase {
 	}
 
 	public void validatePassTwo() {
-		AstVisitor.log(0, "DependentBase.validatePassTwo()");
+		AstVisitor.log(2, "DependentBase.validatePassTwo()");
 		
 		for (String typeOrVarName : unresolvedMethods.keySet()) {
 			Class clazz = null;
@@ -245,7 +245,7 @@ public abstract class DependentBase {
 			}
 			
 			if (clazz != null) {
-				AstVisitor.log(1, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
+				AstVisitor.log(3, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
 
 				for (String methodName : unresolvedMethods.get(typeOrVarName)) {
 					HashSet<Method> methods = methodCallMap.get(clazz);
@@ -257,7 +257,7 @@ public abstract class DependentBase {
 					Method method = clazz.getOrCreateAndGetMethod(methodName + "()");
 					methods.add(method);
 
-//					AstVisitor.log(0, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
+					AstVisitor.log(4, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
 
 				}
 			}

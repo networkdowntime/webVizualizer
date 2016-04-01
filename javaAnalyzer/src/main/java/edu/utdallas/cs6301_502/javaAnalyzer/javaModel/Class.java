@@ -160,7 +160,7 @@ public class Class extends DependentBase {
 	}
 
 	public void validatePassTwo() {
-		AstVisitor.log(1, "Validating Pass Two class: " + getCanonicalName());
+		AstVisitor.log(3, "Validating Pass Two class: " + getCanonicalName());
 
 		super.validatePassTwo();
 
