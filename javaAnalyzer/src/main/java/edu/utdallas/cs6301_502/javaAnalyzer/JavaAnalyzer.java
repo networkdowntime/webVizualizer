@@ -97,7 +97,7 @@ public class JavaAnalyzer {
 
 		if (imports != null) {
 			for (ImportDeclaration id : imports) {
-				clazz.addImport(id.getName().toString());
+				clazz.addImport(0, id.getName().toString());
 			}
 		}
 	}
@@ -576,51 +576,55 @@ public class JavaAnalyzer {
 	private static String processType(int depth, DependentBase base, Type type) {
 		if (type != null) {
 			log(depth, "[" + type.getClass() + "] - " + type.toString());
-			if (type instanceof ClassOrInterfaceType) {
-				ClassOrInterfaceType t = (ClassOrInterfaceType) type;
-
-				String typeStr = type.toString();
-				if (typeStr.contains("<")) { // Generics
-
-					String genericizedClass = typeStr.substring(0, typeStr.indexOf("<"));
-					log(depth + 1, "Generic Type - " + genericizedClass);
-					base.addUnresolvedClass(genericizedClass);
-
-				} else {
-					base.addUnresolvedClass(typeStr);
-				}
-
-				processType(depth + 1, base, t.getScope());
-				processTypes(depth + 1, base, t.getTypeArgs());
-
-				return type.toString();
-
-			} else if (type instanceof PrimitiveType) {
-				// Nothing to do here
-				return type.toString();
-
-			} else if (type instanceof ReferenceType) {
-				ReferenceType t = (ReferenceType) type;
-
-				return processType(depth + 1, base, t.getType());
-
-			} else if (type instanceof VoidType) {
-				VoidType t = (VoidType) type;
-
-				// Nothing to do here
-				return null;
-
-			} else if (type instanceof WildcardType) {
-				WildcardType t = (WildcardType) type;
-
-				processType(depth + 1, base, t.getSuper());
-				processType(depth + 1, base, t.getExtends());
-
-				return null;
-
-			} else {
-				log(0, "!!![" + type.getClass() + "] - " + type.toString());
-			}
+//			if (type instanceof ClassOrInterfaceType) {
+//				ClassOrInterfaceType t = (ClassOrInterfaceType) type;
+//
+//				String typeStr = type.toString();
+//				if (typeStr.contains("<")) { // Generics
+//
+//					String genericizedClass = typeStr.substring(0, typeStr.indexOf("<"));
+//					log(depth + 1, "Generic Type - " + genericizedClass);
+//					base.addUnresolvedClass(genericizedClass);
+//
+//				} else {
+//					base.addUnresolvedClass(typeStr);
+//				}
+//
+//				processType(depth + 1, base, t.getScope());
+//				processTypes(depth + 1, base, t.getTypeArgs());
+//
+//				return type.toString();
+//
+//			} else 
+//				if (type instanceof PrimitiveType) {
+//				// Nothing to do here
+//				return type.toString();
+//
+//			} else 
+//				if (type instanceof ReferenceType) {
+//				ReferenceType t = (ReferenceType) type;
+//
+//				return processType(depth + 1, base, t.getType());
+//
+//			} else 
+//				if (type instanceof VoidType) {
+//				VoidType t = (VoidType) type;
+//
+//				// Nothing to do here
+//				return null;
+//
+//			} else 
+//				if (type instanceof WildcardType) {
+//				WildcardType t = (WildcardType) type;
+//
+//				processType(depth + 1, base, t.getSuper());
+//				processType(depth + 1, base, t.getExtends());
+//
+//				return null;
+//
+//			} else {
+//				log(0, "!!![" + type.getClass() + "] - " + type.toString());
+//			}
 		}
 		return "";
 	}
@@ -629,13 +633,13 @@ public class JavaAnalyzer {
 		if (typeDeclaration != null) {
 			log(depth, "[" + typeDeclaration.getClass().getName() + "] - " + typeDeclaration.getName());
 
-			Package pkg = prj.getOrCreateAndGetPackage(cu.getPackage().getName().toString(), true, true);
+			Package pkg = prj.getOrCreateAndGetPackage(1, cu.getPackage().getName().toString(), true, true);
 
 			Class base;
 			if (parent != null) {
-				base = pkg.getOrCreateAndGetClass(parent.getName() + "." + typeDeclaration.getName(), true);
+				base = pkg.getOrCreateAndGetClass(0, parent.getName() + "." + typeDeclaration.getName(), true);
 			} else {
-				base = pkg.getOrCreateAndGetClass(typeDeclaration.getName(), true);
+				base = pkg.getOrCreateAndGetClass(0, typeDeclaration.getName(), true);
 			}
 
 			log(depth, cu.getPackage().getName().toString());

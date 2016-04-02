@@ -13,6 +13,7 @@ public class TestClass1 implements TestInterface1{
 	String fieldVar3, fieldVar4; // multiple vars on one line
 	ArrayList<TestClass2> list = new ArrayList<TestClass2>();
 	HashMap<String, List<String>> foo;
+	int somePrimativeType;
 	
 	public enum MyEnum1 {
 		A, B;

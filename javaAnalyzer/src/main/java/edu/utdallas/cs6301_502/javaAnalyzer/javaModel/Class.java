@@ -32,7 +32,7 @@ public class Class extends DependentBase {
 
 	HashSet<Class> referencedByClass = new HashSet<Class>();
 
-	public Class(Package pkg, String name, boolean isInterface,
+	public Class(int depth, Package pkg, String name, boolean isInterface,
 			boolean isAbstract, boolean isEnum, boolean isAnnotation) {
 		this.pkg = pkg;
 		this.name = name;
@@ -40,7 +40,7 @@ public class Class extends DependentBase {
 		this.isAbstract = isAbstract;
 		this.isEnum = isEnum;
 		this.isAnnotation = isAnnotation;
-		AstVisitor.log(2, "Creating Class: " + pkg.getName() + "." + name);
+		AstVisitor.log(depth, "Creating Class: " + pkg.getName() + "." + name);
 	}
 
 	public void addImplsStr(String implsString) {
@@ -77,24 +77,24 @@ public class Class extends DependentBase {
 		return method;
 	}
 
-	public void addImport(String name) {
+	public void addImport(int depth, String name) {
 		if (name != null && name.length() > 0) {
-			AstVisitor.log(4, "Adding import for: " + name);
+			AstVisitor.log(depth, "Adding import for: " + name);
 			imports.add(name);
 			String pkgOrClassName = name.substring(name.lastIndexOf(".") + 1);
 			boolean isClass = Character.isUpperCase(pkgOrClassName.charAt(0));
 
 			if (!isClass) {
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(name,
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(depth + 1, name,
 						false);
 				this.packageDependencies.add(pkg1);
 			} else {
 				String pkgName = name.substring(0, name.lastIndexOf("."));
 				String className = pkgOrClassName;
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(pkgName,
+				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(depth, pkgName,
 						false);
 				this.packageDependencies.add(pkg1);
-				pkg1.getOrCreateAndGetClass(className);
+				pkg1.getOrCreateAndGetClass(depth, className);
 			}
 
 		}
@@ -116,58 +116,65 @@ public class Class extends DependentBase {
 		this.isAbstract = isAbstract;
 	}
 
-	public Class searchForUnresolvedClass(String className) {
-		AstVisitor.log(5, "Class.searchForUnresolvedClass(" + className + ")");
+	@Override
+	public Class searchForUnresolvedClass(int depth, String className) {
+		AstVisitor.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
 
-		Class matchedClass = super.searchForUnresolvedClass(className);
+		Class matchedClass = super.searchForUnresolvedClass(depth, className);
 
 		if (matchedClass == null) {
-			matchedClass = pkg.searchForUnresolvedClass(name, className);
+			matchedClass = pkg.searchForUnresolvedClass(depth, name, className);
 		}
 		return matchedClass;
 	}
 
-	public void validatePassOne() {
-		AstVisitor.log(3, "Validating Pass One class: " + getCanonicalName());
+	@Override
+	public void validatePassOne(int depth) {
+		AstVisitor.log(depth, "Validating Pass One class: " + getCanonicalName());
 
-		AstVisitor.log(4, "Checking for extends:");
+		AstVisitor.log(depth + 1, "Checking for extends:");
 		if (extndsStr != null) {
-			Class clazz = pkg.searchForUnresolvedClass(name, extndsStr);
+			Class clazz = pkg.searchForUnresolvedClass(depth, name, extndsStr);
 			if (clazz != null) {
 				extnds = clazz;
 				addResolvedClass(clazz);
-				AstVisitor.log(5, "Resolved extends to class: " + clazz.getCanonicalName());
+				AstVisitor.log(depth + 2, "Resolved extends to class: " + clazz.getCanonicalName());
 			}
+		} else {
+			AstVisitor.log(depth + 2, "No extends needed for this class");
 		}
 
-		AstVisitor.log(4, "Checking for implements:");
-		if (implsStrings != null) {
+		AstVisitor.log(depth + 1, "Checking for implements:");
+		if (implsStrings != null && !implsStrings.isEmpty()) {
 			for (String implString : implsStrings) {
-				Class clazz = pkg.searchForUnresolvedClass(name, implString);
+				Class clazz = pkg.searchForUnresolvedClass(depth, name, implString);
 				if (clazz != null) {
 					impls.add(clazz);
 					addResolvedClass(clazz);
-					AstVisitor.log(5, "Resolved implements to class: " + clazz.getCanonicalName());
+					AstVisitor.log(depth + 2, "Resolved implements to class: " + clazz.getCanonicalName());
 				}
 			}
+		} else {
+			AstVisitor.log(depth + 2, "No implements needed for this class");
 		}
 
-		super.validatePassOne();
+		super.validatePassOne(depth);
 
 		for (Method method : methods.values()) {
-			method.validatePassOne();
+			method.validatePassOne(depth + 1);
 		}
 	}
 
-	public void validatePassTwo() {
-		AstVisitor.log(3, "Validating Pass Two class: " + getCanonicalName());
+	@Override
+	public void validatePassTwo(int depth) {
+		AstVisitor.log(depth, "Validating Pass Two class: " + getCanonicalName());
 
-		super.validatePassTwo();
+		super.validatePassTwo(depth + 1);
 
 		List<Method> tmpMethods = new ArrayList<Method>();
 		tmpMethods.addAll(methods.values());
 		for (Method method : tmpMethods) {
-			method.validatePassTwo();
+			method.validatePassTwo(depth + 1);
 		}
 	}
 

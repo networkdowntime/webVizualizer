@@ -30,9 +30,10 @@ public class Method extends Block {
 		}
 	}
 
-	public void validatePassOne() {
-		AstVisitor.log(1, "Validating Method: " + getName());
-		super.validatePassOne();
+	@Override
+	public void validatePassOne(int depth) {
+		AstVisitor.log(depth, "Validating Method: " + getName());
+		super.validatePassOne(depth + 1);
 	}
 	
 	

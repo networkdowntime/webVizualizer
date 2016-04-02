@@ -19,37 +19,37 @@ public class Package {
 	Map<String, Class> classes = new HashMap<String, Class>();
 	boolean fromFile = false;
 
-	public Package(String name, boolean inPath) {
+	public Package(int depth, String name, boolean inPath) {
 		this.name = name;
-		AstVisitor.log(1, "Creating Package: " + name);
+		AstVisitor.log(depth, "Creating Package: " + name);
 	}
 
 	public void setProject(Project prj) {
 		this.prj = prj;
 	}
 
-	public Class getOrCreateAndGetClass(String name) {
+	public Class getOrCreateAndGetClass(int depth, String name) {
 		Class clazz = classes.get(name);
 		if (clazz == null) {
-			clazz = new Class(this, name, false, false, false, false);
+			clazz = new Class(depth + 1, this, name, false, false, false, false);
 			classes.put(name, clazz);
 		}
 		return clazz;
 	}
 
-	public Class getOrCreateAndGetClass(String name, boolean fileScanned) {
-		Class clazz = getOrCreateAndGetClass(name);
+	public Class getOrCreateAndGetClass(int depth, String name, boolean fileScanned) {
+		Class clazz = getOrCreateAndGetClass(depth, name);
 		clazz.fromFile = fileScanned;
 		return clazz;
 	}
 
-	public Class searchForUnresolvedClass(String classInitiatingSearch, String classToSearchFor) {
+	public Class searchForUnresolvedClass(int depth, String classInitiatingSearch, String classToSearchFor) {
 		Class clazz = classes.get(name + "." + classInitiatingSearch + "." + classToSearchFor);
 		if (clazz == null) {
 			clazz = classes.get(classToSearchFor);
 		}
 		if (clazz == null && classInitiatingSearch != null) {
-			clazz = prj.searchForClass(name, classToSearchFor);
+			clazz = prj.searchForClass(depth, name, classToSearchFor);
 		}
 
 		return clazz;
@@ -65,17 +65,17 @@ public class Package {
 		return name;
 	}
 
-	public void validatePassOne() {
-		AstVisitor.log(2, "Validate Pass One: package " + name);
+	public void validatePassOne(int depth) {
+		AstVisitor.log(depth, "Validate Pass One: package " + name);
 		for (Class clazz : classes.values()) {
-			clazz.validatePassOne();
+			clazz.validatePassOne(depth + 1);
 		}
 	}
 
-	public void validatePassTwo() {
-		AstVisitor.log(2, "Validate Pass Two: package " + name);
+	public void validatePassTwo(int depth) {
+		AstVisitor.log(depth, "Validate Pass Two: package " + name);
 		for (Class clazz : classes.values()) {
-			clazz.validatePassTwo();
+			clazz.validatePassTwo(depth + 1);
 		}
 	}
 

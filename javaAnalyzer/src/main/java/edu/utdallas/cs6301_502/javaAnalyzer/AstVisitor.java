@@ -99,9 +99,6 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
-
 
 public class AstVisitor extends VoidVisitorAdapter {
 	// begin dump the AST
@@ -179,7 +176,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 	private void addImports() {
 		for (String importStr : imports) {
-			base.addImport(importStr);
+			base.addImport(3, importStr);
 		}
 	}
 	@Override
@@ -187,10 +184,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
 		if (n.getParentNode() instanceof CompilationUnit) {
-			base = pkg.getOrCreateAndGetClass(n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, n.getName(), true);
 		} else {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsAnnotation(true);
 		addImports();
@@ -359,10 +356,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
 		if (n.getParentNode() instanceof CompilationUnit) {
-			base = pkg.getOrCreateAndGetClass(n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, n.getName(), true);
 		} else {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsInterface(n.isInterface());
 		addImports();
@@ -390,6 +387,17 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(ClassOrInterfaceType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+
+		String typeStr = n.toString();
+		if (typeStr.contains("<")) { // Generics
+
+			typeStr = typeStr.substring(0, typeStr.indexOf("<"));
+//			log(depth + 1, "Generic Type - " + genericizedClass);
+//			base.addUnresolvedClass(genericizedClass);
+//
+		} // else {
+		base.addUnresolvedClass(typeStr);
+//		}
 
 		depth++;
 		super.visit(n, arg);
@@ -512,10 +520,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
 		if (n.getParentNode() instanceof CompilationUnit) {
-			base = pkg.getOrCreateAndGetClass(n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, n.getName(), true);
 		} else {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			base = pkg.getOrCreateAndGetClass(parent.getName() + "." + n.getName(), true);
+			base = pkg.getOrCreateAndGetClass(1, parent.getName() + "." + n.getName(), true);
 		}
 		base.setIsEnum(true);
 		addImports();
@@ -564,6 +572,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(FieldDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -814,7 +823,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(PackageDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString().trim());
 		
-		this.pkg = project.getOrCreateAndGetPackage(n.getName().getName(), true, true);
+		this.pkg = project.getOrCreateAndGetPackage(1, n.getName().getName(), true, true);
 		
 		depth++;
 		super.visit(n, arg);
@@ -835,6 +844,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(PrimitiveType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+
+		// I think these can be safely ignored
 
 		depth++;
 		super.visit(n, arg);
@@ -860,6 +871,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ReferenceType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		// I think these can be safely ignored
+		
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -1050,6 +1063,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(VoidType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		// I think these can be safely ignored
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -1069,6 +1084,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(WildcardType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+
+		// I think these can be safely ignored
 
 		depth++;
 		super.visit(n, arg);

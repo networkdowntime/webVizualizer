@@ -28,7 +28,7 @@ public class Project {
 
 	public Project() {
 		AstVisitor.log(0, "Creating a new Project");
-		getOrCreateAndGetPackage("java.lang", false);
+		getOrCreateAndGetPackage(1, "java.lang", false);
 	}
 
 	public List<File> getFiles() {
@@ -64,7 +64,7 @@ public class Project {
 	public void removeFile(File file) {
 		if (file.exists()) {
 			files.remove(file);
-			deindexFile(file);
+			deindexFile(0, file);
 		} else {
 			AstVisitor.log(0, file.getAbsolutePath() + " does not exist");
 		}
@@ -105,13 +105,13 @@ public class Project {
 
 	}
 
-	private void deindexFile(File fileToDeindex) {
+	private void deindexFile(int depth, File fileToDeindex) {
 		// To Do Implement better deindexing
 		// Simple implementation is to just redo everything
 
 		scannedFiles = new HashSet<String>();
 		packages = new HashMap<String, Package>();
-		getOrCreateAndGetPackage("java.lang", false);
+		getOrCreateAndGetPackage(depth, "java.lang", false);
 
 		for (File file : files) {
 			scanFile(file);
@@ -184,10 +184,10 @@ public class Project {
 		return retval;
 	}
 
-	public Package getOrCreateAndGetPackage(String name, boolean inPath) {
+	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath) {
 		Package pkg = packages.get(name);
 		if (pkg == null) {
-			pkg = new Package(name, inPath);
+			pkg = new Package(depth, name, inPath);
 			pkg.setProject(this);
 			packages.put(name, pkg);
 		}
@@ -199,8 +199,8 @@ public class Project {
 		return pkg;
 	}
 
-	public Package getOrCreateAndGetPackage(String name, boolean inPath, boolean fileScanned) {
-		Package pkg = getOrCreateAndGetPackage(name, inPath);
+	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath, boolean fileScanned) {
+		Package pkg = getOrCreateAndGetPackage(depth, name, inPath);
 		pkg.fromFile = fileScanned;
 		return pkg;
 	}
@@ -209,12 +209,12 @@ public class Project {
 		int classCount = 0;
 		AstVisitor.log(1, "Beginning Validation:");
 		for (Package pkg : packages.values()) {
-			pkg.validatePassOne();
+			pkg.validatePassOne(2);
 			classCount += pkg.classes.size();
 		}
 		
 		for (Package pkg : packages.values()) {
-			pkg.validatePassTwo();
+			pkg.validatePassTwo(2);
 		}
 		AstVisitor.log(1, "Validation Completed");
 		
@@ -222,21 +222,21 @@ public class Project {
 		AstVisitor.log(0, "Validated " + classCount + " classes");
 	}
 
-	public Class searchForClass(String pkgDoingSearch, String name) {
+	public Class searchForClass(int depth, String pkgDoingSearch, String name) {
 		// System.out.println("Project: Searching for unresolved class: " + name);
 		Class clazz = null;
 		for (String pkgName : packages.keySet()) {
 			if (!pkgDoingSearch.equals(pkgName)) {
 				Package pkg = packages.get(pkgName);
-				clazz = pkg.searchForUnresolvedClass(null, name);
+				clazz = pkg.searchForUnresolvedClass(depth, null, name);
 				if (clazz != null)
 					break;
 			}
 		}
 
 		if (clazz == null) {
-			Package pkg = getOrCreateAndGetPackage("java.lang", false);
-			clazz = pkg.getOrCreateAndGetClass(name);
+			Package pkg = getOrCreateAndGetPackage(depth, "java.lang", false);
+			clazz = pkg.getOrCreateAndGetClass(depth, name);
 		}
 		return clazz;
 	}
