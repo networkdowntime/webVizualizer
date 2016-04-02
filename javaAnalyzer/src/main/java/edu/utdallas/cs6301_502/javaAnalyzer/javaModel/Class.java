@@ -123,7 +123,7 @@ public class Class extends DependentBase {
 		Class matchedClass = super.searchForUnresolvedClass(depth, className);
 
 		if (matchedClass == null) {
-			matchedClass = pkg.searchForUnresolvedClass(depth, name, className);
+			matchedClass = pkg.searchForUnresolvedClass(depth + 1, name, className);
 		}
 		return matchedClass;
 	}
@@ -158,7 +158,7 @@ public class Class extends DependentBase {
 			AstVisitor.log(depth + 2, "No implements needed for this class");
 		}
 
-		super.validatePassOne(depth);
+		super.validatePassOne(depth + 1);
 
 		for (Method method : methods.values()) {
 			method.validatePassOne(depth + 1);

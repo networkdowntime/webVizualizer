@@ -161,14 +161,14 @@ public abstract class DependentBase {
 		Class c = findClass();
 
 		if (this instanceof Method) {
-			AstVisitor.log(depth + 1, ((Method) this).name);
+			AstVisitor.log(depth, ((Method) this).name);
 		} else {
-			AstVisitor.log(depth + 1, "Validating Block");
+			AstVisitor.log(depth, "Validating Block");
 		}
 
 		for (String s : this.unresolvedInterfaces) {
 			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved interfaces: " + s);
-			Class clazz = searchForUnresolvedClass(depth + 1, s);
+			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
 				AstVisitor.log(depth + 2, "Matched unresolved interface: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
@@ -178,9 +178,9 @@ public abstract class DependentBase {
 
 		for (String s : this.unresolvedAnnotations) {
 			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
-			Class clazz = searchForUnresolvedClass(depth + 1, s);
+			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
-				AstVisitor.log(depth + 1, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
+				AstVisitor.log(depth + 2, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
@@ -188,7 +188,7 @@ public abstract class DependentBase {
 
 		for (String s : this.unresolvedClasses) {
 			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved class: " + s);
-			Class clazz = searchForUnresolvedClass(depth + 1, s);
+			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
 				AstVisitor.log(depth + 2, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
@@ -204,7 +204,7 @@ public abstract class DependentBase {
 			
 			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName + " " + isPrimative(type) + " " + "this".equals(type));
 			if (!(isPrimative(type) || "this".equals(type))) {
-				Class clazz = searchForUnresolvedClass(depth + 1, type);
+				Class clazz = searchForUnresolvedClass(depth + 2, type);
 
 				if (clazz != null) {
 					AstVisitor.log(0, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());

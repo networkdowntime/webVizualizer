@@ -19,7 +19,6 @@ import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
-
 public class Project {
 
 	private Set<File> files = new HashSet<File>();
@@ -36,7 +35,7 @@ public class Project {
 		retval.addAll(this.files);
 
 		Collections.sort(retval, (File f1, File f2) -> f1.compareTo(f2));
-		
+
 		return retval;
 	}
 
@@ -122,14 +121,14 @@ public class Project {
 		List<File> fileList = new ArrayList<File>();
 
 		if (!baseDir.getAbsolutePath().contains(".svn")) {
-//			 AstVisitor.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
+			//			 AstVisitor.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
 
 			String[] files = baseDir.list();
 			String path = baseDir.getPath();
 
 			for (String s : files) {
 				File file = new File(path + File.separator + s);
-//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
+				//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
 				if (file.isDirectory()) {
 					fileList.addAll(getFiles(file));
 				} else {
@@ -157,7 +156,7 @@ public class Project {
 		for (Package p : packages.values()) {
 			retval.add(p.name);
 		}
-		
+
 		Collections.sort(retval, (String s1, String s2) -> s1.compareTo(s2));
 
 		return retval;
@@ -180,7 +179,7 @@ public class Project {
 		}
 
 		Collections.sort(retval, (String s1, String s2) -> s1.compareTo(s2));
-		
+
 		return retval;
 	}
 
@@ -212,18 +211,18 @@ public class Project {
 			pkg.validatePassOne(2);
 			classCount += pkg.classes.size();
 		}
-		
+
 		for (Package pkg : packages.values()) {
 			pkg.validatePassTwo(2);
 		}
 		AstVisitor.log(1, "Validation Completed");
-		
+
 		AstVisitor.log(0, "Validated " + packages.size() + " packages");
 		AstVisitor.log(0, "Validated " + classCount + " classes");
 	}
 
 	public Class searchForClass(int depth, String pkgDoingSearch, String name) {
-		// System.out.println("Project: Searching for unresolved class: " + name);
+		AstVisitor.log(depth, "Project: Searching for unresolved class: " + name);
 		Class clazz = null;
 		for (String pkgName : packages.keySet()) {
 			if (!pkgDoingSearch.equals(pkgName)) {

@@ -168,7 +168,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public static void log(int depth, String str) {
 		if (LOG) {
 			for (int i = 0; i < depth; i++) {
-				System.out.print("\t");
+				System.out.print("    ");
 			}
 			System.out.println(str);
 		}
