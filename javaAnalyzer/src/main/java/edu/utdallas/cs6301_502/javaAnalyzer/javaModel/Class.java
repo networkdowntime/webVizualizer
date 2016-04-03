@@ -59,9 +59,9 @@ public class Class extends DependentBase {
 		return this.extndsStr;
 	}
 
-//	public String getCanonicalName() {
-//		return this.pkg.getName() + "." + this.name;
-//	}
+	//	public String getCanonicalName() {
+	//		return this.pkg.getName() + "." + this.name;
+	//	}
 
 	public Method getOrCreateAndGetMethod(int depth, String name) {
 		Method method = methods.get(name);
@@ -160,8 +160,13 @@ public class Class extends DependentBase {
 
 		super.validatePassOne(depth + 1);
 
-		for (Method method : methods.values()) {
-			method.validatePassOne(depth + 1);
+		AstVisitor.log(depth + 1, "Checking for methods:");
+		if (methods != null && !methods.isEmpty()) {
+			for (Method method : methods.values()) {
+				method.validatePassOne(depth + 2);
+			}
+		} else {
+			AstVisitor.log(depth + 2, "No methods for this class");
 		}
 	}
 
@@ -258,7 +263,8 @@ public class Class extends DependentBase {
 									|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
 								sb.append(renderer.addEdge(this.pkg.name + "."
 										+ this.name, clazz.pkg.name + "."
-										+ clazz.name, ""));
+												+ clazz.name,
+										""));
 							}
 						}
 					}

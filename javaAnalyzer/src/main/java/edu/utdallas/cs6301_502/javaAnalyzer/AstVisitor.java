@@ -27,6 +27,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.ModifierSet;
 import com.github.javaparser.ast.body.MultiTypeParameter;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -94,7 +95,6 @@ import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.UnknownType;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
@@ -114,7 +114,6 @@ public class AstVisitor extends VoidVisitorAdapter {
 	// end dump the AST
 
 	private static final boolean LOG = true;
-	private CompilationUnit cu = null;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
@@ -190,11 +189,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 	}
 
-	private void addVariable(Node varibleDecloratorOrFieldDeclaration) {
+	private void addVariable(Node variableDecloratorOrFieldDeclaration) {
 		String type = null;
 		List<String> variableNames = new ArrayList<String>();
 
-		for (Node child : varibleDecloratorOrFieldDeclaration.getChildrenNodes()) {
+		for (Node child : variableDecloratorOrFieldDeclaration.getChildrenNodes()) {
 			if (child instanceof ReferenceType) {
 				type = ((ReferenceType) child).toString();
 			} else if (child instanceof PrimitiveType) {
@@ -209,10 +208,28 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 	}
 
+	private static String modifiersToString(int i) {
+		String retval = "";
+		retval += ModifierSet.isPublic(i) ? "public" : "";
+		retval += ModifierSet.isProtected(i) ? "protected" : "";
+		retval += ModifierSet.isPrivate(i) ? "private" : "";
+
+		retval += (retval.isEmpty()) ? "" : " ";
+
+		retval += ModifierSet.isStatic(i) ? "static" : "";
+		retval += ModifierSet.isAbstract(i) ? "abstract" : "";
+		retval += ModifierSet.isFinal(i) ? "final" : "";
+
+		return retval.trim();
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(AnnotationDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
+
+		String modifiers = modifiersToString(n.getModifiers());
+		// TODO implement handling modifiers
 
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
@@ -486,8 +503,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ConstructorDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-		n.getModifiers();
-		// TODO figure out what all the modifiers mean and handle them
+		String modifier = modifiersToString(n.getModifiers());
+		// TODO implement handling modifiers
 
 		String params = "";
 		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
@@ -612,6 +629,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(EnumDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
+
+		String modifiers = modifiersToString(n.getModifiers());
+		// TODO implement handling modifiers
 
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
@@ -883,10 +903,17 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		// TODO flesh out method call handling, may need to create a model class to handle it
 		
-		System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
-		for (Type t : n.getTypeArgs()) {
-			System.out.println(" Type Arg: " + t.toString());
-		}
+//		System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
+//		for (Type t : n.getTypeArgs()) {
+//			System.out.println(" Type Arg: " + t.toString());
+//		}
+//		
+//		for (Node child : n.getChildrenNodes()) {
+//			if (child instanceof FieldAccessExpr) {
+//				System.out.println("Method call fieldAccessExpr: " + ((FieldAccessExpr) child).getField());
+//				System.out.println("Method call fieldAccessExpr.toString: " + ((FieldAccessExpr) child).toString());
+//			}
+//		}
 //		String typeOrVarName = processExpression(depth + 1, n, n.getScope());
 //		System.out.println("method call name: " + typeOrVarName + " -> " + ex.getName());
 //
@@ -903,12 +930,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(MethodDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString() + "; modifiers: " + n.getModifiers());
 
-		n.getModifiers();
-		// TODO figure out what all the different modifies mean and map them
-		// package = 0
-		// public = 1
-		// private = 2
-		// protected = 4
+		String modifiers = modifiersToString(n.getModifiers());
+		// TODO implement handling modifiers
 
 		String params = "";
 		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();

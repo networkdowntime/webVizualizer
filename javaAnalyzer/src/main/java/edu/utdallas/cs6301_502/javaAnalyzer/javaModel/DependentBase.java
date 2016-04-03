@@ -1,8 +1,11 @@
 package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+
 import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
 public abstract class DependentBase {
@@ -76,7 +79,7 @@ public abstract class DependentBase {
 	}
 
 	public void addUnresolvedClass(int depth, String className) {
-		if (className.contains("["))
+		if (className.contains("[")) // remove array notation if needed
 			className = className.substring(0, className.indexOf("["));
 
 		if (!isVoid(className) && !isPrimative(className) && !this.unresolvedClasses.contains(className)) {
@@ -100,7 +103,7 @@ public abstract class DependentBase {
 		}
 	}
 
-	private boolean isVoid(String name) {
+	protected boolean isVoid(String name) {
 		boolean retval = false;
 
 		if ("void".equals(name))
@@ -109,7 +112,7 @@ public abstract class DependentBase {
 		return retval;
 	}
 
-	private boolean isPrimative(String name) {
+	protected boolean isPrimative(String name) {
 		boolean retval = false;
 
 		if (name.equals("boolean"))
@@ -132,12 +135,20 @@ public abstract class DependentBase {
 		return retval;
 	}
 
+	protected List<String> splitType(String type) {
+		List<String> genericsExpansion = new ArrayList<String>();
+		type = type.replaceAll("[<|,>]", " ");
+		for (String genericType : type.split("\\s+")) {
+			genericsExpansion.add(genericType);
+		}
+		return genericsExpansion;
+	}
+
 	public void addVariable(int depth, String name, String type) {
 		if (!varNameTypeMap.containsKey(name)) {
 			AstVisitor.log(depth, "Adding variable to " + this.getCanonicalName() + ": " + type + " " + name);
 			varNameTypeMap.put(name, type);
 		}
-		// TODO - Add logic to investigate the type and determine if it belongs to classDependency or unresolvedClasses
 	}
 
 	public Class findClass() {
@@ -180,7 +191,7 @@ public abstract class DependentBase {
 		Class c = findClass();
 
 		if (this instanceof Method) {
-			AstVisitor.log(depth, ((Method) this).name);
+			AstVisitor.log(depth, "Validating Method: " + ((Method) this).name + "; method's class: " + c.getCanonicalName());
 		} else {
 			AstVisitor.log(depth, "Validating Block");
 		}
@@ -215,21 +226,18 @@ public abstract class DependentBase {
 		}
 
 		for (String varName : varNameTypeMap.keySet()) {
-			String type = varNameTypeMap.get(varName);
+			for (String type : splitType(varNameTypeMap.get(varName))) {
 
-			if (type.contains("<")) { // Generics
-				type = type.substring(0, type.indexOf("<"));
-			}
+				AstVisitor.log(depth + 1,
+						"Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
+				if (!(isPrimative(type) || "this".equals(type))) {
+					Class clazz = searchForUnresolvedClass(depth + 2, type);
 
-			AstVisitor.log(depth + 1,
-					"Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
-			if (!(isPrimative(type) || "this".equals(type))) {
-				Class clazz = searchForUnresolvedClass(depth + 2, type);
-
-				if (clazz != null) {
-					AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
-					addResolvedClass(clazz);
-					varNameClassMap.put(varName, clazz);
+					if (clazz != null) {
+						AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
+						addResolvedClass(clazz);
+						varNameClassMap.put(varName, clazz);
+					}
 				}
 			}
 		}

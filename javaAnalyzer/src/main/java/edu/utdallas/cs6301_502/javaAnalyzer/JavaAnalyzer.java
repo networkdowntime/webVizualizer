@@ -3,17 +3,17 @@ package edu.utdallas.cs6301_502.javaAnalyzer;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
+import testClasses.TestClass2;
+
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
@@ -33,44 +33,52 @@ public class JavaAnalyzer {
 	private static final boolean LOG = true;
 
 	public static void main(String[] args) {
-		Project prj = new Project();
+//		Project prj = new Project();
+//
+//		long time = System.currentTimeMillis();
+//		
+//		prj.addFile(new File("src/test/java/testClasses"));
+//		
+//		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
+//		time = System.currentTimeMillis();
+//		
+//		prj.validate();
+//		System.out.println("Time to validate (ms): " + (System.currentTimeMillis() - time));
+//
+//		File graphFile = new File("graphFile.gv");
+//		try {
+//			FileWriter fw = new FileWriter(graphFile);
+//			JavaFilter filter = new JavaFilter();
+//			filter.setDiagramType(DiagramType.PACKAGE_DIAGRAM);
+//			filter.setFromFile(true);
+//			fw.write(prj.createGraph(filter));
+//			fw.close();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
-		long time = System.currentTimeMillis();
+		String type = "ArrayList<TestClass2>";
 		
-		prj.addFile(new File("src/test/java/testClasses"));
-		
-		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
-		time = System.currentTimeMillis();
-		
-		prj.validate();
-		System.out.println("Time to validate (ms): " + (System.currentTimeMillis() - time));
-
-		File graphFile = new File("graphFile.gv");
-		try {
-			FileWriter fw = new FileWriter(graphFile);
-			JavaFilter filter = new JavaFilter();
-			filter.setDiagramType(DiagramType.PACKAGE_DIAGRAM);
-			filter.setFromFile(true);
-			fw.write(prj.createGraph(filter));
-			fw.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+		List<String> genericsExpansion = new ArrayList<String>();
+		type = type.replaceAll("[<|,>]", " ");
+		for (String genericType : type.split("\\s+")) {
+			genericsExpansion.add(genericType);
+			System.out.println("'" + genericType + "'");
 		}
-
 	}
 
-	private static String modifiersToString(int i) {
-		String retval = "";
-		retval += ModifierSet.isPublic(i) ? "public" : "";
-		retval += ModifierSet.isProtected(i) ? "protected" : "";
-		retval += ModifierSet.isPrivate(i) ? "private" : "";
-
-		retval += (retval.isEmpty()) ? "" : " ";
-
-		retval += ModifierSet.isStatic(i) ? "static" : "";
-
-		return retval.trim();
-	}
+//	private static String modifiersToString(int i) {
+//		String retval = "";
+//		retval += ModifierSet.isPublic(i) ? "public" : "";
+//		retval += ModifierSet.isProtected(i) ? "protected" : "";
+//		retval += ModifierSet.isPrivate(i) ? "private" : "";
+//
+//		retval += (retval.isEmpty()) ? "" : " ";
+//
+//		retval += ModifierSet.isStatic(i) ? "static" : "";
+//
+//		return retval.trim();
+//	}
 
 	private static void processBodyDeclarations(int depth, DependentBase base, List<BodyDeclaration> members) {
 		if (members != null) {
@@ -628,73 +636,73 @@ public class JavaAnalyzer {
 		if (typeDeclaration != null) {
 			log(depth, "[" + typeDeclaration.getClass().getName() + "] - " + typeDeclaration.getName());
 
-			Package pkg = prj.getOrCreateAndGetPackage(1, cu.getPackage().getName().toString(), true, true);
-
-			Class base;
-			if (parent != null) {
-				base = pkg.getOrCreateAndGetClass(0, parent.getName() + "." + typeDeclaration.getName(), true);
-			} else {
-				base = pkg.getOrCreateAndGetClass(0, typeDeclaration.getName(), true);
-			}
-
-			log(depth, cu.getPackage().getName().toString());
-
-			if (cu.getImports() != null) {
-				processImports(0, base, cu.getImports());
-			}
+//			Package pkg = prj.getOrCreateAndGetPackage(1, cu.getPackage().getName().toString(), true, true);
+//
+//			Class base;
+//			if (parent != null) {
+//				base = pkg.getOrCreateAndGetClass(0, parent.getName() + "." + typeDeclaration.getName(), true);
+//			} else {
+//				base = pkg.getOrCreateAndGetClass(0, typeDeclaration.getName(), true);
+//			}
+//
+//			log(depth, cu.getPackage().getName().toString());
+//
+//			if (cu.getImports() != null) {
+//				processImports(0, base, cu.getImports());
+//			}
 
 			if (typeDeclaration instanceof AnnotationDeclaration) {
-				AnnotationDeclaration decl = (AnnotationDeclaration) typeDeclaration;
-
-				log(depth, modifiersToString(decl.getModifiers()) + " annotation " + decl.getName());
-
-				base.setIsAnnotation(true);
-
-				if (decl.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
-				}
-				processBodyDeclarations(depth + 1, base, decl.getMembers());
+//				AnnotationDeclaration decl = (AnnotationDeclaration) typeDeclaration;
+//
+//				log(depth, modifiersToString(decl.getModifiers()) + " annotation " + decl.getName());
+//
+//				base.setIsAnnotation(true);
+//
+//				if (decl.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
+//				}
+//				processBodyDeclarations(depth + 1, base, decl.getMembers());
 
 			} else if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
-				ClassOrInterfaceDeclaration decl = (ClassOrInterfaceDeclaration) typeDeclaration;
-
-				String classOrInterface = "class";
-				if (decl.isInterface()) {
-					classOrInterface = "interface";
-				}
-
-				base.setIsInterface(decl.isInterface());
-				base.setIsAbstract(ModifierSet.isAbstract(decl.getModifiers()));
-
-				log(depth, cu.getPackage().getName().toString());
-				log(depth, modifiersToString(decl.getModifiers()) + " " + classOrInterface + " " + decl.getName());
-
-				if (decl.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
-				}
-				if (decl.getExtends() != null) {
-					for (ClassOrInterfaceType type : decl.getExtends()) {
-						base.setExtendsStr(type.getName());
-						base.addUnresolvedClass(0, type.getName());
-					}
-
-					processTypes(depth + 1, base, new ArrayList<Type>(decl.getExtends()));
-				}
-				if (decl.getImplements() != null) {
-					processTypes(depth + 1, base, new ArrayList<Type>(decl.getImplements()));
-				}
-				if (decl.getMembers() != null) {
-					for (BodyDeclaration bd : decl.getMembers()) {
-						if (bd instanceof TypeDeclaration) {
-							processTypeDeclaration(depth + 1, prj, base, cu, (TypeDeclaration) bd);
-						} else {
-							processBodyDeclaration(depth + 1, base, bd);
-						}
-					}
-				}
-				if (decl.getTypeParameters() != null) {
-					processTypeParameters(depth + 1, base, decl.getTypeParameters());
-				}
+//				ClassOrInterfaceDeclaration decl = (ClassOrInterfaceDeclaration) typeDeclaration;
+//
+//				String classOrInterface = "class";
+//				if (decl.isInterface()) {
+//					classOrInterface = "interface";
+//				}
+//
+//				base.setIsInterface(decl.isInterface());
+//				base.setIsAbstract(ModifierSet.isAbstract(decl.getModifiers()));
+//
+//				log(depth, cu.getPackage().getName().toString());
+//				log(depth, modifiersToString(decl.getModifiers()) + " " + classOrInterface + " " + decl.getName());
+//
+//				if (decl.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
+//				}
+//				if (decl.getExtends() != null) {
+//					for (ClassOrInterfaceType type : decl.getExtends()) {
+//						base.setExtendsStr(type.getName());
+//						base.addUnresolvedClass(0, type.getName());
+//					}
+//
+//					processTypes(depth + 1, base, new ArrayList<Type>(decl.getExtends()));
+//				}
+//				if (decl.getImplements() != null) {
+//					processTypes(depth + 1, base, new ArrayList<Type>(decl.getImplements()));
+//				}
+//				if (decl.getMembers() != null) {
+//					for (BodyDeclaration bd : decl.getMembers()) {
+//						if (bd instanceof TypeDeclaration) {
+//							processTypeDeclaration(depth + 1, prj, base, cu, (TypeDeclaration) bd);
+//						} else {
+//							processBodyDeclaration(depth + 1, base, bd);
+//						}
+//					}
+//				}
+//				if (decl.getTypeParameters() != null) {
+//					processTypeParameters(depth + 1, base, decl.getTypeParameters());
+//				}
 
 			} else if (typeDeclaration instanceof EmptyTypeDeclaration) {
 				EmptyTypeDeclaration decl = (EmptyTypeDeclaration) typeDeclaration;
@@ -702,22 +710,22 @@ public class JavaAnalyzer {
 				// I don't think there is anything to do here.
 
 			} else if (typeDeclaration instanceof EnumDeclaration) {
-				EnumDeclaration decl = (EnumDeclaration) typeDeclaration;
-
-				base.setIsEnum(true);
-
-				if (decl.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
-				}
-				if (decl.getEntries() != null) {
-					processBodyDeclarations(depth + 1, base, new ArrayList<BodyDeclaration>(decl.getEntries()));
-				}
-				if (decl.getImplements() != null) {
-					processTypes(depth + 1, base, new ArrayList<Type>(decl.getImplements()));
-				}
-				if (decl.getMembers() != null) {
-					processBodyDeclarations(depth + 1, base, decl.getMembers());
-				}
+//				EnumDeclaration decl = (EnumDeclaration) typeDeclaration;
+//
+//				base.setIsEnum(true);
+//
+//				if (decl.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(decl.getAnnotations()));
+//				}
+//				if (decl.getEntries() != null) {
+//					processBodyDeclarations(depth + 1, base, new ArrayList<BodyDeclaration>(decl.getEntries()));
+//				}
+//				if (decl.getImplements() != null) {
+//					processTypes(depth + 1, base, new ArrayList<Type>(decl.getImplements()));
+//				}
+//				if (decl.getMembers() != null) {
+//					processBodyDeclarations(depth + 1, base, decl.getMembers());
+//				}
 
 			}
 		}

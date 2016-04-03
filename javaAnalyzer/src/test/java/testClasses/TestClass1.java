@@ -35,6 +35,8 @@ public class TestClass1 implements TestInterface1{
 	protected void method1(String var2, List<HashMap<Long, Integer>> genericParameter) {
 		System.out.println(fieldVar1);
 		
+		this.getClass().getName();
+		
 		int[] foo = new int[] { 0, 1, 2 };
 		
 		long localVar1;
