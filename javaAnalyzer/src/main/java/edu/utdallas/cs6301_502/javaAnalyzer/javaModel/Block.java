@@ -8,9 +8,9 @@ public class Block extends DependentBase {
 
 	List<Block> childBlocks = new ArrayList<Block>();
 
-	public Block(Block parent) {
+	public Block(int depth, Block parent) {
 		this.parent = parent;
-		AstVisitor.log(1, "Creating Block: ");
+		AstVisitor.log(depth, "Creating Block: ");
 	}
 
 	public void addChildBlock(Block block) {
@@ -18,9 +18,9 @@ public class Block extends DependentBase {
 	}
 
 	@Override
-	public void addUnresolvedClass(String className) {
-		System.out.println("Adding class to block: " + className);
-		super.addUnresolvedClass(className);
+	public void addUnresolvedClass(int depth, String className) {
+//		System.out.println("Adding class to block: " + className);
+		super.addUnresolvedClass(depth, className);
 	}
 
 	

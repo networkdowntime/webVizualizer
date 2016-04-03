@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.github.javaparser.ast.type.VoidType;
-
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
@@ -21,10 +19,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.PrimitiveType;
-import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.ast.type.WildcardType;
 
 
 // ToDo: Need to research and handle MemberValuePair
@@ -158,125 +153,125 @@ public class JavaAnalyzer {
 			log(depth, "[" + member.getClass().getName() + "]");
 
 			if (member instanceof AnnotationMemberDeclaration) {
-				AnnotationMemberDeclaration field = (AnnotationMemberDeclaration) member;
-
-				if (field.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(field.getAnnotations()));
-				}
-				processType(depth + 1, base, field.getType());
-
-				log(depth + 1, field.getName());
-
-				processExpression(depth + 1, base, field.getDefaultValue());
-
+//				AnnotationMemberDeclaration field = (AnnotationMemberDeclaration) member;
+//
+//				if (field.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(field.getAnnotations()));
+//				}
+//				processType(depth + 1, base, field.getType());
+//
+//				log(depth + 1, field.getName());
+//
+//				processExpression(depth + 1, base, field.getDefaultValue());
+//
 			} else if (member instanceof ConstructorDeclaration) {
-				ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) member;
-				constructorDeclaration.getModifiers();
-
-				String params = "";
-				LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
-
-				if (constructorDeclaration.getParameters() != null) {
-					for (Parameter param : constructorDeclaration.getParameters()) {
-						params += (params.isEmpty()) ? "" : ", ";
-						params += param.getType();// + " " + param.getId().getName();
-
-						paramMap.put(param.getId().getName(), param.getType().toString());
-						// TODO: Add in method/class dependencies based on param Types
-					}
-				}
-
-				Method method = ((Class) base).getOrCreateAndGetMethod(constructorDeclaration.getName() + "(" + params + ")");
-				method.setParamMap(paramMap);
-
-				if (constructorDeclaration.getBlock() != null) {
-					processStatement(depth + 1, method, constructorDeclaration.getBlock());
-				}
+//				ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) member;
+//				constructorDeclaration.getModifiers();
+//
+//				String params = "";
+//				LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+//
+//				if (constructorDeclaration.getParameters() != null) {
+//					for (Parameter param : constructorDeclaration.getParameters()) {
+//						params += (params.isEmpty()) ? "" : ", ";
+//						params += param.getType();// + " " + param.getId().getName();
+//
+//						paramMap.put(param.getId().getName(), param.getType().toString());
+//						// TODO: Add in method/class dependencies based on param Types
+//					}
+//				}
+//
+//				Method method = ((Class) base).getOrCreateAndGetMethod(0, constructorDeclaration.getName() + "(" + params + ")");
+//				method.setParamMap(0, paramMap);
+//
+//				if (constructorDeclaration.getBlock() != null) {
+//					processStatement(depth + 1, method, constructorDeclaration.getBlock());
+//				}
 			} else if (member instanceof EmptyMemberDeclaration) {
 				log(0, "!!! Not implemented EmptyMemberDeclaration");
 
 			} else if (member instanceof EnumConstantDeclaration) {
-				EnumConstantDeclaration field = (EnumConstantDeclaration) member;
-
-				log(depth, field.getName());
-
-				if (field.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(field.getAnnotations()));
-				}
-				if (field.getArgs() != null) {
-					processExpressions(depth + 1, base, field.getArgs());
-				}
-				if (field.getClassBody() != null) {
-					processBodyDeclarations(depth + 1, base, field.getClassBody());
-				}
-
+//				EnumConstantDeclaration field = (EnumConstantDeclaration) member;
+//
+//				log(depth, field.getName());
+//
+//				if (field.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(field.getAnnotations()));
+//				}
+//				if (field.getArgs() != null) {
+//					processExpressions(depth + 1, base, field.getArgs());
+//				}
+//				if (field.getClassBody() != null) {
+//					processBodyDeclarations(depth + 1, base, field.getClassBody());
+//				}
+//
 			} else if (member instanceof FieldDeclaration) {
-				FieldDeclaration field = (FieldDeclaration) member;
-
-				log(depth, "[" + member.getClass().getName() + "]");
-
-				String type = processType(depth + 1, base, field.getType());
-
-				if (type != null) {
-					// log(depth +1, "!!!FieldDeclaration " + type.toString());
-					//
-					// base.addUnresolvedClass(type);
-					if (field.getVariables() != null) {
-						for (VariableDeclarator vd : field.getVariables()) {
-							base.addVariable(vd.getId().getName(), type);
-						}
-					}
-				}
-
-				for (VariableDeclarator variable : field.getVariables()) {
-					processVariableDeclarator(depth + 1, base, variable);
-				}
+//				FieldDeclaration field = (FieldDeclaration) member;
+//
+//				log(depth, "[" + member.getClass().getName() + "]");
+//
+//				String type = processType(depth + 1, base, field.getType());
+//
+//				if (type != null) {
+//					// log(depth +1, "!!!FieldDeclaration " + type.toString());
+//					//
+//					// base.addUnresolvedClass(type);
+//					if (field.getVariables() != null) {
+//						for (VariableDeclarator vd : field.getVariables()) {
+//							base.addVariable(0, vd.getId().getName(), type);
+//						}
+//					}
+//				}
+//
+//				for (VariableDeclarator variable : field.getVariables()) {
+//					processVariableDeclarator(depth + 1, base, variable);
+//				}
 
 			} else if (member instanceof InitializerDeclaration) {
 				log(0, "!!! Not implemented InitializerDeclaration");
 
 			} else if (member instanceof MethodDeclaration) {
-				MethodDeclaration methodDeclaration = (MethodDeclaration) member;
-				methodDeclaration.getModifiers();
-
-				String params = "";
-				LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
-
-				if (methodDeclaration.getParameters() != null) {
-					for (Parameter param : methodDeclaration.getParameters()) {
-						params += (params.isEmpty()) ? "" : ", ";
-						params += param.getType();// + " " + param.getId().getName();
-
-						paramMap.put(param.getId().getName(), param.getType().toString());
-						// TODO: Add in method/class dependencies based on param Types
-					}
-				}
-
-				Method method = ((Class) base).getOrCreateAndGetMethod(methodDeclaration.getName() + "(" + params + ")");
-				method.setParamMap(paramMap);
-
-				if (methodDeclaration.getBody() != null) {
-					processStatement(depth + 1, method, methodDeclaration.getBody());
-				}
+//				MethodDeclaration methodDeclaration = (MethodDeclaration) member;
+//				methodDeclaration.getModifiers();
+//
+//				String params = "";
+//				LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+//
+//				if (methodDeclaration.getParameters() != null) {
+//					for (Parameter param : methodDeclaration.getParameters()) {
+//						params += (params.isEmpty()) ? "" : ", ";
+//						params += param.getType();// + " " + param.getId().getName();
+//
+//						paramMap.put(param.getId().getName(), param.getType().toString());
+//						// TODO: Add in method/class dependencies based on param Types
+//					}
+//				}
+//
+//				Method method = ((Class) base).getOrCreateAndGetMethod(0, methodDeclaration.getName() + "(" + params + ")");
+//				method.setParamMap(0, paramMap);
+//
+//				if (methodDeclaration.getBody() != null) {
+//					processStatement(depth + 1, method, methodDeclaration.getBody());
+//				}
 			} else if (member instanceof TypeDeclaration) {
-				TypeDeclaration typeDeclaration = (TypeDeclaration) member;
-
-				if (typeDeclaration.getAnnotations() != null) {
-					processExpressions(depth + 1, base, new ArrayList<Expression>(typeDeclaration.getAnnotations()));
-				}
-				processBodyDeclarations(depth + 1, base, typeDeclaration.getMembers());
+//				TypeDeclaration typeDeclaration = (TypeDeclaration) member;
+//
+//				if (typeDeclaration.getAnnotations() != null) {
+//					processExpressions(depth + 1, base, new ArrayList<Expression>(typeDeclaration.getAnnotations()));
+//				}
+//				processBodyDeclarations(depth + 1, base, typeDeclaration.getMembers());
 			}
 		}
 		log(depth, "leaving [" + member.getClass().getName() + "]");
 	}
 
 	private static void processCatchClause(int depth, Block block, List<CatchClause> catchs) {
-		if (catchs != null) {
-			for (CatchClause clause : catchs) {
-				// glossing over the catch parameter for now
-				processStatement(depth + 1, block, clause.getCatchBlock());
-			}
-		}
+//		if (catchs != null) {
+//			for (CatchClause clause : catchs) {
+//				// glossing over the catch parameter for now
+//				processStatement(depth + 1, block, clause.getCatchBlock());
+//			}
+//		}
 
 	}
 
@@ -397,17 +392,17 @@ public class JavaAnalyzer {
 			} else if (expression instanceof NameExpr) {
 				NameExpr ex = ((NameExpr) expression);
 
-				base.addPotentialClass(ex.toString());
+				base.addPotentialClass(0, ex.toString());
 				return ex.toString();
 				// Nothing to do here
 
 			} else if (expression instanceof NormalAnnotationExpr) {
-				NormalAnnotationExpr ex = ((NormalAnnotationExpr) expression);
-
-				base.addUnresolvedAnnotations(ex.getName().getName());
-
-				processExpression(depth + 1, base, ex.getName());
-				processMemberValuePairs(depth + 1, base, ex.getPairs());
+//				NormalAnnotationExpr ex = ((NormalAnnotationExpr) expression);
+//
+//				base.addUnresolvedAnnotations(ex.getName().getName());
+//
+//				processExpression(depth + 1, base, ex.getName());
+//				processMemberValuePairs(depth + 1, base, ex.getPairs());
 
 			} else if (expression instanceof NullLiteralExpr) {
 				NullLiteralExpr ex = ((NullLiteralExpr) expression);
@@ -436,7 +431,7 @@ public class JavaAnalyzer {
 			} else if (expression instanceof StringLiteralExpr) {
 				StringLiteralExpr ex = ((StringLiteralExpr) expression);
 
-				base.addUnresolvedClass("String");
+				base.addUnresolvedClass(0, "String");
 				return "String";
 
 			} else if (expression instanceof SuperExpr) {
@@ -457,23 +452,23 @@ public class JavaAnalyzer {
 				processExpression(depth + 1, base, ex.getExpr());
 
 			} else if (expression instanceof VariableDeclarationExpr) {
-				VariableDeclarationExpr ex = ((VariableDeclarationExpr) expression);
-
-				// System.out.println(ex.getType());
-
-				String type = processType(depth + 1, base, ex.getType());
-
-				if (type != null) {
-					log(depth + 1, "!!!VariableDeclarationExpr " + ex.getType().toString());
-					base.addUnresolvedClass(ex.getType().toString());
-					if (ex.getVars() != null) {
-						for (VariableDeclarator vd : ex.getVars()) {
-							base.addVariable(vd.getId().getName(), type);
-						}
-					}
-				}
-
-				processVariableDeclarators(depth + 1, base, ex.getVars());
+//				VariableDeclarationExpr ex = ((VariableDeclarationExpr) expression);
+//
+//				// System.out.println(ex.getType());
+//
+//				String type = processType(depth + 1, base, ex.getType());
+//
+//				if (type != null) {
+//					log(depth + 1, "!!!VariableDeclarationExpr " + ex.getType().toString());
+//					base.addUnresolvedClass(0, ex.getType().toString());
+//					if (ex.getVars() != null) {
+//						for (VariableDeclarator vd : ex.getVars()) {
+//							base.addVariable(0, vd.getId().getName(), type);
+//						}
+//					}
+//				}
+//
+//				processVariableDeclarators(depth + 1, base, ex.getVars());
 
 			} else {
 				log(0, "!!! Unknown - [" + expression.getClass().getName() + "] - " + expression.toString());
@@ -489,7 +484,7 @@ public class JavaAnalyzer {
 				processExpression(depth + 1, block, ((AssertStmt) stmt).getCheck());
 
 			} else if (stmt instanceof BlockStmt) {
-				Block childBlock = new Block(block);
+				Block childBlock = new Block(0, block);
 				block.addChildBlock(childBlock);
 				processStatements(depth + 1, childBlock, ((BlockStmt) stmt).getStmts());
 
@@ -549,15 +544,15 @@ public class JavaAnalyzer {
 
 			} else if (stmt instanceof TryStmt) {
 
-				Block childTryBlock = new Block(block);
+				Block childTryBlock = new Block(0, block);
 				block.addChildBlock(childTryBlock);
 				processStatement(depth + 1, childTryBlock, ((TryStmt) stmt).getTryBlock());
 
-				Block childCatchBlock = new Block(block);
+				Block childCatchBlock = new Block(0, block);
 				block.addChildBlock(childCatchBlock);
 				processCatchClause(depth + 1, childCatchBlock, ((TryStmt) stmt).getCatchs());
 
-				Block childFinallyBlock = new Block(block);
+				Block childFinallyBlock = new Block(0, block);
 				block.addChildBlock(childFinallyBlock);
 				processStatement(depth + 1, childFinallyBlock, ((TryStmt) stmt).getFinallyBlock());
 
@@ -680,7 +675,7 @@ public class JavaAnalyzer {
 				if (decl.getExtends() != null) {
 					for (ClassOrInterfaceType type : decl.getExtends()) {
 						base.setExtendsStr(type.getName());
-						base.addUnresolvedClass(type.getName());
+						base.addUnresolvedClass(0, type.getName());
 					}
 
 					processTypes(depth + 1, base, new ArrayList<Type>(decl.getExtends()));

@@ -59,14 +59,14 @@ public class Class extends DependentBase {
 		return this.extndsStr;
 	}
 
-	public String getCanonicalName() {
-		return this.pkg.getName() + "." + this.name;
-	}
+//	public String getCanonicalName() {
+//		return this.pkg.getName() + "." + this.name;
+//	}
 
-	public Method getOrCreateAndGetMethod(String name) {
+	public Method getOrCreateAndGetMethod(int depth, String name) {
 		Method method = methods.get(name);
 		if (method == null) {
-			method = new Method(this, name);
+			method = new Method(depth, this, name);
 			methods.put(name, method);
 		}
 		return method;

@@ -6,10 +6,11 @@ import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 public class Method extends Block {
 
 	String name;
+	String returnType;
 	LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
-
-	public Method(Class clazz, String name) {
-		super(null);
+	
+	public Method(int depth, Class clazz, String name) {
+		super(depth, null);
 		this.parent = clazz;
 		this.name = name;
 		AstVisitor.log(3, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
@@ -19,17 +20,26 @@ public class Method extends Block {
 		return this.name;
 	}
 
-	public void setParamMap(LinkedHashMap<String, String> paramMap) {
+	public String getCanonicalName() {
+		return parent.getCanonicalName() + "." + this.name;
+	}
+
+	public void setParamMap(int depth, LinkedHashMap<String, String> paramMap) {
 		assert (paramMap != null);
 
 		this.paramMap = paramMap;
 
 		for (String name : paramMap.keySet()) {
-			AstVisitor.log(0, "Adding Method Parameter: " + name);
-			this.addVariable(name, paramMap.get(name));
+			AstVisitor.log(depth, "Adding Method Parameter: " + name);
+			this.addVariable(depth, name, paramMap.get(name));
 		}
 	}
 
+	public void setReturnType(int depth, String type) {
+		this.returnType = type;
+		this.addUnresolvedClass(depth, type);
+	}
+	
 	@Override
 	public void validatePassOne(int depth) {
 		AstVisitor.log(depth, "Validating Method: " + getName());
