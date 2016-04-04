@@ -120,7 +120,7 @@ public class Class extends DependentBase {
 	public Class searchForUnresolvedClass(int depth, String className) {
 		AstVisitor.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
 
-		Class matchedClass = super.searchForUnresolvedClass(depth, className);
+		Class matchedClass = super.searchForUnresolvedClass(depth + 1, className);
 
 		if (matchedClass == null) {
 			matchedClass = pkg.searchForUnresolvedClass(depth + 1, name, className);
@@ -174,13 +174,13 @@ public class Class extends DependentBase {
 	public void validatePassTwo(int depth) {
 		AstVisitor.log(depth, "Validating Pass Two class: " + getCanonicalName());
 
-		super.validatePassTwo(depth + 1);
-
 		List<Method> tmpMethods = new ArrayList<Method>();
 		tmpMethods.addAll(methods.values());
 		for (Method method : tmpMethods) {
 			method.validatePassTwo(depth + 1);
 		}
+		
+		super.validatePassTwo(depth + 1);
 	}
 
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
@@ -234,17 +234,19 @@ public class Class extends DependentBase {
 			// Add edges for implementing interfaces, if only 1 reference to
 			// that class don't add a reference edge later
 			for (Class clazz : this.impls) {
-				sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
-						clazz.pkg.name + "." + clazz.name, "", true));
-				Integer count = this.unresolvedClassCount.get(clazz.name);
-				if (count != null && count.intValue() == 1) {
-					boolean exclude = filter.getPackagesToExclude().contains(
-							clazz.pkg.name);
-					exclude = exclude
-							|| filter.getClassesToExclude().contains(
-									clazz.pkg.name + "." + clazz.name);
-					if (!exclude)
+				boolean exclude = filter.getPackagesToExclude().contains(
+						clazz.pkg.name);
+				exclude = exclude
+						|| filter.getClassesToExclude().contains(
+								clazz.pkg.name + "." + clazz.name);
+				if (!exclude) {
+					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
+							clazz.pkg.name + "." + clazz.name, "", true));
+
+					Integer count = this.unresolvedClassCount.get(clazz.name);
+					if (count != null && count.intValue() == 1) {
 						refsToSkip.add(clazz.name);
+					}
 				}
 			}
 

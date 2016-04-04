@@ -103,6 +103,17 @@ public abstract class DependentBase {
 		}
 	}
 
+	public void addUnresolvedMethodCall(int depth, String typeOrVarName, String methodName) {
+		AstVisitor.log(depth, "Adding unresolved method call: " + typeOrVarName + " -> " + methodName);
+
+		HashSet<String> methods = unresolvedMethods.get(varNameTypeMap);
+		if (methods == null) {
+			methods = new HashSet<String>();
+			unresolvedMethods.put(typeOrVarName, methods);
+		}
+		methods.add(methodName);
+	}
+
 	protected boolean isVoid(String name) {
 		boolean retval = false;
 
@@ -171,18 +182,23 @@ public abstract class DependentBase {
 
 		if (matchedClass == null) {
 			if (parent != null)
-				matchedClass = parent.searchForUnresolvedClass(depth, className);
+				matchedClass = parent.searchForUnresolvedClass(depth + 1, className);
 		}
 		return matchedClass;
 	}
 
-	public Class searchForVariableClass(String variableName) {
-		AstVisitor.log(1, "DependentBase.searchForVariable(" + variableName + ")");
+	public Class searchForVariableClass(int depth, String variableName) {
+		AstVisitor.log(depth, "DependentBase.searchForVariable(" + variableName + ")");
+
+		for (String varName : varNameClassMap.keySet()) {
+			AstVisitor.log(depth + 1, "Considering variable " + varName + " of type " + varNameClassMap.get(varName).getName() + "; matched=" + variableName.trim().equals(varName.trim()));
+		}
+
 		Class matchedClass = varNameClassMap.get(variableName);
 
 		if (matchedClass == null) {
 			if (parent != null)
-				matchedClass = parent.searchForVariableClass(variableName);
+				matchedClass = parent.searchForVariableClass(depth + 1, variableName);
 		}
 		return matchedClass;
 	}
@@ -252,59 +268,76 @@ public abstract class DependentBase {
 	}
 
 	public void validatePassTwo(int depth) {
-		AstVisitor.log(depth, "DependentBase.validatePassTwo()");
-
-		for (String typeOrVarName : unresolvedMethods.keySet()) {
-			Class clazz = null;
-
-			if ("this".equals(typeOrVarName)) {
-				clazz = findClass();
-			} else if ("super".equals(typeOrVarName)) {
-				clazz = findClass().extnds;
-			} else if ("String".equals(typeOrVarName)) {
-				searchForUnresolvedClass(depth + 1, "String");
-			} else if ("null".equals(typeOrVarName) || typeOrVarName == null) {} else {
-				clazz = searchForVariableClass(typeOrVarName);
-
-				if (clazz == null) {
-					clazz = searchForUnresolvedClass(depth + 1, typeOrVarName);
-				}
-			}
-
-			if (clazz != null) {
-				AstVisitor.log(depth + 1, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
-
-				for (String methodName : unresolvedMethods.get(typeOrVarName)) {
-					HashSet<Method> methods = methodCallMap.get(clazz);
-					if (methods == null) {
-						methods = new HashSet<Method>();
-						methodCallMap.put(clazz, methods);
-					}
-
-					Method method = clazz.getOrCreateAndGetMethod(depth + 1, methodName + "()");
-					methods.add(method);
-
-					AstVisitor.log(depth + 1, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
-
-				}
-			}
-		}
-
 		if (this instanceof Block) {
 			Block b = (Block) this;
 			for (Block block : b.childBlocks) {
 				block.validatePassTwo(depth + 1);
 			}
 		}
-	}
 
-	public void addUnresolvedMethodCall(String typeOrVarName, String methodName) {
-		HashSet<String> methods = unresolvedMethods.get(varNameTypeMap);
-		if (methods == null) {
-			methods = new HashSet<String>();
-			unresolvedMethods.put(typeOrVarName, methods);
+		AstVisitor.log(depth, this.getClass().getName() + " validatePassTwo(): " + getCanonicalName());
+
+		for (String typeOrVarName : unresolvedMethods.keySet()) {
+			HashSet<String> methodSet = unresolvedMethods.get(typeOrVarName);
+
+			AstVisitor.log(depth + 1, "Checking for unresolved method call: " + typeOrVarName);
+
+			String tovn = typeOrVarName;
+			Class clazz = null;
+
+			if (tovn.contains(".")) {
+				String[] split = tovn.split("\\.");
+				System.out.println(tovn + " -> " + split[0]);
+				tovn = split[0];
+			}
+
+			if ("this".equals(tovn)) {
+				clazz = findClass();
+			} else if ("super".equals(tovn)) {
+				// TODO should search the entends heirarchy to see if there is a method match, if not assume immediate extends
+				clazz = findClass().extnds;
+			} else if ("String".equals(tovn)) {
+				clazz = searchForUnresolvedClass(depth + 1, "String");
+			} else if (tovn.startsWith("\"") && tovn.endsWith("\"")) {
+				clazz = searchForUnresolvedClass(depth + 1, "String");
+			} else if ("null".equals(tovn) || tovn == null) {
+				// nothing to do?
+			} else {
+				//TODO figure out how to handle chains.  i.e. System.out.println()
+				// should add a field to System of type unknown something that has a method called println();
+				// this attempts, going up the heirarchy to resolve the typeOrVarName to a defined variable
+				clazz = searchForVariableClass(depth + 1, tovn);
+
+				if (clazz == null) {
+					clazz = searchForUnresolvedClass(depth + 1, tovn);
+				}
+			}
+
+			if (clazz != null) {
+				AstVisitor.log(depth + 1, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
+
+				for (String methodName : methodSet) {
+					HashSet<Method> methods = methodCallMap.get(clazz);
+					if (methods == null) {
+						methods = new HashSet<Method>();
+						methodCallMap.put(clazz, methods);
+					}
+
+					Method method = null;
+					if (clazz.fromFile) {
+						method = clazz.getMethod(methodName + "()");
+
+					} else {
+						method = clazz.getOrCreateAndGetMethod(depth + 1, methodName + "()");
+					}
+
+					if (method != null) {
+						methods.add(method);
+						AstVisitor.log(depth + 1, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
+					}
+				}
+			}
 		}
-		methods.add(methodName);
 	}
 
 }

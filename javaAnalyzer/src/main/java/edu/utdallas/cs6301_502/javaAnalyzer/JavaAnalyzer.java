@@ -57,13 +57,10 @@ public class JavaAnalyzer {
 //			e.printStackTrace();
 //		}
 
-		String type = "ArrayList<TestClass2>";
+		String type = "\"foo\"";
 		
-		List<String> genericsExpansion = new ArrayList<String>();
-		type = type.replaceAll("[<|,>]", " ");
-		for (String genericType : type.split("\\s+")) {
-			genericsExpansion.add(genericType);
-			System.out.println("'" + genericType + "'");
+		if (type.startsWith("\"") && type.endsWith("\"")) {
+			System.out.println("match");
 		}
 	}
 
@@ -393,7 +390,7 @@ public class JavaAnalyzer {
 				String typeOrVarName = processExpression(depth + 1, base, ex.getScope());
 				System.out.println("method call name: " + typeOrVarName + " -> " + ex.getName());
 
-				base.addUnresolvedMethodCall(typeOrVarName, ex.getName());
+				base.addUnresolvedMethodCall(0, typeOrVarName, ex.getName());
 				
 				processExpressions(depth + 1, base, ex.getArgs());
 

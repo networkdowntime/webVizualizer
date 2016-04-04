@@ -13,7 +13,7 @@ public class Method extends Block {
 		super(depth, null);
 		this.parent = clazz;
 		this.name = name;
-		AstVisitor.log(3, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
+		AstVisitor.log(depth, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
 	}
 
 	public String getName() {

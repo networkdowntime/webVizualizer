@@ -48,6 +48,7 @@ import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.InstanceOfExpr;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
@@ -95,6 +96,7 @@ import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.ReferenceType;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.UnknownType;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
@@ -522,7 +524,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		current = method;
 		heirarchyStack.push(method);
-		
+
 		method.setParamMap(heirarchyStack.size() + 1, paramMap);
 		method.setReturnType(heirarchyStack.size() + 1, method.getCanonicalName());
 
@@ -773,7 +775,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		current.addUnresolvedClass(heirarchyStack.size() + 1, n.getType().toString());
-		
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -901,23 +903,35 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(MethodCallExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-		// TODO flesh out method call handling, may need to create a model class to handle it
-		
-//		System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
-//		for (Type t : n.getTypeArgs()) {
-//			System.out.println(" Type Arg: " + t.toString());
-//		}
-//		
-//		for (Node child : n.getChildrenNodes()) {
-//			if (child instanceof FieldAccessExpr) {
-//				System.out.println("Method call fieldAccessExpr: " + ((FieldAccessExpr) child).getField());
-//				System.out.println("Method call fieldAccessExpr.toString: " + ((FieldAccessExpr) child).toString());
-//			}
-//		}
-//		String typeOrVarName = processExpression(depth + 1, n, n.getScope());
-//		System.out.println("method call name: " + typeOrVarName + " -> " + ex.getName());
+
+		// TODO Need to try to match Arg params to types and add to method call
+
+		String typeOrVarName = null;
+		if (n.getScope() != null) {
+			typeOrVarName = n.getScope().toString();
+
+			current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
+		} else {
+			// when scope == null, it appears that the method calls are class local.  going to use current
+			// class name as the type
+			typeOrVarName = "this";
+			
+//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
 //
-//		base.addUnresolvedMethodCall(typeOrVarName, ex.getName());
+//			for (Node child : n.getChildrenNodes()) {
+//				System.out.println("  Method call (" + child.getClass().getName() + "): " + child.toString());
+//			}
+//
+//			for (Type t : n.getTypeArgs()) {
+//				System.out.println("  Type Arg: " + t.toString());
+//			}
+//
+//			for (Expression t : n.getArgs()) {
+//				System.out.println("  Arg: " + t.toString());
+//			}
+		}
+
+		current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
 
 		depth++;
 		super.visit(n, arg);
@@ -1268,7 +1282,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		addVariable(n);
-		
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
