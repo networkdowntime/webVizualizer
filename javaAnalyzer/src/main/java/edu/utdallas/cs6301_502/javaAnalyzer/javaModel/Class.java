@@ -11,7 +11,7 @@ import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
-public class Class extends DependentBase {
+public class Class extends DependentBase implements Comparable<Class> {
 
 	String name;
 	Package pkg;
@@ -120,7 +120,12 @@ public class Class extends DependentBase {
 	public Class searchForUnresolvedClass(int depth, String className) {
 		AstVisitor.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
 
-		Class matchedClass = super.searchForUnresolvedClass(depth + 1, className);
+		Class matchedClass = null;
+		if (getCanonicalName().equals(className)) {
+			matchedClass = this;
+		} else {
+			matchedClass = super.searchForUnresolvedClass(depth + 1, className);
+		}
 
 		if (matchedClass == null) {
 			matchedClass = pkg.searchForUnresolvedClass(depth + 1, name, className);
@@ -148,7 +153,7 @@ public class Class extends DependentBase {
 		if (implsStrings != null && !implsStrings.isEmpty()) {
 			for (String implString : implsStrings) {
 				Class clazz = pkg.searchForUnresolvedClass(depth, name, implString);
-				if (clazz != null) {
+				if (clazz != null && !impls.contains(clazz)) {
 					impls.add(clazz);
 					addResolvedClass(clazz);
 					AstVisitor.log(depth + 2, "Resolved implements to class: " + clazz.getCanonicalName());
@@ -171,7 +176,7 @@ public class Class extends DependentBase {
 	}
 
 	@Override
-	public void validatePassTwo(int depth) {
+	public int validatePassTwo(int depth) {
 		AstVisitor.log(depth, "Validating Pass Two class: " + getCanonicalName());
 
 		List<Method> tmpMethods = new ArrayList<Method>();
@@ -179,8 +184,10 @@ public class Class extends DependentBase {
 		for (Method method : tmpMethods) {
 			method.validatePassTwo(depth + 1);
 		}
-		
+
 		super.validatePassTwo(depth + 1);
+
+		return depth + 1;
 	}
 
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter) {
@@ -215,11 +222,11 @@ public class Class extends DependentBase {
 			// Add edge for extending another class, if only 1 reference to that
 			// class don't add a reference edge later
 			if (extnds != null) {
-				boolean exclude = filter.getPackagesToExclude().contains(
-						extnds.pkg.name);
-				exclude = exclude
-						|| filter.getClassesToExclude().contains(
-								extnds.pkg.name + "." + extnds.name);
+				boolean exclude = filter.getPackagesToExclude().contains(extnds.pkg.name);
+				exclude = exclude || filter.getClassesToExclude().contains(extnds.pkg.name + "." + extnds.name);
+				if (filter.isFromFile())
+					exclude = exclude || (filter.isFromFile() && !extnds.fromFile);
+
 				if (!exclude) {
 					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
 							extnds.pkg.name + "." + extnds.name, "", true));
@@ -233,40 +240,31 @@ public class Class extends DependentBase {
 
 			// Add edges for implementing interfaces, if only 1 reference to
 			// that class don't add a reference edge later
-			for (Class clazz : this.impls) {
-				boolean exclude = filter.getPackagesToExclude().contains(
-						clazz.pkg.name);
-				exclude = exclude
-						|| filter.getClassesToExclude().contains(
-								clazz.pkg.name + "." + clazz.name);
-				if (!exclude) {
-					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
-							clazz.pkg.name + "." + clazz.name, "", true));
+			for (Class intr : this.impls) {
+				boolean exclude = filter.getPackagesToExclude().contains(intr.pkg.name);
+				exclude = exclude || filter.getClassesToExclude().contains(intr.pkg.name + "." + intr.name);
+				if (filter.isFromFile())
+					exclude = exclude || (filter.isFromFile() && !intr.fromFile);
 
-					Integer count = this.unresolvedClassCount.get(clazz.name);
+				if (!exclude) {
+					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,	intr.pkg.name + "." + intr.name, "", true));
+
+					Integer count = this.unresolvedClassCount.get(intr.name);
 					if (count != null && count.intValue() == 1) {
-						refsToSkip.add(clazz.name);
+						refsToSkip.add(intr.name);
 					}
 				}
 			}
 
 			for (Class clazz : this.classDependencies.values()) {
 				if (!refsToSkip.contains(clazz.name)) {
-					boolean exclude = filter.getPackagesToExclude().contains(
-							clazz.pkg.name);
-					exclude = exclude
-							|| filter.getClassesToExclude().contains(
-									clazz.pkg.name + "." + clazz.name);
+					boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
+					exclude = exclude || filter.getClassesToExclude().contains(clazz.pkg.name + "." + clazz.name);
 					if (!exclude) {
-						if ((filter.isFromFile() && clazz.fromFile)
-								|| !filter.isFromFile()) {
-							if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && clazz.referencedByClass
-									.size() == 0)
+						if ((filter.isFromFile() && clazz.fromFile)	|| !filter.isFromFile()) {
+							if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && clazz.referencedByClass.size() == 0)
 									|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
-								sb.append(renderer.addEdge(this.pkg.name + "."
-										+ this.name, clazz.pkg.name + "."
-												+ clazz.name,
-										""));
+								sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, ""));
 							}
 						}
 					}
@@ -279,6 +277,16 @@ public class Class extends DependentBase {
 
 	public void addReferencedByClass(Class referencingClass) {
 		referencedByClass.add(referencingClass);
+	}
+
+	@Override
+	public int hashCode() {
+		return getCanonicalName().hashCode();
+	}
+
+	@Override
+	public int compareTo(Class clazz) {
+		return this.getCanonicalName().compareTo(clazz.getCanonicalName());
 	}
 
 }
