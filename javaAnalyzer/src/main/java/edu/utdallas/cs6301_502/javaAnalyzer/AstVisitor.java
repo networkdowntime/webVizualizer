@@ -104,6 +104,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
@@ -521,12 +522,12 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		Method method = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
+		method.setReturnType(heirarchyStack.size() + 1, current.getCanonicalName());
 
 		current = method;
 		heirarchyStack.push(method);
 
 		method.setParamMap(heirarchyStack.size() + 1, paramMap);
-		method.setReturnType(heirarchyStack.size() + 1, method.getCanonicalName());
 
 		depth++;
 		super.visit(n, arg);
@@ -686,6 +687,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(FieldAccessExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		log(0, "Field: scope=" + n.getScope() + "; field=" + n.getField());
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -836,10 +839,34 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(LambdaExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
+		String params = "";
+		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+
+		if (n.getParameters() != null) {
+			for (Parameter param : n.getParameters()) {
+				params += (params.isEmpty()) ? "" : ", ";
+				params += param.getType();// + " " + param.getId().getName();
+
+				paramMap.put(param.getId().getName(), param.getType().toString());
+			}
+		}
+
+		Block block = new Block(heirarchyStack.size() + 1, current);
+		
+		current = block;
+		heirarchyStack.push(block);
+
+		((Block) current).setParamMap(heirarchyStack.size() + 1, paramMap);
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
 
+		log(heirarchyStack.size(), "Done with block");
+		heirarchyStack.pop();
+		if (!heirarchyStack.isEmpty())
+			current = heirarchyStack.peek();
+		log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -960,7 +987,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		Method newMethod = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
-
+		
 		current = newMethod;
 		heirarchyStack.push(newMethod);
 
