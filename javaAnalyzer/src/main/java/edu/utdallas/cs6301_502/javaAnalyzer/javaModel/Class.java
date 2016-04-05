@@ -206,8 +206,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 			if (filter.isShowFields()) {
 				for (String field : this.varNameClassMap.keySet()) {
 					Class clazz = this.varNameClassMap.get(field);
-					sb.append(renderer.addRecordField(field, field + ": "
-							+ clazz.name));
+					sb.append(renderer.addRecordField(field, field + ": " + clazz.name));
 				}
 			}
 

@@ -27,7 +27,6 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.ModifierSet;
 import com.github.javaparser.ast.body.MultiTypeParameter;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -48,7 +47,6 @@ import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.InstanceOfExpr;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
@@ -96,7 +94,6 @@ import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.UnknownType;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
@@ -116,7 +113,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	private static final boolean LOG = true;
+	public static boolean DEBUGGING_ENABLED = false;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
@@ -163,22 +160,24 @@ public class AstVisitor extends VoidVisitorAdapter {
 	}
 
 	public void logAST(int depth, String str) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < depth; i++) {
-			sb.append("\t");
-		}
-		sb.append(str);
-		sb.append("\r");
-		try {
-			astDumpWriter.write(sb.toString());
-			astDumpWriter.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (DEBUGGING_ENABLED) {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < depth; i++) {
+				sb.append("\t");
+			}
+			sb.append(str);
+			sb.append("\r");
+			try {
+				astDumpWriter.write(sb.toString());
+				astDumpWriter.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public static void log(int depth, String str) {
-		if (LOG) {
+		if (DEBUGGING_ENABLED) {
 			for (int i = 0; i < depth; i++) {
 				System.out.print("    ");
 			}
@@ -211,27 +210,27 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 	}
 
-	private static String modifiersToString(int i) {
-		String retval = "";
-		retval += ModifierSet.isPublic(i) ? "public" : "";
-		retval += ModifierSet.isProtected(i) ? "protected" : "";
-		retval += ModifierSet.isPrivate(i) ? "private" : "";
-
-		retval += (retval.isEmpty()) ? "" : " ";
-
-		retval += ModifierSet.isStatic(i) ? "static" : "";
-		retval += ModifierSet.isAbstract(i) ? "abstract" : "";
-		retval += ModifierSet.isFinal(i) ? "final" : "";
-
-		return retval.trim();
-	}
+	//	private static String modifiersToString(int i) {
+	//		String retval = "";
+	//		retval += ModifierSet.isPublic(i) ? "public" : "";
+	//		retval += ModifierSet.isProtected(i) ? "protected" : "";
+	//		retval += ModifierSet.isPrivate(i) ? "private" : "";
+	//
+	//		retval += (retval.isEmpty()) ? "" : " ";
+	//
+	//		retval += ModifierSet.isStatic(i) ? "static" : "";
+	//		retval += ModifierSet.isAbstract(i) ? "abstract" : "";
+	//		retval += ModifierSet.isFinal(i) ? "final" : "";
+	//
+	//		return retval.trim();
+	//	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(AnnotationDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
-		String modifiers = modifiersToString(n.getModifiers());
+		// String modifiers = modifiersToString(n.getModifiers());
 		// TODO implement handling modifiers
 
 		Class newClass;
@@ -506,7 +505,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ConstructorDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-		String modifier = modifiersToString(n.getModifiers());
+		// String modifier = modifiersToString(n.getModifiers());
 		// TODO implement handling modifiers
 
 		String params = "";
@@ -522,7 +521,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		Method method = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
-		method.setReturnType(heirarchyStack.size() + 1, current.getCanonicalName());
+		method.setReturnType(heirarchyStack.size() + 1, current.getCanonicalName(), false);
 
 		current = method;
 		heirarchyStack.push(method);
@@ -633,7 +632,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(EnumDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
-		String modifiers = modifiersToString(n.getModifiers());
+		// String modifiers = modifiersToString(n.getModifiers());
 		// TODO implement handling modifiers
 
 		Class newClass;
@@ -687,8 +686,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(FieldAccessExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-		log(0, "Field: scope=" + n.getScope() + "; field=" + n.getField());
-
+		current.addPotentialClass(heirarchyStack.size() + 1, n.getScope().toString());
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -852,7 +850,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		Block block = new Block(heirarchyStack.size() + 1, current);
-		
+
 		current = block;
 		heirarchyStack.push(block);
 
@@ -930,7 +928,6 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(MethodCallExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-
 		// TODO Need to try to match Arg params to types and add to method call
 
 		String typeOrVarName = null;
@@ -942,20 +939,20 @@ public class AstVisitor extends VoidVisitorAdapter {
 			// when scope == null, it appears that the method calls are class local.  going to use current
 			// class name as the type
 			typeOrVarName = "this";
-			
-//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
-//
-//			for (Node child : n.getChildrenNodes()) {
-//				System.out.println("  Method call (" + child.getClass().getName() + "): " + child.toString());
-//			}
-//
-//			for (Type t : n.getTypeArgs()) {
-//				System.out.println("  Type Arg: " + t.toString());
-//			}
-//
-//			for (Expression t : n.getArgs()) {
-//				System.out.println("  Arg: " + t.toString());
-//			}
+
+			//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
+			//
+			//			for (Node child : n.getChildrenNodes()) {
+			//				System.out.println("  Method call (" + child.getClass().getName() + "): " + child.toString());
+			//			}
+			//
+			//			for (Type t : n.getTypeArgs()) {
+			//				System.out.println("  Type Arg: " + t.toString());
+			//			}
+			//
+			//			for (Expression t : n.getArgs()) {
+			//				System.out.println("  Arg: " + t.toString());
+			//			}
 		}
 
 		current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
@@ -971,7 +968,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(MethodDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString() + "; modifiers: " + n.getModifiers());
 
-		String modifiers = modifiersToString(n.getModifiers());
+		// String modifiers = modifiersToString(n.getModifiers());
 		// TODO implement handling modifiers
 
 		String params = "";
@@ -987,12 +984,12 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		Method newMethod = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
-		
+
 		current = newMethod;
 		heirarchyStack.push(newMethod);
 
 		((Method) current).setParamMap(heirarchyStack.size() + 1, paramMap);
-		((Method) current).setReturnType(heirarchyStack.size() + 1, n.getType().toString());
+		((Method) current).setReturnType(heirarchyStack.size() + 1, n.getType().toString(), true);
 
 		depth++;
 		super.visit(n, arg);

@@ -1,6 +1,5 @@
 package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
-import java.util.LinkedHashMap;
 import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
 public class Method extends Block {
@@ -23,10 +22,12 @@ public class Method extends Block {
 		return parent.getCanonicalName() + "." + this.name;
 	}
 
-	public void setReturnType(int depth, String type) {
+	public void setReturnType(int depth, String type, boolean addUnresolveClass) {
 		AstVisitor.log(depth, "Setting Method Return Type: " + type);
 		this.returnType = type;
-		this.addUnresolvedClass(depth + 1, type);
+		if (addUnresolveClass) {
+			this.addUnresolvedClass(depth + 1, type);
+		}
 	}
 
 }

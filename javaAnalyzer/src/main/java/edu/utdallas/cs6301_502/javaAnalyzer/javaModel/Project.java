@@ -1,6 +1,7 @@
 package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -263,6 +264,16 @@ public class Project {
 
 		sb.append(renderer.getFooter());
 
+		if (AstVisitor.DEBUGGING_ENABLED) {
+			try {
+				FileWriter fw = new FileWriter("graphviz.gv");
+				fw.write(sb.toString());
+				fw.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		return sb.toString();
 	}
 

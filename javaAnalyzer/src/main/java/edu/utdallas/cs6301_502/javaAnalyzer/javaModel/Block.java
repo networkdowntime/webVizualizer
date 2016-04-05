@@ -37,7 +37,6 @@ public class Block extends DependentBase {
 
 	@Override
 	public void addUnresolvedClass(int depth, String className) {
-//		System.out.println("Adding class to block: " + className);
 		super.addUnresolvedClass(depth, className);
 	}
 
@@ -62,7 +61,8 @@ public class Block extends DependentBase {
 
 					if (clazz != null) {
 						AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
-						addResolvedClass(clazz);
+						if (!"this".equals(type))
+							addResolvedClass(clazz);
 						varNameClassMap.put(varName, clazz);
 					}
 				}

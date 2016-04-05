@@ -82,7 +82,7 @@ public abstract class DependentBase {
 		if (className.contains("[")) // remove array notation if needed
 			className = className.substring(0, className.indexOf("["));
 
-		if (!isVoid(className) && !isPrimative(className) && !this.unresolvedClasses.contains(className)) {
+		if (!isVoid(className) && !isPrimative(className) && !"this".equals(className) && !this.unresolvedClasses.contains(className)) {
 			Integer count = this.unresolvedClassCount.get(className);
 			if (count == null)
 				count = 0;
@@ -251,7 +251,8 @@ public abstract class DependentBase {
 
 					if (clazz != null) {
 						AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
-						addResolvedClass(clazz);
+						if (!"this".equals(type))
+							addResolvedClass(clazz);
 						varNameClassMap.put(varName, clazz);
 					}
 				}
@@ -287,7 +288,6 @@ public abstract class DependentBase {
 
 			if (tovn.contains(".")) {
 				String[] split = tovn.split("\\.");
-				System.out.println(tovn + " -> " + split[0]);
 				tovn = split[0];
 			}
 
@@ -315,7 +315,9 @@ public abstract class DependentBase {
 			}
 
 			if (clazz != null) {
-				addResolvedClass(clazz);
+				if (!"this".equals(tovn)) {
+					addResolvedClass(clazz);
+				}
 				
 				AstVisitor.log(depth + 2, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
 
