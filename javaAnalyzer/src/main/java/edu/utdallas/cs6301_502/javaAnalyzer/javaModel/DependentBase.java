@@ -126,21 +126,21 @@ public abstract class DependentBase {
 	protected boolean isPrimative(String name) {
 		boolean retval = false;
 
-		if (name.equals("boolean"))
+		if ("boolean".equals(name) || "boolean[]".equals(name))
 			retval = true;
-		else if (name.equals("byte"))
+		else if ("byte".equals(name) || "byte[]".equals(name))
 			retval = true;
-		else if (name.equals("short"))
+		else if ("short".equals(name) || "short[]".equals(name))
 			retval = true;
-		else if (name.equals("int"))
+		else if ("int".equals(name) || "int[]".equals(name))
 			retval = true;
-		else if (name.equals("long"))
+		else if ("long".equals(name) || "long[]".equals(name))
 			retval = true;
-		else if (name.equals("float"))
+		else if ("float".equals(name) || "float[]".equals(name))
 			retval = true;
-		else if (name.equals("double"))
+		else if ("double".equals(name) || "double[]".equals(name))
 			retval = true;
-		else if (name.equals("char"))
+		else if ("char".equals(name) || "char[]".equals(name))
 			retval = true;
 
 		return retval;
@@ -188,8 +188,8 @@ public abstract class DependentBase {
 	}
 
 	public Class searchForVariableClass(int depth, String variableName) {
-		AstVisitor.log(depth, "DependentBase.searchForVariable(" + variableName + ")");
-
+		AstVisitor.log(depth, "DependentBase.searchForVariable(" + variableName + ") in " + getCanonicalName());
+		
 		for (String varName : varNameClassMap.keySet()) {
 			AstVisitor.log(depth + 1, "Considering variable " + varName + " of type " + varNameClassMap.get(varName).getName() + "; matched=" + variableName.trim().equals(varName.trim()));
 		}
@@ -267,11 +267,11 @@ public abstract class DependentBase {
 
 	}
 
-	public void validatePassTwo(int depth) {
+	public int validatePassTwo(int depth) {
 		if (this instanceof Block) {
 			Block b = (Block) this;
 			for (Block block : b.childBlocks) {
-				block.validatePassTwo(depth + 1);
+				depth = block.validatePassTwo(depth + 1);
 			}
 		}
 
@@ -280,7 +280,7 @@ public abstract class DependentBase {
 		for (String typeOrVarName : unresolvedMethods.keySet()) {
 			HashSet<String> methodSet = unresolvedMethods.get(typeOrVarName);
 
-			AstVisitor.log(depth + 1, "Checking for unresolved method call: " + typeOrVarName);
+			AstVisitor.log(depth + 1, "Checking for unresolved method call: " + typeOrVarName + " in " + getCanonicalName());
 
 			String tovn = typeOrVarName;
 			Class clazz = null;
@@ -297,24 +297,27 @@ public abstract class DependentBase {
 				// TODO should search the entends heirarchy to see if there is a method match, if not assume immediate extends
 				clazz = findClass().extnds;
 			} else if ("String".equals(tovn)) {
-				clazz = searchForUnresolvedClass(depth + 1, "String");
+				clazz = searchForUnresolvedClass(depth + 2, "String");
 			} else if (tovn.startsWith("\"") && tovn.endsWith("\"")) {
-				clazz = searchForUnresolvedClass(depth + 1, "String");
+				clazz = searchForUnresolvedClass(depth + 2, "String");
 			} else if ("null".equals(tovn) || tovn == null) {
 				// nothing to do?
 			} else {
 				//TODO figure out how to handle chains.  i.e. System.out.println()
 				// should add a field to System of type unknown something that has a method called println();
 				// this attempts, going up the heirarchy to resolve the typeOrVarName to a defined variable
-				clazz = searchForVariableClass(depth + 1, tovn);
+				clazz = searchForVariableClass(depth + 2, tovn);
 
 				if (clazz == null) {
-					clazz = searchForUnresolvedClass(depth + 1, tovn);
+					clazz = searchForUnresolvedClass(depth + 2, tovn);
 				}
+
 			}
 
 			if (clazz != null) {
-				AstVisitor.log(depth + 1, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
+				addResolvedClass(clazz);
+				
+				AstVisitor.log(depth + 2, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
 
 				for (String methodName : methodSet) {
 					HashSet<Method> methods = methodCallMap.get(clazz);
@@ -328,16 +331,17 @@ public abstract class DependentBase {
 						method = clazz.getMethod(methodName + "()");
 
 					} else {
-						method = clazz.getOrCreateAndGetMethod(depth + 1, methodName + "()");
+						method = clazz.getOrCreateAndGetMethod(depth + 3, methodName + "()");
 					}
 
 					if (method != null) {
 						methods.add(method);
-						AstVisitor.log(depth + 1, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
+						AstVisitor.log(depth + 3, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
 					}
 				}
 			}
 		}
+		return depth + 1;
 	}
 
 }
