@@ -1,24 +1,17 @@
 package edu.utdallas.cs6301_502.javaAnalyzer;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
-import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
-import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
-import testClasses.TestClass2;
 
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 
 
