@@ -931,12 +931,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 		if (n.getScope() != null) {
 			typeOrVarName = n.getScope().toString();
 
-			current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
 		} else {
 			// when scope == null, it appears that the method calls are class local.  going to use current
 			// class name as the type
 			typeOrVarName = "this";
-			current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
 
 			//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
 			//
