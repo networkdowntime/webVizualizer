@@ -146,7 +146,7 @@ public abstract class DependentBase {
 		return retval;
 	}
 
-	protected List<String> splitType(String type) {
+	public static List<String> splitType(String type) {
 		List<String> genericsExpansion = new ArrayList<String>();
 		type = type.replaceAll("[<|,>]", " ");
 		for (String genericType : type.split("\\s+")) {

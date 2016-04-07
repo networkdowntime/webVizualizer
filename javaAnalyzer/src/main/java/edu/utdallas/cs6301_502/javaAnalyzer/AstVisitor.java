@@ -113,7 +113,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	public static boolean DEBUGGING_ENABLED = false;
+	public static boolean DEBUGGING_ENABLED = true;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
@@ -465,12 +465,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ClassOrInterfaceType n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
-		String typeStr = n.toString();
-		if (typeStr.contains("<")) { // To hangle generics
-			typeStr = typeStr.substring(0, typeStr.indexOf("<"));
+		for (String typeStr : DependentBase.splitType(n.toString())) {
+			current.addUnresolvedClass(heirarchyStack.size() + 1, typeStr);
 		}
-
-		current.addUnresolvedClass(heirarchyStack.size() + 1, typeStr);
 
 		depth++;
 		super.visit(n, arg);
@@ -939,6 +936,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			// when scope == null, it appears that the method calls are class local.  going to use current
 			// class name as the type
 			typeOrVarName = "this";
+			current.addUnresolvedMethodCall(heirarchyStack.size() + 1, typeOrVarName, n.getName());
 
 			//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
 			//
