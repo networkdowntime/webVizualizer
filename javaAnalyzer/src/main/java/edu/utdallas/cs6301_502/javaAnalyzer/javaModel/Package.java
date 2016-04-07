@@ -1,6 +1,5 @@
 package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
@@ -12,9 +11,8 @@ import net.networkdowntime.renderer.GraphvizRenderer;
 
 public class Package {
 
-	File file;
-	String name;
-	boolean inPath = false;
+	protected String name;
+	protected boolean inPath = false;
 	Project prj;
 	Map<String, Class> classes = new HashMap<String, Class>();
 	boolean fromFile = false;
