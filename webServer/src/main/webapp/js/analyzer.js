@@ -22,6 +22,33 @@ function javaAnalyzerInit(menuItem) {
 	sourceDir = $.cookie("sourceDir");
 	if (sourceDir != null) $("#sourceDir").val(sourceDir);
 	
+	$("#saveToPng").click(function() {
+		var svg = $("#imgDiv").html();
+		
+		var xhr = new XMLHttpRequest();
+		var url = "/api/code/javaScanner/toPng";
+		var params = "svg=" + encodeURIComponent(svg);
+		xhr.responseType = 'blob';
+		xhr.open("POST", url, true);
+
+		//Send the proper header information along with the request
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xhr.onload = function(e) {
+		  if (this.status == 200) {
+			var blob = new Blob([this.response], {type: 'image/png'});
+			var downloadUrl = URL.createObjectURL(blob);
+			var a = document.createElement("a");
+			a.href = downloadUrl;
+		    a.download = "diagram.png";
+		    document.body.appendChild(a);
+		    a.click();
+		    $(a).remove();
+		  }
+		};
+
+		xhr.send(params);
+	})
+
 	$("#sourceScan").click(function() {
 		sourceDir = $("#sourceDir").val();
 		console.log(sourceDir);
