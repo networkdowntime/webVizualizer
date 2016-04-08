@@ -35,6 +35,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Path("code/javaScanner")
 public class JavaScanner {
 
+	static File file;
 	Project project = new Project();
 	
 	@POST
@@ -95,6 +96,7 @@ public class JavaScanner {
 		boolean exists = file.exists();
 		
 		if (exists) {
+			this.file = file;
 			project.addFile(file);
 		} else {
 			response.setStatus(Response.Status.NOT_FOUND.ordinal());
@@ -171,6 +173,9 @@ public class JavaScanner {
 			System.out.println("\t" + s);
 		}
 
+		project = new Project();
+		project.addFile(file);
+		
 		project.validate();
 		return project.createGraph(filter);
 	}

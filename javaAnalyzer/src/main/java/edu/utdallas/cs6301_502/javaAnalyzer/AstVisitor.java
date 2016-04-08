@@ -99,12 +99,12 @@ import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 
 @SuppressWarnings("rawtypes")
 public class AstVisitor extends VoidVisitorAdapter {
@@ -113,7 +113,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	public static boolean DEBUGGING_ENABLED = true;
+	public static boolean DEBUGGING_ENABLED = false;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
@@ -129,7 +129,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 		long time = System.currentTimeMillis();
 
 		prj.addFile(new File("src/test/java/"));
-
+//		prj.addFile(new File("/Users/rwiles/github/jabref/src/main/java/net/sf/jabref/exporter/ExportFormats.java"));
+		
 		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
 		time = System.currentTimeMillis();
 
@@ -426,12 +427,27 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ClassOrInterfaceDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
+		log(0, n.getParentNode().getClass().getName());
+		
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
-		} else {
+		} else if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true);
+		} else if (n.getParentNode() instanceof TypeDeclarationStmt) {
+			logAST(0, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
+			log(0, "Creating class: " + n.getName());
+
+//			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
+			newClass.setIsAnonymous(true, current);
+
+		} else {
+			log(0, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getParentNode().getClass().getName());
+			log(1, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getClass().getName());
+			log(2, "Shouldn't get here!!!! " + n.getParentNode().getClass().getName());
+			return;
 		}
 
 		current = newClass;
@@ -979,6 +995,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			}
 		}
 
+		if (current instanceof Class) {
 		Method newMethod = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
 
 		current = newMethod;
@@ -996,6 +1013,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
 		log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+		} else {
+			super.visit(n, arg);
+		}
+
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1059,7 +1081,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(ObjectCreationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
-
+		
+		current.addUnresolvedClass(heirarchyStack.size() + 1, n.getType().getName());
+		
 		depth++;
 		super.visit(n, arg);
 		depth--;
@@ -1071,7 +1095,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(PackageDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString().trim());
 
-		this.currentPackage = project.getOrCreateAndGetPackage(1, n.getName().getName(), true, true);
+		this.currentPackage = project.getOrCreateAndGetPackage(1, n.getName().toString(), true, true);
 
 		depth++;
 		super.visit(n, arg);
@@ -1244,7 +1268,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(TypeDeclarationStmt n, Object arg) {
-		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+//		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);

@@ -13,11 +13,11 @@ import net.networkdowntime.renderer.GraphvizRenderer;
 
 public class Class extends DependentBase implements Comparable<Class> {
 
-	String name;
 	Package pkg;
 	boolean isInterface = false;
 	boolean isAbstract = false;
 	boolean isAnnotation = false;
+	boolean isAnonymous = false;
 	boolean isEnum = false;
 
 	List<Package> packageDependencies = new ArrayList<Package>();
@@ -29,6 +29,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	List<Class> impls = new ArrayList<Class>();
 	List<String> implsStrings = new ArrayList<String>();
 	boolean fromFile = false;
+	DependentBase anonymousClassDefinedIn = null;
 
 	HashSet<Class> referencedByClass = new HashSet<Class>();
 
@@ -51,9 +52,10 @@ public class Class extends DependentBase implements Comparable<Class> {
 		this.extndsStr = extndsString;
 	}
 
-	public String getName() {
-		return this.name;
-	}
+//	@Override
+//	public String getName() {
+//		return this.name;
+//	}
 
 	public String getExtends() {
 		return this.extndsStr;
@@ -104,16 +106,21 @@ public class Class extends DependentBase implements Comparable<Class> {
 		this.isInterface = isInterface;
 	}
 
+	public void setIsAbstract(boolean isAbstract) {
+		this.isAbstract = isAbstract;
+	}
+
 	public void setIsAnnotation(boolean isAnnotation) {
 		this.isAnnotation = isAnnotation;
 	}
 
-	public void setIsEnum(boolean isEnum) {
-		this.isEnum = isEnum;
+	public void setIsAnonymous(boolean isAnonymous, DependentBase anonymousClassDefinedIn) {
+		this.isAnonymous = isAnonymous;
+		this.anonymousClassDefinedIn = anonymousClassDefinedIn;
 	}
 
-	public void setIsAbstract(boolean isAbstract) {
-		this.isAbstract = isAbstract;
+	public void setIsEnum(boolean isEnum) {
+		this.isEnum = isEnum;
 	}
 
 	@Override
@@ -200,19 +207,24 @@ public class Class extends DependentBase implements Comparable<Class> {
 		if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && this.referencedByClass
 				.size() == 0)
 				|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
-			sb.append(renderer.getBeginRecord(this.pkg.name + "." + this.name,
-					this.name, ""));
-
+			if (isAnonymous) {
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), ""));
+			}else if (isInterface) {
+					sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), ""));
+			} else {
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), ""));
+			}
+			
 			if (filter.isShowFields()) {
 				for (String field : this.varNameClassMap.keySet()) {
 					Class clazz = this.varNameClassMap.get(field);
-					sb.append(renderer.addRecordField(field, field + ": " + clazz.name));
+					sb.append(renderer.addRecordField(field, field + ": " + clazz.getName()));
 				}
 			}
 
 			if (filter.isShowMethods()) {
 				for (Method method : methods.values()) {
-					sb.append(renderer.addRecordField(method.name, method.name));
+					sb.append(renderer.addRecordField(method.getName(), method.name));
 				}
 			}
 
@@ -222,13 +234,12 @@ public class Class extends DependentBase implements Comparable<Class> {
 			// class don't add a reference edge later
 			if (extnds != null) {
 				boolean exclude = filter.getPackagesToExclude().contains(extnds.pkg.name);
-				exclude = exclude || filter.getClassesToExclude().contains(extnds.pkg.name + "." + extnds.name);
+				exclude = exclude || filter.getClassesToExclude().contains(extnds.getCanonicalName());
 				if (filter.isFromFile())
 					exclude = exclude || (filter.isFromFile() && !extnds.fromFile);
 
 				if (!exclude) {
-					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,
-							extnds.pkg.name + "." + extnds.name, "", true));
+					sb.append(renderer.addEdge(this.getCanonicalName(),	extnds.getCanonicalName(), "", true));
 
 					Integer count = this.unresolvedClassCount.get(extnds.name);
 					if (count != null && count.intValue() == 1) {
@@ -241,12 +252,12 @@ public class Class extends DependentBase implements Comparable<Class> {
 			// that class don't add a reference edge later
 			for (Class intr : this.impls) {
 				boolean exclude = filter.getPackagesToExclude().contains(intr.pkg.name);
-				exclude = exclude || filter.getClassesToExclude().contains(intr.pkg.name + "." + intr.name);
+				exclude = exclude || filter.getClassesToExclude().contains(intr.getCanonicalName());
 				if (filter.isFromFile())
 					exclude = exclude || (filter.isFromFile() && !intr.fromFile);
 
 				if (!exclude) {
-					sb.append(renderer.addEdge(this.pkg.name + "." + this.name,	intr.pkg.name + "." + intr.name, "", true));
+					sb.append(renderer.addEdge(this.getCanonicalName(), intr.getCanonicalName(), "", true, false));
 
 					Integer count = this.unresolvedClassCount.get(intr.name);
 					if (count != null && count.intValue() == 1) {
@@ -258,12 +269,12 @@ public class Class extends DependentBase implements Comparable<Class> {
 			for (Class clazz : this.classDependencies.values()) {
 				if (!refsToSkip.contains(clazz.name)) {
 					boolean exclude = filter.getPackagesToExclude().contains(clazz.pkg.name);
-					exclude = exclude || filter.getClassesToExclude().contains(clazz.pkg.name + "." + clazz.name);
+					exclude = exclude || filter.getClassesToExclude().contains(clazz.getCanonicalName());
 					if (!exclude) {
 						if ((filter.isFromFile() && clazz.fromFile)	|| !filter.isFromFile()) {
 							if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && clazz.referencedByClass.size() == 0)
 									|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
-								sb.append(renderer.addEdge(this.pkg.name + "." + this.name, clazz.pkg.name + "." + clazz.name, ""));
+								sb.append(renderer.addEdge(this.getCanonicalName(), clazz.getCanonicalName(), ""));
 							}
 						}
 					}

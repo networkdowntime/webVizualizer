@@ -11,6 +11,7 @@ import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 public abstract class DependentBase {
 
 	DependentBase parent;
+	String name = "";
 
 	HashSet<Class> annotationDependencies = new HashSet<Class>();
 	HashMap<String, Class> classDependencies = new HashMap<String, Class>();
@@ -35,9 +36,38 @@ public abstract class DependentBase {
 		return parent;
 	}
 
+	public String getName() {
+		if (this instanceof Class) {
+			Class currentClass = (Class) this;
+			if (currentClass.isAnonymous) {
+				return currentClass.anonymousClassDefinedIn.getName() + "." + currentClass.name;
+			} else {
+				return currentClass.name;
+			}
+		} else if (this instanceof Method) {
+			Method method = (Method) this;
+			return method.parent.getName() + "." + method.name;
+		} else {
+			if (parent != null) {
+				return parent.getName();
+			} else {
+				return "";
+			}
+		}
+	}
+
+
 	public String getCanonicalName() {
 		if (this instanceof Class) {
-			return ((Class) this).pkg.getName() + "." + ((Class) this).name;
+			Class currentClass = (Class) this;
+			if (currentClass.isAnonymous) {
+				return currentClass.anonymousClassDefinedIn.getCanonicalName() + "." + currentClass.name;
+			} else {
+				return currentClass.pkg.getName() + "." + currentClass.name;
+			}
+		} else if (this instanceof Method) {
+			Method method = (Method) this;
+			return method.parent.getCanonicalName() + "." + method.name;
 		} else {
 			if (parent != null) {
 				return parent.getCanonicalName();
@@ -93,7 +123,7 @@ public abstract class DependentBase {
 	}
 
 	public void addResolvedClass(Class clazz) {
-		classDependencies.put(clazz.getName(), clazz);
+		classDependencies.put(clazz.name, clazz);
 
 		if (this instanceof Class) {
 			clazz.addReferencedByClass((Class) this);

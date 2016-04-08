@@ -54,8 +54,8 @@ public class Package {
 	}
 
 	public void removeClass(Class clazz) {
-		if (!classes.containsKey(clazz.getName())) {
-			classes.remove(clazz.getName());
+		if (!classes.containsKey(clazz.name)) {
+			classes.remove(clazz.name);
 		}
 	}
 

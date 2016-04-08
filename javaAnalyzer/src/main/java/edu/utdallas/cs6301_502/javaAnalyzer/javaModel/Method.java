@@ -4,7 +4,6 @@ import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
 public class Method extends Block {
 
-	String name;
 	String returnType;
 
 	public Method(int depth, Class clazz, String name) {
@@ -14,10 +13,12 @@ public class Method extends Block {
 		AstVisitor.log(depth, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
 	}
 
-	public String getName() {
-		return this.name;
-	}
+//	@Override
+//	public String getName() {
+//		return this.name;
+//	}
 
+	@Override
 	public String getCanonicalName() {
 		return parent.getCanonicalName() + "." + this.name;
 	}
