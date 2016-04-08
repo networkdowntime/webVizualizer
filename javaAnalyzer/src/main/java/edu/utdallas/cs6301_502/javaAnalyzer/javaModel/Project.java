@@ -123,18 +123,21 @@ public class Project {
 
 		if (!baseDir.getAbsolutePath().contains(".svn")) {
 			//			 AstVisitor.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
+			if (baseDir.isDirectory()) {
+				String[] files = baseDir.list();
+				String path = baseDir.getPath();
 
-			String[] files = baseDir.list();
-			String path = baseDir.getPath();
-
-			for (String s : files) {
-				File file = new File(path + File.separator + s);
-				//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
-				if (file.isDirectory()) {
-					fileList.addAll(getFiles(file));
-				} else {
-					fileList.add(file);
+				for (String s : files) {
+					File file = new File(path + File.separator + s);
+					//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
+					if (file.isDirectory()) {
+						fileList.addAll(getFiles(file));
+					} else {
+						fileList.add(file);
+					}
 				}
+			} else {
+				fileList.add(baseDir);
 			}
 		}
 		return fileList;
@@ -273,7 +276,7 @@ public class Project {
 				e.printStackTrace();
 			}
 		}
-		
+
 		return sb.toString();
 	}
 
