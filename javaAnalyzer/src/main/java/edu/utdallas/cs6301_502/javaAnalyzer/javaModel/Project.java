@@ -251,6 +251,8 @@ public class Project {
 
 		StringBuffer sb = new StringBuffer();
 
+		List<String> edgeList = new ArrayList<String>();
+		
 		sb.append(renderer.getHeader());
 
 		for (String pkgName : packages.keySet()) {
@@ -260,11 +262,15 @@ public class Project {
 
 			if (!exclude) {
 				if ((filter.isFromFile() && pkg.fromFile) || !filter.isFromFile()) {
-					sb.append(pkg.createGraph(renderer, filter));
+					sb.append(pkg.createGraph(renderer, filter, edgeList));
 				}
 			}
 		}
 
+		for (String edge : edgeList) {
+			sb.append(edge);
+		}
+		
 		sb.append(renderer.getFooter());
 
 		if (AstVisitor.DEBUGGING_ENABLED) {

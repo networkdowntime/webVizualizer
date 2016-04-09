@@ -1268,7 +1268,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(TypeDeclarationStmt n, Object arg) {
-//		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);
@@ -1279,7 +1279,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(TypeExpr n, Object arg) {
-		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);
@@ -1290,7 +1290,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(TypeParameter n, Object arg) {
-		System.out.println(n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		depth++;
 		super.visit(n, arg);
