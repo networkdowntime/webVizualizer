@@ -1,0 +1,21 @@
+digraph g {
+graph [
+fontsize = "14"
+splines = "true"
+overlap = "scale"
+];
+node [
+fontsize = "8"
+shape = "record"
+];
+edge [
+headclip = "true"
+tailclip = "true"
+fontsize = "8"
+];
+"testClasses" [
+	label = "{<T_NAME> testClasses}"
+	shape = "record"
+];
+testClasses->testClasses [ label = "3" arrowhead="normal" arrowtail="none" ];
+}
