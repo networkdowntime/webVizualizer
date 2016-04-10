@@ -1,6 +1,5 @@
 package edu.utdallas.cs6301_502.vizualizer.api.code;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.OutputStream;
@@ -23,35 +22,67 @@ import javax.ws.rs.core.Response;
 import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
 import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.dom.svg.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.util.XMLResourceDescriptor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 
 @Component
-@Scope(value=WebApplicationContext.SCOPE_SESSION)
+@Scope(value = WebApplicationContext.SCOPE_SESSION)
 @Path("code/javaScanner")
 public class JavaScanner {
 
 	static File file;
 	Project project = new Project();
-	
+
 	@POST
 	@Path("/toPng")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces("image/png")
 	public void toPng(@Context HttpServletResponse response, @FormParam("svg") String svg) {
-//		svg = "<svg  xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect x=\"10\" y=\"10\" height=\"100\" width=\"100\" style=\"stroke:#ff0000; fill: #0000ff\"/></svg>";
-		System.out.println(svg);
 		try {
 			response.setHeader("Content-Disposition", "attachment; filename=\"schema.png\"");
 			response.setHeader("Content-Transfer-Encoding", "binary");
-			
+
+			String parser = XMLResourceDescriptor.getXMLParserClassName();
+			SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(parser);
+			factory.setValidating(false);
+			Document svgDocument = factory.createDocument("http://networkdowntime.net", new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
+			Element svgRoot = svgDocument.getDocumentElement();
+
+			String widthStr = svgRoot.getAttributeNS(null, "width");
+			String heightStr = svgRoot.getAttributeNS(null, "height");
+
+			int width = Integer.parseInt(widthStr.replace("pt", "").trim());
+			int height = Integer.parseInt(widthStr.replace("pt", "").trim());
+			double aspectRatio = width / (double) height;
+
+			if (width > 12500 || height > 12500) {
+				if (width > height) {
+					width = 12500; 
+					height = (int) Math.round(width / aspectRatio); 
+				} else {
+					height = 12500;
+					width = (int) Math.round(aspectRatio * height);
+				}
+				svgRoot.setAttribute("width", width + "pt");
+				svgRoot.setAttribute("height", height + "pt");
+				System.out.println("Image width: " + width + "; height: " + height);
+			}
+
 			// Step -1: We read the input SVG document into Transcoder Input
 			// We use Java NIO for this purpose
-			TranscoderInput input_svg_image = new TranscoderInput(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
+			TranscoderInput input_svg_image = new TranscoderInput(svgDocument);
+			Document doc = input_svg_image.getDocument();
 
 			// Step-2: Define OutputStream to PNG Image and attach to TranscoderOutput
 			OutputStream png_ostream = response.getOutputStream();
@@ -59,10 +90,10 @@ public class JavaScanner {
 
 			// Step-3: Create PNGTranscoder and define hints if required
 			PNGTranscoder my_converter = new PNGTranscoder();
-			
+
 			// Step-4: Convert and Write output
 			my_converter.transcode(input_svg_image, output_png_image);
-			
+
 			// Step 5- close / flush Output Stream
 			png_ostream.flush();
 			png_ostream.close();
@@ -82,7 +113,6 @@ public class JavaScanner {
 		return retval;
 	}
 
-	
 	@POST
 	@Path("/file")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -94,7 +124,7 @@ public class JavaScanner {
 		File file = new File(path);
 
 		boolean exists = file.exists();
-		
+
 		if (exists) {
 			this.file = file;
 			project.addFile(file);
@@ -111,14 +141,14 @@ public class JavaScanner {
 
 		System.out.println("path: " + path);
 		boolean deleted = false;
-		
+
 		for (File file : project.getFiles()) {
 			if (file.getPath().equals(path)) {
 				project.removeFile(file);
 				deleted = true;
 			}
 		}
-		
+
 		if (deleted) {
 			response.setStatus(Response.Status.NO_CONTENT.ordinal());
 		} else {
@@ -126,14 +156,12 @@ public class JavaScanner {
 		}
 	}
 
-
 	@GET
 	@Path("/packages")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getPackages() {
 		return project.getPackageNames();
 	}
-
 
 	@GET
 	@Path("/classes")
@@ -150,12 +178,12 @@ public class JavaScanner {
 		System.out.println("excludePackages: " + excludePackages);
 		if (excludePackages != null) {
 			for (String s : excludePackages)
-			System.out.println("\t" + s);
-			
+				System.out.println("\t" + s);
+
 		}
 		return project.getClassNames(excludePackages);
 	}
-	
+
 	@POST
 	@Path("/dot")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -175,7 +203,7 @@ public class JavaScanner {
 
 		project = new Project();
 		project.addFile(file);
-		
+
 		project.validate();
 		return project.createGraph(filter);
 	}
