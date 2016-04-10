@@ -63,7 +63,7 @@ public class JavaScanner {
 			String heightStr = svgRoot.getAttributeNS(null, "height");
 
 			int width = Integer.parseInt(widthStr.replace("pt", "").trim());
-			int height = Integer.parseInt(widthStr.replace("pt", "").trim());
+			int height = Integer.parseInt(heightStr.replace("pt", "").trim());
 			double aspectRatio = width / (double) height;
 
 			if (width > 12500 || height > 12500) {
