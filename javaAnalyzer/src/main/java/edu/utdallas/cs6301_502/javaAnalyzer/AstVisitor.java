@@ -236,10 +236,20 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
+			if (currentPackage == null) {
+				this.currentPackage = project.getOrCreateAndGetPackage(1, "default", true, true);
+			}
+			
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 		} else {
-			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			newClass = currentPackage.getOrCreateAndGetClass(1, parent.getName() + "." + n.getName(), true);
+			String parentNodeName = null;
+			if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
+				parentNodeName = ((ClassOrInterfaceDeclaration) n.getParentNode()).getName();
+			} else if (n.getParentNode() instanceof AnnotationDeclaration) {
+				parentNodeName = ((AnnotationDeclaration) n.getParentNode()).getName();
+			}
+
+			newClass = currentPackage.getOrCreateAndGetClass(1, parentNodeName + "." + n.getName(), true);
 		}
 		current = newClass;
 		heirarchyStack.push(newClass);
@@ -431,6 +441,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 		
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
+			if (currentPackage == null) {
+				this.currentPackage = project.getOrCreateAndGetPackage(1, "default", true, true);
+			}
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 		} else if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
@@ -652,8 +665,13 @@ public class AstVisitor extends VoidVisitorAdapter {
 		if (n.getParentNode() instanceof CompilationUnit) {
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 		} else {
-			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true);
+			String parentNodeName = null;
+			if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
+				parentNodeName = ((ClassOrInterfaceDeclaration) n.getParentNode()).getName();
+			} else if (n.getParentNode() instanceof AnnotationDeclaration) {
+				parentNodeName = ((AnnotationDeclaration) n.getParentNode()).getName();
+			}
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parentNodeName + "." + n.getName(), true);
 		}
 
 		current = newClass;

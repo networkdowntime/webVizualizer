@@ -76,7 +76,6 @@ public class JavaScanner {
 				}
 				svgRoot.setAttribute("width", width + "pt");
 				svgRoot.setAttribute("height", height + "pt");
-				System.out.println("Image width: " + width + "; height: " + height);
 			}
 
 			// Step -1: We read the input SVG document into Transcoder Input
@@ -201,8 +200,8 @@ public class JavaScanner {
 			System.out.println("\t" + s);
 		}
 
-		project = new Project();
-		project.addFile(file);
+//		project = new Project();
+//		project.addFile(file);
 
 		project.validate();
 		return project.createGraph(filter);
