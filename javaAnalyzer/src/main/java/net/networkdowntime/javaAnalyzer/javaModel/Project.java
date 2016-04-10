@@ -1,4 +1,4 @@
-package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
+package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,14 +10,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.TokenMgrError;
 import com.github.javaparser.ast.CompilationUnit;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
+import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 

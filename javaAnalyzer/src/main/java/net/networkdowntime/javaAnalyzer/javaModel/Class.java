@@ -1,14 +1,14 @@
-package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
+package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
-import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
+import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
+import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 public class Class extends DependentBase implements Comparable<Class> {

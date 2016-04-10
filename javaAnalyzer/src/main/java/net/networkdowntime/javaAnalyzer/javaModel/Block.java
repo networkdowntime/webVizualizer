@@ -1,9 +1,10 @@
-package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
+package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
+
+import net.networkdowntime.javaAnalyzer.AstVisitor;
 
 /**
  * Used as a partent class for Methods and for Lambdas

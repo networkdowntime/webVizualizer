@@ -1,6 +1,6 @@
-package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
+package net.networkdowntime.javaAnalyzer.javaModel;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.AstVisitor;
 
 public class Method extends Block {
 

@@ -1,4 +1,4 @@
-package edu.utdallas.cs6301_502.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -99,12 +99,12 @@ import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
-import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
+import net.networkdowntime.javaAnalyzer.javaModel.Block;
+import net.networkdowntime.javaAnalyzer.javaModel.Class;
+import net.networkdowntime.javaAnalyzer.javaModel.DependentBase;
+import net.networkdowntime.javaAnalyzer.javaModel.Method;
+import net.networkdowntime.javaAnalyzer.javaModel.Package;
+import net.networkdowntime.javaAnalyzer.javaModel.Project;
 
 @SuppressWarnings("rawtypes")
 public class AstVisitor extends VoidVisitorAdapter {
