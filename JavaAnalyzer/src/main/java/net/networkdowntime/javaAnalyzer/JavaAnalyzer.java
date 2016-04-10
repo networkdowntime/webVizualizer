@@ -2,23 +2,15 @@ package net.networkdowntime.javaAnalyzer;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 import net.networkdowntime.javaAnalyzer.javaModel.*;
 import net.networkdowntime.javaAnalyzer.javaModel.Class;
 import net.networkdowntime.javaAnalyzer.javaModel.Package;
 import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
-import net.networkdowntime.renderer.GraphvizDotRenderer;
-import net.networkdowntime.renderer.GraphvizNeatoRenderer;
-import net.networkdowntime.renderer.GraphvizRenderer;
-import japa.parser.*;
 import japa.parser.ast.*;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
@@ -46,9 +38,6 @@ public class JavaAnalyzer {
 
 		long time = System.currentTimeMillis();
 		
-//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source"));
-//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/qfund/ml"));
-//		prj.addFile(new File("/Users/ryan.wiles/workspace/TLX_PRODUCTION/source/com/titlemax"));
 		prj.addFile(new File("src/test/java/testClasses"));
 		
 		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));

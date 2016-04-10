@@ -1,7 +1,9 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +145,9 @@ public class Class extends DependentBase {
 
 		super.validatePassTwo();
 
-		for (Method method : methods.values()) {
+		List<Method> tmpMethods = new ArrayList<Method>();
+		tmpMethods.addAll(methods.values());
+		for (Method method : tmpMethods) {
 			method.validatePassTwo();
 		}
 	}
