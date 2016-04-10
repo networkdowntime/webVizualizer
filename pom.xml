@@ -8,6 +8,8 @@
 
 	<modules>
 		<module>./webServer</module>
+		<module>./javaAnalyzer</module>
+		<module>./dbAnalyzer</module>
 	</modules>
 
 </project>
