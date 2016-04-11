@@ -1,4 +1,4 @@
-package net.networkdowntime.vizualizer.api.code;
+package net.networkdowntime.webVizualizer.api.code;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

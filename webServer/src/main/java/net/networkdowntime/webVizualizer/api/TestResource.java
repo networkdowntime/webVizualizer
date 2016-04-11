@@ -1,4 +1,4 @@
-package net.networkdowntime.vizualizer.api;
+package net.networkdowntime.webVizualizer.api;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

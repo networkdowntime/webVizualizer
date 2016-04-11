@@ -1,4 +1,4 @@
-package net.networkdowntime.vizualizer.api.db;
+package net.networkdowntime.webVizualizer.api.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -150,41 +150,4 @@ public class Connection {
 		return dot;
 	}
 
-	@POST
-	@Path("/toPng")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Produces("image/png")
-	public void toPng(@Context HttpServletResponse response, @FormParam("svg") String svg) {
-//		svg = "<svg  xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect x=\"10\" y=\"10\" height=\"100\" width=\"100\" style=\"stroke:#ff0000; fill: #0000ff\"/></svg>";
-		System.out.println(svg);
-		try {
-			response.setHeader("Content-Disposition", "attachment; filename=\"schema.png\"");
-			response.setHeader("Content-Transfer-Encoding", "binary");
-			
-			// Step -1: We read the input SVG document into Transcoder Input
-			// We use Java NIO for this purpose
-			TranscoderInput input_svg_image = new TranscoderInput(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
-			// Step-2: Define OutputStream to PNG Image and attach to TranscoderOutput
-			OutputStream png_ostream = response.getOutputStream();
-			TranscoderOutput output_png_image = new TranscoderOutput(png_ostream);
-
-			// Step-3: Create PNGTranscoder and define hints if required
-			PNGTranscoder my_converter = new PNGTranscoder();
-			// Step-4: Convert and Write output
-			my_converter.transcode(input_svg_image, output_png_image);
-			
-//			FileOutputStream fos = new FileOutputStream("/schema.png");
-//			TranscoderOutput output_png_image2 = new TranscoderOutput(fos);
-//			input_svg_image = new TranscoderInput(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
-//			my_converter = new PNGTranscoder();
-//			my_converter.transcode(input_svg_image, output_png_image2);
-			// Step 5- close / flush Output Stream
-			png_ostream.flush();
-			png_ostream.close();
-//			fos.flush();
-//			fos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }

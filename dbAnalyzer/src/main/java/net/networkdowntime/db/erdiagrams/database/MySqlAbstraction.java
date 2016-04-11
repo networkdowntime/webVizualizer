@@ -19,7 +19,6 @@ import net.networkdowntime.db.erdiagrams.Table;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
 
-
 public class MySqlAbstraction implements DatabaseAbstraction {
 
 	private QueryRunner run;
@@ -56,18 +55,22 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 
 	public String testConnection() {
 		String query = "select 'test' from dual";
-		
+
 		Connection conn = null;
 		try {
-
-			conn = ds.getConnection();
-			run.query(conn, query, new ArrayListHandler());
-
+			if (ds != null) {
+				conn = ds.getConnection();
+				run.query(conn, query, new ArrayListHandler());
+			} else {
+				return "failure";
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				conn.close();
+				if (conn != null) {
+					conn.close();
+				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -76,10 +79,9 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 		return "success";
 	}
 
-
 	public List<String> getAllSchemaNamesWithTables() {
 		List<String> schemaNames = new ArrayList<String>();
-		
+
 		try {
 
 			Connection conn = ds.getConnection();
@@ -87,18 +89,18 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			String query = "select table_schema from information_schema.tables group by table_schema order by table_schema";
 
 			List<Object[]> schemaList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
-			
+
 			for (Object[] arr : schemaList) {
 				schemaNames.add((String) arr[0]);
 			}
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
 		return schemaNames;
 	}
-	
+
 	public Map<String, Schema> getTableNames(List<String> schemasToScan) {
 		Map<String, Schema> schemas = new LinkedHashMap<String, Schema>();
 
@@ -171,7 +173,6 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 		}
 	}
 
-	
 	public void getTableConstrints(Map<String, Schema> schemasToScan) {
 		try {
 			Connection conn = ds.getConnection();
@@ -207,49 +208,47 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			e.printStackTrace();
 		}
 	}
-	
 
 	public void followTableConstrints(Map<String, Schema> schemasToScan) {
-//		try {
-//			for (String schemaName : schemasToScan) {
-//				Schema schema = schemas.get(schemaName);
-//
-//				for (String tableName : schema.tables.keySet()) {
-//					Table table = schema.tables.get(tableName);
-//
-//					if (this.debugOutput)
-//						System.out.println("Found Constraints For Table " + schema.name + "." + tableName + ":");
-//					for (String constriantName : table.constraints.keySet()) {
-//						Constraint con = table.constraints.get(constriantName);
-//
-//						String query = "select " + "column_name, " + "referenced_table_schema, " + "referenced_table_name, " + "referenced_column_name "
-//								+ "from information_schema.key_column_usage " + "where table_schema = '" + schemaName + "' " + "and table_name = '" + tableName
-//								+ "' " + "and constraint_name = '" + con.name + "'";
-//
-//						// if (this.debugOutput) System.out.println(query);
-//						List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
-//
-//						for (Object[] constriantInfo : constraintList) {
-//							if (this.debugOutput)
-//								System.out.println("\t" + con.name + " for column " + constriantInfo[0]);
-//							Column col = table.columns.get((String) constriantInfo[0]);
-//							con.columns.add(col);
-//							if (constriantInfo[1] != null) {
-//								Schema refSchema = schemas.get((String) constriantInfo[1]);
-//								con.refSchema = refSchema;
-//								Table refTable = refSchema.tables.get((String) constriantInfo[2]);
-//								con.refTable = refTable;
-//								Column refColumn = refTable.columns.get((String) constriantInfo[3]);
-//								con.refColumn.add(refColumn);
-//							}
-//						}
-//					}
-//				}
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
+		//		try {
+		//			for (String schemaName : schemasToScan) {
+		//				Schema schema = schemas.get(schemaName);
+		//
+		//				for (String tableName : schema.tables.keySet()) {
+		//					Table table = schema.tables.get(tableName);
+		//
+		//					if (this.debugOutput)
+		//						System.out.println("Found Constraints For Table " + schema.name + "." + tableName + ":");
+		//					for (String constriantName : table.constraints.keySet()) {
+		//						Constraint con = table.constraints.get(constriantName);
+		//
+		//						String query = "select " + "column_name, " + "referenced_table_schema, " + "referenced_table_name, " + "referenced_column_name "
+		//								+ "from information_schema.key_column_usage " + "where table_schema = '" + schemaName + "' " + "and table_name = '" + tableName
+		//								+ "' " + "and constraint_name = '" + con.name + "'";
+		//
+		//						// if (this.debugOutput) System.out.println(query);
+		//						List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
+		//
+		//						for (Object[] constriantInfo : constraintList) {
+		//							if (this.debugOutput)
+		//								System.out.println("\t" + con.name + " for column " + constriantInfo[0]);
+		//							Column col = table.columns.get((String) constriantInfo[0]);
+		//							con.columns.add(col);
+		//							if (constriantInfo[1] != null) {
+		//								Schema refSchema = schemas.get((String) constriantInfo[1]);
+		//								con.refSchema = refSchema;
+		//								Table refTable = refSchema.tables.get((String) constriantInfo[2]);
+		//								con.refTable = refTable;
+		//								Column refColumn = refTable.columns.get((String) constriantInfo[3]);
+		//								con.refColumn.add(refColumn);
+		//							}
+		//						}
+		//					}
+		//				}
+		//			}
+		//		} catch (SQLException e) {
+		//			e.printStackTrace();
+		//		}
 	}
 
-	
 }

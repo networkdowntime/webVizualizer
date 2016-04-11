@@ -9,6 +9,151 @@ var pkFilter = { 'All' : 'All', 'NoPK' : 'No PK', 'HasPK' : 'Has PK' };
 var fkFilter = { 'All' : 'All', 'NoFK' : 'No FK', 'HasFK' : 'Has FK' };
 var javaDiagramType = { 'PACKAGE_DIAGRAM' : 'Package Diagram', 'CLASS_ASSOCIATION_DIAGRAM' : 'Class Diagram', 'UNREFERENCED_CLASSES' : 'Unreferenced Classes' };
 
+function dbAnalyzerInit(menuItem) {
+	
+	$.each(layouts, function(value, label) {
+		$("#dbLayout").append("<option value='"+value+"'>"+label+"</option>");
+	});
+	
+	$.each(pkFilter, function(value, label) {
+		all = (value == 'All') ? " selected='selected'" : "";
+		$("#pkFilter").append("<option value='"+value+"'"+all+">"+label+"</option>");
+	});
+	
+	$.each(fkFilter, function(value, label) {
+		$("#fkFilter").append("<option value='"+value+"'"+all+">"+label+"</option>");
+	});
+	
+	$.get('/api/db/connection' + fake + '/supportedDatabases', function(data) {
+		var select = $("#dbType");
+    	$(data).each(function() {
+    		$(select).append("<option value="+this+">"+this+"</option>");
+
+    		dbType = $.cookie("dbType");
+    		if (dbType != null) $("#dbType").val(dbType);
+    	});
+    });
+
+	dbUser = $.cookie("dbUser");
+	dbPasswd = $.cookie("dbPasswd");
+	dbUrl = $.cookie("dbUrl");
+
+	if (dbUser != null) $("#username").val(dbUser);
+	if (dbPasswd != null) $("#password").val(dbPasswd);
+	if (dbUrl != null) $("#jdbcUrl").val(dbUrl);
+	
+	$("#connect").click(function() {
+		var dbType = $("#dbType option:selected").val();
+		var user = $.trim($("#username").val());
+		var passwd = $.trim($("#password").val());
+		var url = $.trim($("#jdbcUrl").val());
+		
+		$.ajax({
+		    url:'/api/db/connection' + fake + '/connect',
+		    type:'POST',
+		    data: { dbType: dbType, username: user, password: passwd, jdbcUrl: url},
+		    dataType: 'json',
+		    contentType: "application/json",
+		    success:function(res){
+				$.cookie("dbType", dbType);
+				$.cookie("dbUser", user);
+				$.cookie("dbPasswd", passwd);
+				$.cookie("dbUrl", url);
+
+				loadSchemas();
+		    },
+		    error:function(res){
+		        alert("Bad thing happend! " + res.statusText);
+		    }
+		});
+	});
+	
+	function loadSchemas() {
+		container = $("#schemasDiv").next();
+		schemasDiv = $(container).children(".content");
+
+		$.get('/api/db/connection' + fake + '/schemasWithTables', function(data) {
+    	    $(container).css('overflow-y', 'hidden');
+	    	
+    	    $(data).each(function() {
+	    		$("<div><input class='schemas' type='checkbox' name="+this+" value="+this+">" + this + "</div>").hide().appendTo(schemasDiv).slideDown(250);
+	    	});
+
+	    	$(container).css('overflow-y', '');
+    		fixSideBarMaxHeight(null, true)
+	    	
+	    	$('.schemas').change(function() {
+	    		scanSchemas();
+	    	});
+	    });
+	}
+	
+	function scanSchemas() {
+		var checkedSchemas = $.makeArray( $.map($(".schemas"), function(i) { if ($(i).prop('checked')) { return $(i).val(); } }) );
+		$.get('/api/db/connection' + fake + '/scanSchemas', { schemas : checkedSchemas }, function(data) {
+			loadTables();
+	    });
+	}
+	
+	function loadTables() {
+		container = $("#tablesDiv").next();
+		tablesDiv = $(container).children(".content");
+		$(tablesDiv).empty();
+		$.get('/api/db/connection' + fake + '/scannedTables', function(data) {
+    	    $(container).css('overflow-y', 'hidden');
+	    	$(data).each(function() {
+	    		$("<div><input class='tables' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(tablesDiv).slideDown(250);
+	    	});
+    	    $(container).css('overflow-y', '');
+    		fixSideBarMaxHeight(null, true)
+	    });
+	}
+
+	function getExcludedTables() {
+		return $.makeArray( $.map($(".tables"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
+	}
+	
+	$("#connectionRender").click(function() {
+		filter = {
+			showAllColumnsOnTables : $("#showAllColumnsOnTables").prop('checked'), // boolean
+			includeTablesWithMoreXRows : $("#includeTablesWithMoreXRows").val(), // long
+			tablesToExclude : getExcludedTables(), // Set<String>
+			pkFilter : $("#pkFilter option:selected").val(), // NoPK, HasPK, All
+			connectWithFKs : $("#connectWithFKs").prop('checked'), // boolean
+			showLabelsOnFKs : $("#showLabelsOnFKs").prop('checked'), //boolean
+			excludeFKForColumnsNamed : [], //["CREATED_BY", "UPDATED_BY"], // Set<String>
+			fkFilter : $("#fkFilter option:selected").val() // NoFK, HasFK, All
+		};
+		
+		$.ajax({
+		    url:'/api/db/connection' + fake + '/dot',
+		    type:'POST',
+		    data: JSON.stringify(filter),
+		    dataType: 'text',
+		    contentType: "application/json",
+		    success:function(res){
+			     var dotFile = res;
+			     
+			     var format = "svg"; // dot, plain, svg, xdot
+			     var engine = $("#dbLayout option:selected").val(); // dot, neato
+			     
+			     var result = Viz(dotFile, format, engine);
+			     
+			     //console.log(result);
+			     $("#imgDiv").html(result);
+			     initializeDragScrollZoom();
+		    },
+		    error:function(res){
+		        alert("Bad thing happend! " + res.statusText);
+		        alert("Bad thing happend! " + res);
+		    }
+		});
+
+	});
+	
+
+}
+
 function javaAnalyzerInit(menuItem) {
 
 	$.each(layouts, function(value, label) {
@@ -243,6 +388,7 @@ function analyzer() {
 	
 	// Private Variables
 	var mainMenu = [
+	                { label: "DB Analyzer", id: "dbAnalyzer", initializer: "dbAnalyzerInit" }, 
 	                { label: "Java Analyzer", id: "javaAnalyzer", initializer: "javaAnalyzerInit" }
 	               ];
 	
@@ -260,8 +406,8 @@ function analyzer() {
 		
 		$(mainMenu).each(function() {
 			// hide the main divs
-//			$("#"+this.id).hide();
-//			$("#"+this.id).zIndex(-1);
+			$("#"+this.id).hide();
+			$("#"+this.id).zIndex(-1);
 			$("#"+this.id).resizable({
 			    handles: 'e', minWidth: 5
 			});

@@ -1,4 +1,4 @@
-package net.networkdowntime.vizualizer.api.db;
+package net.networkdowntime.webVizualizer.api.db;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

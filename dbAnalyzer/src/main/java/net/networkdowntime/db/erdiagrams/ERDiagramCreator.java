@@ -26,8 +26,12 @@ public class ERDiagramCreator {
 
 	public ERDiagramCreator(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url, String[] schemasToScan) {
 		DatabaseAbstraction dbAbstraction = DatabaseAbstractionFactory.getDatabaseAbstraction(DEBUG_OUTPUT, dbType, userName, password, url);
+		if ("success".equals(dbAbstraction.testConnection())) {
 		dw = new DatabaseWalker(dbAbstraction, schemasToScan);
 		dw.startWalking();
+		} else {
+			System.out.println("unable to connect");
+		}
 	}
 
 	public DatabaseAbstraction setConnection(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url) {

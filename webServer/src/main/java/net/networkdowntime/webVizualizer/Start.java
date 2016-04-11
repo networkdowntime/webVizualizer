@@ -1,4 +1,4 @@
-package net.networkdowntime.vizualizer;
+package net.networkdowntime.webVizualizer;
 
 
 import java.io.IOException;
