@@ -1,4 +1,4 @@
-package edu.utdallas.cs6301_502.vizualizer.api.db;
+package net.networkdowntime.vizualizer.api.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

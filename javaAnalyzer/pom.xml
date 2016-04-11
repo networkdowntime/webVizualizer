@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>edu.utdallas.cs6301-502</groupId>
+		<groupId>net.networkdowntime</groupId>
 		<artifactId>vizualizer</artifactId>
 		<version>1.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>edu.utdallas.cs6301-502</groupId>
+	<groupId>net.networkdowntime</groupId>
 	<artifactId>javaAnalyzer</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
