@@ -1,13 +1,10 @@
-package net.networkdowntime.analyzer.api.code;
+package edu.utdallas.cs6301_502.vizualizer.api.code;
 
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,18 +13,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import net.networkdowntime.db.erdiagrams.ERDiagramCreator;
-import net.networkdowntime.db.erdiagrams.database.DatabaseAbstraction;
-import net.networkdowntime.db.erdiagrams.database.DatabaseAbstractionFactory;
-import net.networkdowntime.db.erdiagrams.database.DatabaseAbstractionFactory.DBType;
-import net.networkdowntime.db.viewFilter.GraphFilter;
-import net.networkdowntime.javaAnalyzer.javaModel.Project;
-import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

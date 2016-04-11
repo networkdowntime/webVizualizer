@@ -1,16 +1,14 @@
-package net.networkdowntime.javaAnalyzer.javaModel;
+package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
-import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
-import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
+import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 // Does not look like I am handling creating the references for implements

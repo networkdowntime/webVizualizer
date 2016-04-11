@@ -1,4 +1,4 @@
-package net.networkdowntime.analyzer;
+package edu.utdallas.cs6301_502.vizualizer;
 
 
 import java.io.IOException;

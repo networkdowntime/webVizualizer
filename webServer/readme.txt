@@ -1,0 +1,1 @@
+To compile the jar file for standalone execution: mvn clean compile assembly:single

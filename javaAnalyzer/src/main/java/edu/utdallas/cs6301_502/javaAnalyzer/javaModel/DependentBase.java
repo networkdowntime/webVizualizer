@@ -1,9 +1,9 @@
-package net.networkdowntime.javaAnalyzer.javaModel;
+package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
-import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
+import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
 
 
 public abstract class DependentBase {

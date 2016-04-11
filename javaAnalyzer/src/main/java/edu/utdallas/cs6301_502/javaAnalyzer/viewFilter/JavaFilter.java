@@ -1,4 +1,4 @@
-package net.networkdowntime.javaAnalyzer.viewFilter;
+package edu.utdallas.cs6301_502.javaAnalyzer.viewFilter;
 
 import java.util.HashSet;
 

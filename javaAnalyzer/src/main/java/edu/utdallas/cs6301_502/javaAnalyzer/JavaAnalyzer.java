@@ -1,4 +1,4 @@
-package net.networkdowntime.javaAnalyzer;
+package edu.utdallas.cs6301_502.javaAnalyzer;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -6,11 +6,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import net.networkdowntime.javaAnalyzer.javaModel.*;
-import net.networkdowntime.javaAnalyzer.javaModel.Class;
-import net.networkdowntime.javaAnalyzer.javaModel.Package;
-import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
-import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Package;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Block;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Class;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.DependentBase;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Method;
+import edu.utdallas.cs6301_502.javaAnalyzer.javaModel.Project;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.DiagramType;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import japa.parser.ast.*;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;

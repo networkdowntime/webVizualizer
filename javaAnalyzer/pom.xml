@@ -3,21 +3,16 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>net.networkdowntime</groupId>
-		<artifactId>webVizualizer</artifactId>
+		<groupId>edu.utdallas.cs6301-502</groupId>
+		<artifactId>vizualizer</artifactId>
 		<version>1.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>net.networkdowntime</groupId>
+	<groupId>edu.utdallas.cs6301-502</groupId>
 	<artifactId>javaAnalyzer</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-
-        <name>javaAnalyzer</name>
-
-	<build>
-	</build>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

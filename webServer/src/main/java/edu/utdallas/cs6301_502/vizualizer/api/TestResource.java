@@ -1,4 +1,4 @@
-package net.networkdowntime.analyzer.api;
+package edu.utdallas.cs6301_502.vizualizer.api;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

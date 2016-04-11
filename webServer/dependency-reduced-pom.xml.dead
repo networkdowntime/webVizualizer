@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.utdallas.cs6301-502</groupId>
   <artifactId>webServer</artifactId>
-  <name>vizualizer</name>
+  <name>analyzer</name>
   <version>1.0-SNAPSHOT</version>
   <build>
     <defaultGoal>install</defaultGoal>
@@ -55,7 +55,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>net.networkdowntime.vizualizer.Start</mainClass>
+          <mainClass>net.networkdowntime.analyzer.Start</mainClass>
         </configuration>
       </plugin>
       <plugin>
@@ -70,7 +70,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>edu.utdallas.cs6301_502.vizualizer.Start</mainClass>
+                  <mainClass>edu.utdallas.cs6301_502.analyzer.Start</mainClass>
                 </transformer>
                 <transformer />
               </transformers>

@@ -1,4 +1,4 @@
-package net.networkdowntime.javaAnalyzer.javaModel;
+package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
-import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
+import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
+import edu.utdallas.cs6301_502.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 

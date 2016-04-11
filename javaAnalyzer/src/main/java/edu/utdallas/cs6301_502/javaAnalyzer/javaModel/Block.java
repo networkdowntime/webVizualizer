@@ -1,9 +1,9 @@
-package net.networkdowntime.javaAnalyzer.javaModel;
+package edu.utdallas.cs6301_502.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.networkdowntime.javaAnalyzer.JavaAnalyzer;
+import edu.utdallas.cs6301_502.javaAnalyzer.JavaAnalyzer;
 
 
 public class Block extends DependentBase {

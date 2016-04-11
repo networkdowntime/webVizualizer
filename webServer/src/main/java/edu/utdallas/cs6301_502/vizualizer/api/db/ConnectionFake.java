@@ -1,4 +1,4 @@
-package net.networkdowntime.analyzer.api.db;
+package edu.utdallas.cs6301_502.vizualizer.api.db;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
