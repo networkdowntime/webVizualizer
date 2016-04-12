@@ -12,12 +12,11 @@ import net.networkdowntime.db.viewFilter.GraphFilter;
 import net.networkdowntime.renderer.GraphvizNeatoRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
-
 public class ERDiagramCreator {
 
 	public static final String DTO_PACKAGE_PATTERN = "#schema.#table";
 
-	private static final boolean DEBUG_OUTPUT = false;
+	private static final boolean DEBUG_OUTPUT = true;
 
 	private DatabaseWalker dw;
 
@@ -27,8 +26,8 @@ public class ERDiagramCreator {
 	public ERDiagramCreator(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url, String[] schemasToScan) {
 		DatabaseAbstraction dbAbstraction = DatabaseAbstractionFactory.getDatabaseAbstraction(DEBUG_OUTPUT, dbType, userName, password, url);
 		if ("success".equals(dbAbstraction.testConnection())) {
-		dw = new DatabaseWalker(dbAbstraction, schemasToScan);
-		dw.startWalking();
+			dw = new DatabaseWalker(dbAbstraction, schemasToScan);
+			dw.startWalking();
 		} else {
 			System.out.println("unable to connect");
 		}
@@ -43,7 +42,7 @@ public class ERDiagramCreator {
 		dw = new DatabaseWalker(dbAbstraction, schemasToScan);
 		dw.startWalking();
 	}
-	
+
 	public void createDiagramFile(GraphFilter filter) {
 
 		File graphFile = new File("graphFile.gv");
@@ -52,20 +51,20 @@ public class ERDiagramCreator {
 			fw.write(createGraphvizString(filter));
 			fw.close();
 
-//			Runtime systemShell = Runtime.getRuntime();
-//			Process shellOutput = systemShell.exec("\\cygwin64\\bin\\bash.exe --login -i -c \"cd '/cygdrive/c/'; pwd; /bin/neato -Tsvg -O graphFile.gv\"");
+			//			Runtime systemShell = Runtime.getRuntime();
+			//			Process shellOutput = systemShell.exec("\\cygwin64\\bin\\bash.exe --login -i -c \"cd '/cygdrive/c/'; pwd; /bin/neato -Tsvg -O graphFile.gv\"");
 			//Process shellOutput = systemShell.exec("\\cygwin64\\bin\\bash.exe --login -i -c \"cd '/cygdrive/c/'; pwd; /bin/dot -Tsvg -O graphFile.gv\"");
 
-//			InputStreamReader isr = new InputStreamReader(shellOutput.getInputStream());
-//			BufferedReader br = new BufferedReader(isr);
-//			String line = null;
-//			System.out.println("<OUTPUT/>");
-//			while ((line = br.readLine()) != null) {
-//				System.out.println(line);
-//			}
-//			System.out.println("</OUTPUT>");
-//			int exitVal = shellOutput.waitFor();
-//			System.out.println("Process Exit Value : " + exitVal);
+			//			InputStreamReader isr = new InputStreamReader(shellOutput.getInputStream());
+			//			BufferedReader br = new BufferedReader(isr);
+			//			String line = null;
+			//			System.out.println("<OUTPUT/>");
+			//			while ((line = br.readLine()) != null) {
+			//				System.out.println(line);
+			//			}
+			//			System.out.println("</OUTPUT>");
+			//			int exitVal = shellOutput.waitFor();
+			//			System.out.println("Process Exit Value : " + exitVal);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -91,9 +90,9 @@ public class ERDiagramCreator {
 			erDiagramCreator = new ERDiagramCreator(DatabaseAbstractionFactory.DBType.valueOf(dbType), username, password, url, schemasToScan);
 		}
 
-//		List<String> excludeFKForColumnsNamed = new ArrayList<String>();
-//		excludeFKForColumnsNamed.add("CREATED_BY");
-//		excludeFKForColumnsNamed.add("UPDATED_BY");
+		//		List<String> excludeFKForColumnsNamed = new ArrayList<String>();
+		//		excludeFKForColumnsNamed.add("CREATED_BY");
+		//		excludeFKForColumnsNamed.add("UPDATED_BY");
 
 		GraphFilter filter = new GraphFilter();
 		filter.addExcludeFKForColumnsNamed("CREATED_BY");
@@ -115,7 +114,7 @@ public class ERDiagramCreator {
 			}
 		}
 
-//		Collections.sort(tables.subList(1, tables.size()));
+		//		Collections.sort(tables.subList(1, tables.size()));
 
 		return tables;
 	}
@@ -205,10 +204,10 @@ public class ERDiagramCreator {
 					System.out.println("constraint type: " + con.getConstraintType());
 					System.out.println("table name: " + table.getName());
 					System.out.println("con.getRefTable() == null: " + (con.getRefTable() == null));
-					if (con.getRefTable() != null) 
+					if (con.getRefTable() != null)
 						System.out.println("con.getRefTable().getName(): " + con.getRefTable().getName());
 					System.out.println("constraint name: " + con.getName());
-					
+
 					sb.append(renderer.addEdge(table.getName(), con.getRefTable().getName(), (filter.isShowLabelsOnFKs()) ? con.getName() : ""));
 				}
 			}

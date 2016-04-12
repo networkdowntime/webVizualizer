@@ -54,7 +54,6 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			myDS.setUser(userName);
 			myDS.setPassword(password);
 			myDS.setURL(url);
-
 			return myDS;
 
 		} catch (Exception e) {
