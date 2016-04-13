@@ -10,13 +10,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.networkdowntime.javaAnalyzer.AstVisitor;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
-import com.github.javaparser.TokenMgrError;
 import com.github.javaparser.ast.CompilationUnit;
 
-import net.networkdowntime.javaAnalyzer.AstVisitor;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -89,7 +88,6 @@ public class Project {
 					AstVisitor.log(0, "");
 					AstVisitor.log(1, "Attempting to parse java file: " + f.getAbsolutePath());
 					CompilationUnit cu = JavaParser.parse(f);
-					
 					if (cu.getTypes() == null) {
 						AstVisitor.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
@@ -98,15 +96,9 @@ public class Project {
 					}
 				}
 			} catch (ParseException e) {
-				System.err.println("Unrecoverable ParseException when attempting to parse: " + f.getAbsolutePath());
-			} catch (RuntimeException ex) {
-				System.err.println("Unrecoverable RuntimeException when attempting to parse: " + f.getAbsolutePath());
-			} catch (Exception e) {
-				System.err.println("Unrecoverable Exception when attempting to parse: " + f.getAbsolutePath());
-			} catch (TokenMgrError e) {
-				System.err.println("Unrecoverable TokenMgrError when attempting to parse: " + f.getAbsolutePath());
-			} catch (StackOverflowError e) {
-				System.err.println("Unrecoverable StackOverflowError when attempting to parse: " + f.getAbsolutePath());
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		AstVisitor.log(0, "\n");
@@ -254,31 +246,113 @@ public class Project {
 
 	// public static final String[] excludePkgs = { "java.", "javax." };
 
+	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
+	{
+		if (depth != null && depth == 0)
+		{
+			return;
+		}
+		
+		for (String dependentClass : cls.classDependencies.keySet())
+		{
+			if (dependentClass.equals("AstVisitor"))
+			{
+				System.out.println("AstVisitor being unexcluded");
+				System.out.println(cls.getCanonicalName() + cls.getName());
+			}
+			
+			if (originalExcludedClasses.contains(cls.getCanonicalName()))
+			{
+				System.out.println("Unexcluding (dp): " + cls.getCanonicalName());
+
+				// Note, do not test to see if the class was already added
+				// as it may have been but at a further depth level. Thus,
+				// this time through additional dependencies could be added by the recursive call.
+				unExcludedClasses.add(cls.getCanonicalName());
+				unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, cls.classDependencies.get(dependentClass), depth -1);				
+			}
+		}
+	}
+	
+	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
+	{
+		if (depth != null && depth == 0)
+		{
+			return;
+		}
+		
+		for (Class referencedByClass : cls.referencedByClass)
+		{
+			if (originalExcludedClasses.contains(referencedByClass.getCanonicalName()))
+			{
+				System.out.println("Unexcluding (rb): " + referencedByClass.getCanonicalName());
+				// Note, do not test to see if the class was already added
+				// as it may have been but at a further depth level. Thus,
+				// this time through additional dependencies could be added by the recursive call.
+				unExcludedClasses.add(referencedByClass.getCanonicalName());
+				unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth -1);				
+			}
+		}
+	}
+	
 	public String createGraph(JavaFilter filter) {
+
+		// Replace with test of filter for depth selection
+		if (1==1)
+		{
+			HashSet<String> excludedClasses = filter.getClassesToExclude();
+			HashSet<String> unExcludedClasses = new HashSet<String>();
+			for (String pkgName : packages.keySet()) 
+			{
+				Package pkg = packages.get(pkgName);
+
+				if (!filter.getPackagesToExclude().contains(pkg.name))
+				{
+					for (Class cls : pkg.classes.values())
+					{
+						if (!excludedClasses.contains(cls.getCanonicalName()))
+						{
+							System.out.println("Found nonexcluded class: " + cls.getCanonicalName());
+							unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, filter.getDownstreamDependencyDepth());
+							unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, filter.getUpstreamReferenceDepth());
+						}
+					}
+				}
+			}
+			
+
+			for (String name : unExcludedClasses)
+			{
+				if (excludedClasses.contains(name))
+				{
+					excludedClasses.remove(name);
+				}
+			}
+			filter.setClassesToExclude(excludedClasses);
+			
+		}
+
+		
+		
 		GraphvizRenderer renderer = new GraphvizDotRenderer();
 
 		StringBuffer sb = new StringBuffer();
 
-		List<String> edgeList = new ArrayList<String>();
-		
 		sb.append(renderer.getHeader());
 
+		
 		for (String pkgName : packages.keySet()) {
 			Package pkg = packages.get(pkgName);
 			// if (pkg.inPath) {
-			boolean exclude = filter.getPackagesToExclude().contains(pkg.name);
-
+			boolean exclude = filter.getPackagesToExclude().contains(pkg.name);		
+			
 			if (!exclude) {
 				if ((filter.isFromFile() && pkg.fromFile) || !filter.isFromFile()) {
-					sb.append(pkg.createGraph(renderer, filter, edgeList));
+					sb.append(pkg.createGraph(renderer, filter));
 				}
 			}
 		}
 
-		for (String edge : edgeList) {
-			sb.append(edge);
-		}
-		
 		sb.append(renderer.getFooter());
 
 		if (AstVisitor.DEBUGGING_ENABLED) {
@@ -294,4 +368,3 @@ public class Project {
 		return sb.toString();
 	}
 
-}
