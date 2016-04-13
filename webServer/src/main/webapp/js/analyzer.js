@@ -243,7 +243,25 @@ function javaAnalyzerInit(menuItem) {
 		$(packagesDiv).empty();
 		$.get('/api/code/javaScanner' + fake + '/packages', function(data) {
     	    $(container).css('overflow-y', 'hidden');
-	    	$(data).each(function() {
+
+    		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' />").appendTo(packagesDiv).slideDown(250);
+
+    		$('#packageCheckAll:button').click(function() {
+    			console.log(this);
+    			if ($(this).attr("value") === 'Uncheck All') {
+        	        $('.packages').prop('checked', false);;
+        	        $(this).val('Check All');            				
+        	    	loadClasses();
+        			drawGraph();
+    			} else {
+        	        $('.packages').prop('checked', true);;
+        	        $(this).val('Uncheck All');
+        	    	loadClasses();
+        			drawGraph();
+    			}
+    	    });
+    	    
+    		$(data).each(function() {
 	    		$("<div><input class='packages' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(packagesDiv).slideDown(250);
 	    	});
     	    $(container).css('overflow-y', '');
@@ -269,6 +287,22 @@ function javaAnalyzerInit(menuItem) {
 		    contentType: "application/json",
 		    success:function(data){
 	    	    $(container).css('overflow-y', 'hidden');
+	    	    
+	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' />").hide().appendTo(classesDiv).slideDown(250);
+
+	    		$('#classCheckAll:button').click(function() {
+	    			console.log(this);
+	    			if ($(this).attr("value") === 'Uncheck All') {
+	        	        $('.classes').prop('checked', false);;
+	        	        $(this).val('Check All');            				
+	        			drawGraph();
+	    			} else {
+	        	        $('.classes').prop('checked', true);;
+	        	        $(this).val('Uncheck All');
+	        			drawGraph();
+	    			}
+	    	    });
+	    	    
 		    	$(data).each(function() {
 		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(classesDiv).slideDown(250);
 		    	});

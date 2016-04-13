@@ -248,7 +248,7 @@ public class Project {
 
 	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
 	{
-		if (depth != null && depth == 0)
+		if (depth == null || depth == 0)
 		{
 			return;
 		}
@@ -276,7 +276,7 @@ public class Project {
 	
 	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
 	{
-		if (depth != null && depth == 0)
+		if (depth == null || depth == 0)
 		{
 			return;
 		}
