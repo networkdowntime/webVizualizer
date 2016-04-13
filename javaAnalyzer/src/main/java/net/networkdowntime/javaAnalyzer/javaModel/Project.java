@@ -246,35 +246,37 @@ public class Project {
 
 	// public static final String[] excludePkgs = { "java.", "javax." };
 
-	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
+	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth)
 	{
 		if (depth == null || depth == 0)
 		{
 			return;
 		}
 		
-		for (String dependentClass : cls.classDependencies.keySet())
+		for (String dependentClassName : cls.classDependencies.keySet())
 		{
-			if (dependentClass.equals("AstVisitor"))
-			{
-				System.out.println("AstVisitor being unexcluded");
-				System.out.println(cls.getCanonicalName() + cls.getName());
-			}
+			Class dependentClass = cls.classDependencies.get(dependentClassName);
 			
-			if (originalExcludedClasses.contains(cls.getCanonicalName()))
+			if (originalExcludedClasses.contains(dependentClass.getCanonicalName()))
 			{
-				System.out.println("Unexcluding (dp): " + cls.getCanonicalName());
-
-				// Note, do not test to see if the class was already added
-				// as it may have been but at a further depth level. Thus,
-				// this time through additional dependencies could be added by the recursive call.
-				unExcludedClasses.add(cls.getCanonicalName());
-				unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, cls.classDependencies.get(dependentClass), depth -1);				
+				Integer prevDepth = new Integer(-1);
+				if (unExcludedClasses.containsKey(dependentClass.getCanonicalName()))
+				{
+					prevDepth = unExcludedClasses.get(dependentClass.getCanonicalName());
+				}
+				
+				if (prevDepth < depth)
+				{
+					System.out.println("Unexcluding (dp): " + dependentClass.getCanonicalName() + " at depth " + depth);
+					
+					unExcludedClasses.put(dependentClass.getCanonicalName(), depth);
+					unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, dependentClass, depth -1);
+				}
 			}
 		}
 	}
 	
-	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashSet<String> unExcludedClasses, Class cls, Integer depth)
+	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth)
 	{
 		if (depth == null || depth == 0)
 		{
@@ -284,13 +286,19 @@ public class Project {
 		for (Class referencedByClass : cls.referencedByClass)
 		{
 			if (originalExcludedClasses.contains(referencedByClass.getCanonicalName()))
-			{
-				System.out.println("Unexcluding (rb): " + referencedByClass.getCanonicalName());
-				// Note, do not test to see if the class was already added
-				// as it may have been but at a further depth level. Thus,
-				// this time through additional dependencies could be added by the recursive call.
-				unExcludedClasses.add(referencedByClass.getCanonicalName());
-				unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth -1);				
+			{			
+				Integer prevDepth = new Integer(-1);
+				if (unExcludedClasses.containsKey(cls.getCanonicalName()))
+				{
+					prevDepth = unExcludedClasses.get(cls.getCanonicalName());
+				}
+				
+				if (prevDepth < depth)
+				{
+					System.out.println("Unexcluding (rb): " + referencedByClass.getCanonicalName()  + " at depth " + depth);
+					unExcludedClasses.put(referencedByClass.getCanonicalName(), depth);
+					unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth -1);				
+				}
 			}
 		}
 	}
@@ -298,10 +306,13 @@ public class Project {
 	public String createGraph(JavaFilter filter) {
 
 		// Replace with test of filter for depth selection
-		if (1==1)
+		Integer downDepth = filter.getDownstreamDependencyDepth();
+		Integer upDepth = filter.getUpstreamReferenceDepth();
+		if ((downDepth != null && downDepth > 0) || 
+			(upDepth   != null && upDepth   > 0))
 		{
 			HashSet<String> excludedClasses = filter.getClassesToExclude();
-			HashSet<String> unExcludedClasses = new HashSet<String>();
+			HashMap<String, Integer> unExcludedClasses = new HashMap<String, Integer>();
 			for (String pkgName : packages.keySet()) 
 			{
 				Package pkg = packages.get(pkgName);
@@ -321,8 +332,9 @@ public class Project {
 			}
 			
 
-			for (String name : unExcludedClasses)
+			for (String name : unExcludedClasses.keySet())
 			{
+				System.out.println("Final unexclude list contains: " + name);
 				if (excludedClasses.contains(name))
 				{
 					excludedClasses.remove(name);
