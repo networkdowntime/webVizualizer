@@ -108,6 +108,13 @@
 					<div><div class="filterLabel">Show Fields:</div><input id="showFields" type="checkbox"/></div>
 					<div><div class="filterLabel">Show Methods:</div><input id="showMethods" type="checkbox" checked/></div>
 					<div><div class="filterLabel">From Scanned File:</div><input id="fromFile" type="checkbox" checked/></div>
+					<div>
+						<div class="filterLabel">Reference Chains:</div><input id="referenceChains" type="checkbox"/>
+						<div id="referenceChainDetails">
+							<div><div class="filterSubLabel">Upstream Reference Depth:</div><select id="upstreamReferenceDepth"></select></div>
+							<div><div class="filterSubLabel">Downstream Dependency Depth:</div><select id="downstreamDependencyDepth"></select></div>
+						</div>
+					</div>
 					<div><button id="javaRender">Render</button><button id="saveToPng">Save As Image</button></div>
 				</div>
 			</div>

@@ -191,6 +191,8 @@ public class JavaScanner {
 		System.out.println("diagramType: " + filter.getDiagramType().toString());
 		System.out.println("isShowFields: " + filter.isShowFields());
 		System.out.println("isShowMethods: " + filter.isShowMethods());
+		System.out.println("getUpstreamReferenceDepth: " + filter.getUpstreamReferenceDepth());
+		System.out.println("getDownstreamDependencyDepth: " + filter.getDownstreamDependencyDepth());
 		System.out.println("Excluded Packages:");
 		for (String s : filter.getPackagesToExclude()) {
 			System.out.println("\t" + s);

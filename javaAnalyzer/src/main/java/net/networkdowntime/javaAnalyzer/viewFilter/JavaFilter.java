@@ -31,53 +31,7 @@ public @Data class JavaFilter {
 	boolean showMethods = false;
 	boolean showFields = false;
 	boolean fromFile = false;
-
-	public DiagramType getDiagramType() {
-		return diagramType;
-	}
-
-	public void setDiagramType(DiagramType diagramType) {
-		this.diagramType = diagramType;
-	}
-
-	public HashSet<String> getPackagesToExclude() {
-		return packagesToExclude;
-	}
-
-	public void setPackagesToExclude(HashSet<String> packagesToExclude) {
-		this.packagesToExclude = packagesToExclude;
-	}
-
-	public HashSet<String> getClassesToExclude() {
-		return classesToExclude;
-	}
-
-	public void setClassesToExclude(HashSet<String> classesToExclude) {
-		this.classesToExclude = classesToExclude;
-	}
-
-	public boolean isShowMethods() {
-		return showMethods;
-	}
-
-	public void setShowMethods(boolean showMethods) {
-		this.showMethods = showMethods;
-	}
-
-	public boolean isShowFields() {
-		return showFields;
-	}
-
-	public void setShowFields(boolean showFields) {
-		this.showFields = showFields;
-	}
-
-	public boolean isFromFile() {
-		return fromFile;
-	}
-
-	public void setFromFile(boolean fromFile) {
-		this.fromFile = fromFile;
-	}
+	Integer upstreamReferenceDepth = null;
+	Integer downstreamDependencyDepth = null;
 
 }
