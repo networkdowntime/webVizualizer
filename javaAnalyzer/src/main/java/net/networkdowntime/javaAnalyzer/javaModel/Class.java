@@ -32,6 +32,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	DependentBase anonymousClassDefinedIn = null;
 
 	HashSet<Class> referencedByClass = new HashSet<Class>();
+	HashSet<Package> referencedByPackage = new HashSet<Package>();
 
 	public Class(int depth, Package pkg, String name, boolean isInterface,
 			boolean isAbstract, boolean isEnum, boolean isAnnotation) {
@@ -208,11 +209,11 @@ public class Class extends DependentBase implements Comparable<Class> {
 				.size() == 0)
 				|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
 			if (isAnonymous) {
-				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), ""));
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), "", "#AA0000"));
 			}else if (isInterface) {
-					sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), ""));
+					sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), "", "#AA0000"));
 			} else {
-				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), ""));
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), "", "#AA0000"));
 			}
 			
 			if (filter.isShowFields()) {
@@ -287,6 +288,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 	public void addReferencedByClass(Class referencingClass) {
 		referencedByClass.add(referencingClass);
+		referencedByPackage.add(referencingClass.pkg);
 	}
 
 	@Override
