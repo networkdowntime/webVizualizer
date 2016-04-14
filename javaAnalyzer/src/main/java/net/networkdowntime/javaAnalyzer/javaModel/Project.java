@@ -16,6 +16,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
 
+import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -266,9 +267,7 @@ public class Project {
 				}
 				
 				if (prevDepth < depth)
-				{
-					System.out.println("Unexcluding (dp): " + dependentClass.getCanonicalName() + " at depth " + depth);
-					
+				{				
 					unExcludedClasses.put(dependentClass.getCanonicalName(), depth);
 					unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, dependentClass, depth -1);
 				}
@@ -295,7 +294,6 @@ public class Project {
 				
 				if (prevDepth < depth)
 				{
-					System.out.println("Unexcluding (rb): " + referencedByClass.getCanonicalName()  + " at depth " + depth);
 					unExcludedClasses.put(referencedByClass.getCanonicalName(), depth);
 					unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth -1);				
 				}
@@ -303,48 +301,113 @@ public class Project {
 		}
 	}
 	
-	public String createGraph(JavaFilter filter) {
+	private void unExcludeClassesBasedOnDepth(Integer downDepth, Integer upDepth, JavaFilter filter)
+	{
+		HashSet<String> excludedClasses = filter.getClassesToExclude();
+		HashMap<String, Integer> unExcludedClasses = new HashMap<String, Integer>();
+		for (String pkgName : packages.keySet()) 
+		{
+			Package pkg = packages.get(pkgName);
 
+			if (!filter.getPackagesToExclude().contains(pkg.name))
+			{
+				for (Class cls : pkg.classes.values())
+				{
+					if (!excludedClasses.contains(cls.getCanonicalName()))
+					{
+						unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, downDepth);
+						unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, upDepth);
+					}
+				}
+			}
+		}
+		
+
+		for (String name : unExcludedClasses.keySet())
+		{
+			if (excludedClasses.contains(name))
+			{
+				excludedClasses.remove(name);
+			}
+		}
+		filter.setClassesToExclude(excludedClasses);
+	}
+	
+	
+	private void unexcludeDependentPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth)
+	{
+		if (depth == null || depth == 0)
+		{
+			return;
+		}
+		
+		for (Class cls : pkg.classes.values())
+		{
+			for (Package dependentPackage : cls.packageDependencies)
+			{
+				String dependentPackageName = dependentPackage.name;
+				if (originalExcludedPackages.contains(dependentPackageName))
+				{
+					Integer prevDepth = new Integer(-1);
+					if (unExcludedPackages.containsKey(dependentPackageName))
+					{
+						prevDepth = unExcludedPackages.get(dependentPackageName);
+					}
+					
+					if (prevDepth < depth)
+					{
+						unExcludedPackages.put(dependentPackageName, depth);
+						unexcludeDependentPackages(originalExcludedPackages, unExcludedPackages, dependentPackage, depth -1);
+					}
+				}
+			}
+		}
+	}
+	
+	private void unExcludePackagesBasedOnDepth(Integer downDepth, Integer upDepth, JavaFilter filter)
+	{
+		HashSet<String> excludedPackages = filter.getPackagesToExclude();
+		HashMap<String, Integer> unExcludedPackages = new HashMap<String, Integer>();
+		for (String pkgName : packages.keySet()) 
+		{
+			Package pkg = packages.get(pkgName);
+
+			if (!filter.getPackagesToExclude().contains(pkg.name))
+			{
+				unexcludeDependentPackages(excludedPackages, unExcludedPackages, pkg, downDepth);
+				// Referenced By data is not tracked yet by the system for package relations
+				//unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, downDepth);
+			}
+		}
+		
+
+		for (String name : unExcludedPackages.keySet())
+		{
+			if (excludedPackages.contains(name))
+			{
+				excludedPackages.remove(name);
+			}
+		}
+		filter.setPackagesToExclude(excludedPackages);
+	}
+	
+	public String createGraph(JavaFilter filter) {
+		
 		// Replace with test of filter for depth selection
 		Integer downDepth = filter.getDownstreamDependencyDepth();
 		Integer upDepth = filter.getUpstreamReferenceDepth();
 		if ((downDepth != null && downDepth > 0) || 
 			(upDepth   != null && upDepth   > 0))
-		{
-			HashSet<String> excludedClasses = filter.getClassesToExclude();
-			HashMap<String, Integer> unExcludedClasses = new HashMap<String, Integer>();
-			for (String pkgName : packages.keySet()) 
+		{			
+			if (filter.getDiagramType() == DiagramType.CLASS_ASSOCIATION_DIAGRAM)
 			{
-				Package pkg = packages.get(pkgName);
-
-				if (!filter.getPackagesToExclude().contains(pkg.name))
-				{
-					for (Class cls : pkg.classes.values())
-					{
-						if (!excludedClasses.contains(cls.getCanonicalName()))
-						{
-							System.out.println("Found nonexcluded class: " + cls.getCanonicalName());
-							unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, filter.getDownstreamDependencyDepth());
-							unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, filter.getUpstreamReferenceDepth());
-						}
-					}
-				}
+				unExcludeClassesBasedOnDepth(downDepth, upDepth, filter);
 			}
-			
-
-			for (String name : unExcludedClasses.keySet())
+			else if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM)
 			{
-				System.out.println("Final unexclude list contains: " + name);
-				if (excludedClasses.contains(name))
-				{
-					excludedClasses.remove(name);
-				}
+				unExcludePackagesBasedOnDepth(downDepth, upDepth, filter);
 			}
-			filter.setClassesToExclude(excludedClasses);
-			
-		}
-
-		
+		}	
 		
 		GraphvizRenderer renderer = new GraphvizDotRenderer();
 
