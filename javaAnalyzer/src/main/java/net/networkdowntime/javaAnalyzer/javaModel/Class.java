@@ -34,6 +34,9 @@ public class Class extends DependentBase implements Comparable<Class> {
 	HashSet<Class> referencedByClass = new HashSet<Class>();
 	HashSet<Package> referencedByPackage = new HashSet<Package>();
 
+	Integer upstreamReferenceDepth = new Integer(0);
+	Integer downstreamReferenceDepth = new Integer(0);
+	
 	public Class(int depth, Package pkg, String name, boolean isInterface,
 			boolean isAbstract, boolean isEnum, boolean isAnnotation) {
 		this.pkg = pkg;
@@ -124,6 +127,23 @@ public class Class extends DependentBase implements Comparable<Class> {
 		this.isEnum = isEnum;
 	}
 
+	public Integer getUpstreamReferenceDepth() {
+		return upstreamReferenceDepth;
+	}
+
+	public void setUpstreamReferenceDepth(Integer upstreamReferenceDepth) {
+		this.upstreamReferenceDepth = upstreamReferenceDepth;
+	}
+
+	public Integer getDownstreamReferenceDepth() {
+		return downstreamReferenceDepth;
+	}
+
+	public void setDownstreamReferenceDepth(Integer downstreamReferenceDepth) {
+		this.downstreamReferenceDepth = downstreamReferenceDepth;
+	}
+
+	
 	@Override
 	public Class searchForUnresolvedClass(int depth, String className) {
 		AstVisitor.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
@@ -198,6 +218,31 @@ public class Class extends DependentBase implements Comparable<Class> {
 		return depth + 1;
 	}
 
+	// A value > 0xFF for any color means that 
+	// the value should not be used
+	private int mixColorToRGBValue(int red, int green, int blue)
+	{
+		int color = 0xFFFFFF; // white
+				
+		if (red < 0x100 || green < 0x100 || blue < 0x100)
+		{
+			// Limit negative values
+			red = Math.max(0, red);
+			green = Math.max(0, green);
+			blue = Math.max(0, blue);
+			
+			// Ignore color (use 0x00) if > 0xFF
+			if (red > 0xFF) {red = 0;}
+			if (green > 0xFF) {green = 0;}
+			if (blue > 0xFF) {blue = 0;}
+			
+			color = (red << 16) + (green << 8) + blue;
+		}
+		
+		
+		return color;
+	}
+	
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
 		AstVisitor.log(1, "Class: " + this.name);
 
@@ -205,15 +250,30 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 		StringBuffer sb = new StringBuffer();
 
+		int green = 0x100;
+		if (downstreamReferenceDepth > 0 )
+		{
+			green = 0x40 + Math.max((6 - this.downstreamReferenceDepth) * 0x20, 0);
+		}
+ 
+		int blue = 0x100;
+		if (upstreamReferenceDepth > 0 )
+		{
+			blue = 0x40 + Math.max((6 - this.upstreamReferenceDepth) * 0x20, 0);
+		}
+		
+		String color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
+		
+		
 		if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && this.referencedByClass
 				.size() == 0)
 				|| filter.getDiagramType() != DiagramType.UNREFERENCED_CLASSES) {
 			if (isAnonymous) {
-				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), ""));
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), "", color));
 			}else if (isInterface) {
-					sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), ""));
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), "", color));
 			} else {
-				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), ""));
+				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), "", color));
 			}
 			
 			if (filter.isShowFields()) {

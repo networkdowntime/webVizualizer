@@ -247,9 +247,9 @@ public class Project {
 
 	// public static final String[] excludePkgs = { "java.", "javax." };
 
-	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth)
+	private void unexcludeDependentClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth, Integer maxDepth)
 	{
-		if (depth == null || depth == 0)
+		if (depth == null || maxDepth == null || depth > maxDepth)
 		{
 			return;
 		}
@@ -260,24 +260,25 @@ public class Project {
 			
 			if (originalExcludedClasses.contains(dependentClass.getCanonicalName()))
 			{
-				Integer prevDepth = new Integer(-1);
+				Integer prevDepth = maxDepth;
 				if (unExcludedClasses.containsKey(dependentClass.getCanonicalName()))
 				{
 					prevDepth = unExcludedClasses.get(dependentClass.getCanonicalName());
 				}
 				
-				if (prevDepth < depth)
+				if (prevDepth > depth)
 				{				
 					unExcludedClasses.put(dependentClass.getCanonicalName(), depth);
-					unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, dependentClass, depth -1);
+					dependentClass.setDownstreamReferenceDepth(depth);
+					unexcludeDependentClasses(originalExcludedClasses, unExcludedClasses, dependentClass, depth + 1, maxDepth);
 				}
 			}
 		}
 	}
 	
-	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth)
+	private void unexcludeReferencedByClasses(HashSet<String> originalExcludedClasses, HashMap<String, Integer> unExcludedClasses, Class cls, Integer depth, Integer maxDepth)
 	{
-		if (depth == null || depth == 0)
+		if (depth == null || maxDepth == null || depth > maxDepth)
 		{
 			return;
 		}
@@ -286,22 +287,23 @@ public class Project {
 		{
 			if (originalExcludedClasses.contains(referencedByClass.getCanonicalName()))
 			{			
-				Integer prevDepth = new Integer(-1);
+				Integer prevDepth = maxDepth;
 				if (unExcludedClasses.containsKey(cls.getCanonicalName()))
 				{
 					prevDepth = unExcludedClasses.get(cls.getCanonicalName());
 				}
 				
-				if (prevDepth < depth)
+				if (prevDepth > depth)
 				{
 					unExcludedClasses.put(referencedByClass.getCanonicalName(), depth);
-					unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth -1);				
+					referencedByClass.setUpstreamReferenceDepth(depth);
+					unexcludeReferencedByClasses(originalExcludedClasses, unExcludedClasses, referencedByClass, depth + 1, maxDepth);				
 				}
 			}
 		}
 	}
 	
-	private void unExcludeClassesBasedOnDepth(Integer downDepth, Integer upDepth, JavaFilter filter)
+	private void unExcludeClassesBasedOnDepth(Integer maxDownDepth, Integer maxUpDepth, JavaFilter filter)
 	{
 		HashSet<String> excludedClasses = filter.getClassesToExclude();
 		HashMap<String, Integer> unExcludedClasses = new HashMap<String, Integer>();
@@ -315,8 +317,8 @@ public class Project {
 				{
 					if (!excludedClasses.contains(cls.getCanonicalName()))
 					{
-						unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, downDepth);
-						unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, upDepth);
+						unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, 1, maxDownDepth);
+						unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, 1, maxUpDepth);
 					}
 				}
 			}
@@ -334,9 +336,9 @@ public class Project {
 	}
 	
 	
-	private void unexcludeDependentPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth)
+	private void unexcludeDependentPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth, Integer maxDepth)
 	{
-		if (depth == null || depth == 0)
+		if (depth == null || maxDepth == null || depth > maxDepth)
 		{
 			return;
 		}
@@ -348,25 +350,26 @@ public class Project {
 				String dependentPackageName = dependentPackage.name;
 				if (originalExcludedPackages.contains(dependentPackageName))
 				{
-					Integer prevDepth = new Integer(-1);
+					Integer prevDepth = maxDepth;
 					if (unExcludedPackages.containsKey(dependentPackageName))
 					{
 						prevDepth = unExcludedPackages.get(dependentPackageName);
 					}
 					
-					if (prevDepth < depth)
+					if (prevDepth > depth)
 					{
 						unExcludedPackages.put(dependentPackageName, depth);
-						unexcludeDependentPackages(originalExcludedPackages, unExcludedPackages, dependentPackage, depth -1);
+						dependentPackage.setDownstreamReferenceDepth(depth);
+						unexcludeDependentPackages(originalExcludedPackages, unExcludedPackages, dependentPackage, depth +1, maxDepth);
 					}
 				}
 			}
 		}
 	}
 	
-	private void unexcludeReferencedByPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth)
+	private void unexcludeReferencedByPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth, Integer maxDepth)
 	{
-		if (depth == null || depth == 0)
+		if (depth == null || maxDepth == null || depth > maxDepth)
 		{
 			return;
 		}
@@ -378,23 +381,24 @@ public class Project {
 				String referencedByPackageName = referencedByPackage.name;
 				if (originalExcludedPackages.contains(referencedByPackageName))
 				{			
-					Integer prevDepth = new Integer(-1);
+					Integer prevDepth = maxDepth;
 					if (unExcludedPackages.containsKey(referencedByPackageName))
 					{
 						prevDepth = unExcludedPackages.get(referencedByPackageName);
 					}
 					
-					if (prevDepth < depth)
+					if (prevDepth > depth)
 					{
 						unExcludedPackages.put(referencedByPackageName, depth);
-						unexcludeReferencedByPackages(originalExcludedPackages, unExcludedPackages, referencedByPackage, depth -1);				
+						referencedByPackage.setUpstreamReferenceDepth(depth);
+						unexcludeReferencedByPackages(originalExcludedPackages, unExcludedPackages, referencedByPackage, depth +1, maxDepth);				
 					}
 				}
 			}
 		}
 	}
 	
-	private void unExcludePackagesBasedOnDepth(Integer downDepth, Integer upDepth, JavaFilter filter)
+	private void unExcludePackagesBasedOnDepth(Integer maxDownDepth, Integer maxUpDepth, JavaFilter filter)
 	{
 		HashSet<String> excludedPackages = filter.getPackagesToExclude();
 		HashMap<String, Integer> unExcludedPackages = new HashMap<String, Integer>();
@@ -404,9 +408,9 @@ public class Project {
 
 			if (!filter.getPackagesToExclude().contains(pkg.name))
 			{
-				unexcludeDependentPackages(excludedPackages, unExcludedPackages, pkg, downDepth);
+				unexcludeDependentPackages(excludedPackages, unExcludedPackages, pkg, 1, maxDownDepth);
 				// Referenced By data is not tracked yet by the system for package relations
-				unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, upDepth);
+				unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, 1, maxUpDepth);
 			}
 		}
 		

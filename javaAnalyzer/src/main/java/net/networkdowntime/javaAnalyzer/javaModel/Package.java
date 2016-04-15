@@ -18,6 +18,9 @@ public class Package {
 	Map<String, Class> classes = new HashMap<String, Class>();
 	boolean fromFile = false;
 
+	Integer upstreamReferenceDepth = new Integer(0);
+	Integer downstreamReferenceDepth = new Integer(0);
+		
 	public Package(int depth, String name, boolean inPath) {
 		this.name = name;
 		AstVisitor.log(depth, "Creating Package: " + name);
@@ -64,6 +67,22 @@ public class Package {
 		return name;
 	}
 
+	public Integer getUpstreamReferenceDepth() {
+		return upstreamReferenceDepth;
+	}
+
+	public void setUpstreamReferenceDepth(Integer upstreamReferenceDepth) {
+		this.upstreamReferenceDepth = upstreamReferenceDepth;
+	}
+
+	public Integer getDownstreamReferenceDepth() {
+		return downstreamReferenceDepth;
+	}
+
+	public void setDownstreamReferenceDepth(Integer downstreamReferenceDepth) {
+		this.downstreamReferenceDepth = downstreamReferenceDepth;
+	}
+	
 	public void validatePassOne(int depth) {
 		AstVisitor.log(depth, "Validate Pass One: package " + name);
 		for (Class clazz : classes.values()) {
@@ -77,14 +96,56 @@ public class Package {
 			clazz.validatePassTwo(depth + 1);
 		}
 	}
+	
 
+
+	// A value > 0xFF for any color means that 
+	// the value should not be used
+	private int mixColorToRGBValue(int red, int green, int blue)
+	{
+		int color = 0xFFFFFF; // white
+				
+		if (red < 0x100 || green < 0x100 || blue < 0x100)
+		{
+			// Limit negative values
+			red = Math.max(0, red);
+			green = Math.max(0, green);
+			blue = Math.max(0, blue);
+			
+			// Ignore color (use 0x00) if > 0xFF
+			if (red > 0xFF) {red = 0;}
+			if (green > 0xFF) {green = 0;}
+			if (blue > 0xFF) {blue = 0;}
+			
+			color = (red << 16) + (green << 8) + blue;
+		}
+		
+		
+		return color;
+	}
+		
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
-		AstVisitor.log(0, "Package: " + this.name);
+ 		AstVisitor.log(0, "Package: " + this.name);
+ 		 
+		int green = 0x100;
+		if (downstreamReferenceDepth > 0 )
+		{
+			green = 0x40 + Math.max((6 - this.downstreamReferenceDepth) * 0x20, 0);
+		}
 
+		int blue = 0x100;
+		if (upstreamReferenceDepth > 0 )
+		{
+			blue = 0x40 + Math.max((6 - this.upstreamReferenceDepth) * 0x20, 0);
+		}
+		
+		String color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
+		
+		
 		StringBuffer sb = new StringBuffer();
 
 		if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
-			sb.append(renderer.getBeginRecord(this.name, this.name, ""));
+			sb.append(renderer.getBeginRecord(this.name, this.name, "", color));
 			sb.append(renderer.getEndRecord());
 
 			HashMap<String, Integer> referencedPackages = new HashMap<String, Integer>();
