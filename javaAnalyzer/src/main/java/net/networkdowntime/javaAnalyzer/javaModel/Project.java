@@ -364,6 +364,36 @@ public class Project {
 		}
 	}
 	
+	private void unexcludeReferencedByPackages(HashSet<String> originalExcludedPackages, HashMap<String, Integer> unExcludedPackages, Package pkg, Integer depth)
+	{
+		if (depth == null || depth == 0)
+		{
+			return;
+		}
+		
+		for (Class referencedByClass : pkg.classes.values())
+		{
+			for (Package referencedByPackage : referencedByClass.referencedByPackage)
+			{
+				String referencedByPackageName = referencedByPackage.name;
+				if (originalExcludedPackages.contains(referencedByPackageName))
+				{			
+					Integer prevDepth = new Integer(-1);
+					if (unExcludedPackages.containsKey(referencedByPackageName))
+					{
+						prevDepth = unExcludedPackages.get(referencedByPackageName);
+					}
+					
+					if (prevDepth < depth)
+					{
+						unExcludedPackages.put(referencedByPackageName, depth);
+						unexcludeReferencedByPackages(originalExcludedPackages, unExcludedPackages, referencedByPackage, depth -1);				
+					}
+				}
+			}
+		}
+	}
+	
 	private void unExcludePackagesBasedOnDepth(Integer downDepth, Integer upDepth, JavaFilter filter)
 	{
 		HashSet<String> excludedPackages = filter.getPackagesToExclude();
@@ -376,7 +406,7 @@ public class Project {
 			{
 				unexcludeDependentPackages(excludedPackages, unExcludedPackages, pkg, downDepth);
 				// Referenced By data is not tracked yet by the system for package relations
-				//unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, downDepth);
+				unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, upDepth);
 			}
 		}
 		

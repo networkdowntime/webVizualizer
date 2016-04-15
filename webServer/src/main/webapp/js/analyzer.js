@@ -4,7 +4,7 @@
 var fake = "";
 //fake = "Fake";
 
-var referenceChainDepths = [ 1, 2, 3, 4, 5, 6 ];
+var referenceChainDepths = [ 0, 1, 2, 3, 4, 5, 6 ];
 var layouts = { 'dot' : 'Top Down', 'neato' : 'Natural' };
 var pkFilter = { 'All' : 'All', 'NoPK' : 'No PK', 'HasPK' : 'Has PK' };
 var fkFilter = { 'All' : 'All', 'NoFK' : 'No FK', 'HasFK' : 'Has FK' };
