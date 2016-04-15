@@ -255,15 +255,24 @@ public class Project {
 		}
 		
 		for (String dependentClassName : cls.classDependencies.keySet())
-		{
+		{	
 			Class dependentClass = cls.classDependencies.get(dependentClassName);
+			
+			if (dependentClass == cls) {continue;}
 			
 			if (originalExcludedClasses.contains(dependentClass.getCanonicalName()))
 			{
-				Integer prevDepth = maxDepth;
+				Integer prevDepth = maxDepth + 1;
 				if (unExcludedClasses.containsKey(dependentClass.getCanonicalName()))
 				{
-					prevDepth = unExcludedClasses.get(dependentClass.getCanonicalName());
+					prevDepth = dependentClass.getDownstreamReferenceDepth();
+					if (prevDepth == 0) {prevDepth = maxDepth + 1;}
+				}
+				else
+				{
+					// Clear reference depths.
+					dependentClass.setDownstreamReferenceDepth(0);
+					dependentClass.setUpstreamReferenceDepth(0);
 				}
 				
 				if (prevDepth > depth)
@@ -285,13 +294,22 @@ public class Project {
 		
 		for (Class referencedByClass : cls.referencedByClass)
 		{
+			if (referencedByClass == cls) {continue;}
+			
 			if (originalExcludedClasses.contains(referencedByClass.getCanonicalName()))
 			{			
-				Integer prevDepth = maxDepth;
-				if (unExcludedClasses.containsKey(cls.getCanonicalName()))
+				Integer prevDepth = maxDepth + 1;
+				if (unExcludedClasses.containsKey(referencedByClass.getCanonicalName()))
 				{
-					prevDepth = unExcludedClasses.get(cls.getCanonicalName());
+					prevDepth = referencedByClass.getUpstreamReferenceDepth();
+					if (prevDepth == 0) {prevDepth = maxDepth + 1;}
 				}
+				else
+				{
+					// Clear reference depths.
+					referencedByClass.setDownstreamReferenceDepth(0);
+					referencedByClass.setUpstreamReferenceDepth(0);
+				}				
 				
 				if (prevDepth > depth)
 				{
@@ -317,6 +335,8 @@ public class Project {
 				{
 					if (!excludedClasses.contains(cls.getCanonicalName()))
 					{
+						cls.setDownstreamReferenceDepth(0);
+						cls.setUpstreamReferenceDepth(0);
 						unexcludeDependentClasses(excludedClasses, unExcludedClasses, cls, 1, maxDownDepth);
 						unexcludeReferencedByClasses(excludedClasses, unExcludedClasses, cls, 1, maxUpDepth);
 					}
@@ -347,20 +367,35 @@ public class Project {
 		{
 			for (Package dependentPackage : cls.packageDependencies)
 			{
+				if (dependentPackage == pkg) {continue;}
 				String dependentPackageName = dependentPackage.name;
 				if (originalExcludedPackages.contains(dependentPackageName))
 				{
-					Integer prevDepth = maxDepth;
+					//System.out.println("==============================");
+					//System.out.println("Was Excluded (DP): " + dependentPackageName);
+					Integer prevDepth = maxDepth + 1;
 					if (unExcludedPackages.containsKey(dependentPackageName))
 					{
-						prevDepth = unExcludedPackages.get(dependentPackageName);
+						prevDepth = dependentPackage.getDownstreamReferenceDepth();
+						if (prevDepth == 0) {prevDepth = maxDepth + 1;}
+						
+						//System.out.println("Previously unexcluded, prevDepth set to: " + prevDepth);
 					}
+					else
+					{
+						//System.out.println("Not yet unexculded, clearing depths");
+						// Clear reference depths.
+						dependentPackage.setDownstreamReferenceDepth(0);
+						dependentPackage.setUpstreamReferenceDepth(0);
+					}					
+					
 					
 					if (prevDepth > depth)
 					{
+						//System.out.println("Processing children.");
 						unExcludedPackages.put(dependentPackageName, depth);
 						dependentPackage.setDownstreamReferenceDepth(depth);
-						unexcludeDependentPackages(originalExcludedPackages, unExcludedPackages, dependentPackage, depth +1, maxDepth);
+						unexcludeDependentPackages(originalExcludedPackages, unExcludedPackages, dependentPackage, depth + 1, maxDepth);
 					}
 				}
 			}
@@ -378,20 +413,34 @@ public class Project {
 		{
 			for (Package referencedByPackage : referencedByClass.referencedByPackage)
 			{
+				if (referencedByPackage == pkg) {continue;}
 				String referencedByPackageName = referencedByPackage.name;
 				if (originalExcludedPackages.contains(referencedByPackageName))
 				{			
-					Integer prevDepth = maxDepth;
+					//System.out.println("==============================");
+					//System.out.println("Was Excluded (RB): " + referencedByPackageName);
+					
+					Integer prevDepth = maxDepth + 1;
 					if (unExcludedPackages.containsKey(referencedByPackageName))
 					{
-						prevDepth = unExcludedPackages.get(referencedByPackageName);
+						prevDepth = referencedByPackage.getUpstreamReferenceDepth();
+						if (prevDepth == 0) {prevDepth = maxDepth + 1;}
+						//System.out.println("Previously unexcluded, prevDepth set to: " + prevDepth);
+					}
+					else
+					{
+						//System.out.println("Not yet unexculded, clearing depths");
+						// Clear reference depths.
+						referencedByPackage.setDownstreamReferenceDepth(0);
+						referencedByPackage.setUpstreamReferenceDepth(0);
 					}
 					
 					if (prevDepth > depth)
 					{
+						//System.out.println("Processing children.");
 						unExcludedPackages.put(referencedByPackageName, depth);
 						referencedByPackage.setUpstreamReferenceDepth(depth);
-						unexcludeReferencedByPackages(originalExcludedPackages, unExcludedPackages, referencedByPackage, depth +1, maxDepth);				
+						unexcludeReferencedByPackages(originalExcludedPackages, unExcludedPackages, referencedByPackage, depth + 1, maxDepth);				
 					}
 				}
 			}
@@ -408,8 +457,11 @@ public class Project {
 
 			if (!filter.getPackagesToExclude().contains(pkg.name))
 			{
+				//System.out.println("+++++++++++++++++++++++++");
+				//System.out.println("Processing children of included: " + pkg.name);
+				pkg.setDownstreamReferenceDepth(0);
+				pkg.setUpstreamReferenceDepth(0);
 				unexcludeDependentPackages(excludedPackages, unExcludedPackages, pkg, 1, maxDownDepth);
-				// Referenced By data is not tracked yet by the system for package relations
 				unexcludeReferencedByPackages(excludedPackages, unExcludedPackages, pkg, 1, maxUpDepth);
 			}
 		}
@@ -430,8 +482,7 @@ public class Project {
 		// Replace with test of filter for depth selection
 		Integer downDepth = filter.getDownstreamDependencyDepth();
 		Integer upDepth = filter.getUpstreamReferenceDepth();
-		if ((downDepth != null && downDepth > 0) || 
-			(upDepth   != null && upDepth   > 0))
+		if ((downDepth != null) || (upDepth != null))
 		{			
 			if (filter.getDiagramType() == DiagramType.CLASS_ASSOCIATION_DIAGRAM)
 			{
@@ -470,7 +521,7 @@ public class Project {
 				fw.write(sb.toString());
 				fw.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				e.printStackTrace(); 
 			}
 		}
 

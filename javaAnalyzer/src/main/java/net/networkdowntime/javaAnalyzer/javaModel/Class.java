@@ -250,14 +250,15 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 		StringBuffer sb = new StringBuffer();
 
-		int green = 0x100;
-		if (downstreamReferenceDepth > 0 )
+
+		int green = 0x100;		
+		if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 )
 		{
 			green = 0x40 + Math.max((6 - this.downstreamReferenceDepth) * 0x20, 0);
 		}
  
 		int blue = 0x100;
-		if (upstreamReferenceDepth > 0 )
+		if (filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0 )
 		{
 			blue = 0x40 + Math.max((6 - this.upstreamReferenceDepth) * 0x20, 0);
 		}
