@@ -301,7 +301,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 					exclude = exclude || (filter.isFromFile() && !extnds.fromFile);
 
 				if (!exclude) {
-					edgeList.add((String) renderer.addEdge(this.getCanonicalName(),	extnds.getCanonicalName(), "", true));
+					edgeList.add((String) renderer.addReversedEdge(this.getCanonicalName(),	extnds.getCanonicalName(), "", true));
 
 					Integer count = this.unresolvedClassCount.get(extnds.name);
 					if (count != null && count.intValue() == 1) {
@@ -319,7 +319,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 					exclude = exclude || (filter.isFromFile() && !intr.fromFile);
 
 				if (!exclude) {
-					edgeList.add((String) renderer.addEdge(this.getCanonicalName(), intr.getCanonicalName(), "", true, false));
+					edgeList.add((String) renderer.addReversedEdge(this.getCanonicalName(), intr.getCanonicalName(), "", true, false));
 
 					Integer count = this.unresolvedClassCount.get(intr.name);
 					if (count != null && count.intValue() == 1) {
