@@ -2,7 +2,6 @@ package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,10 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
+import com.github.javaparser.TokenMgrError;
 import com.github.javaparser.ast.CompilationUnit;
 
 import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
@@ -28,8 +30,8 @@ public class Project {
 	Map<String, Package> packages = new HashMap<String, Package>();
 
 	public Project() {
-		AstVisitor.log(0, "Creating a new Project");
-		getOrCreateAndGetPackage(1, "java.lang", false);
+		Logger.log(0, "Creating a new Project");
+		getOrCreateAndGetPackage(1, "java.lang", false, false);
 	}
 
 	public List<File> getFiles() {
@@ -49,11 +51,11 @@ public class Project {
 	public void addFile(File file) {
 		if (file.exists()) {
 			String type = ((file.isDirectory()) ? "directory" : "file");
-			AstVisitor.log(1, "Attempting to add " + type + ": " + file.getAbsolutePath() + "; " + type + " exists: " + file.exists());
+			Logger.log(1, "Attempting to add " + type + ": " + file.getAbsolutePath() + "; " + type + " exists: " + file.exists());
 			files.add(file);
 			scanFile(file);
 		} else {
-			AstVisitor.log(0, file.getAbsolutePath() + " does not exist");
+			Logger.log(0, file.getAbsolutePath() + " does not exist");
 		}
 	}
 
@@ -67,7 +69,7 @@ public class Project {
 			files.remove(file);
 			deindexFile(0, file);
 		} else {
-			AstVisitor.log(0, file.getAbsolutePath() + " does not exist");
+			Logger.log(0, file.getAbsolutePath() + " does not exist");
 		}
 	}
 
@@ -86,23 +88,30 @@ public class Project {
 		for (File f : filesToScan) {
 			try {
 				if (f.getName().endsWith(".java")) {
-					AstVisitor.log(0, "");
-					AstVisitor.log(1, "Attempting to parse java file: " + f.getAbsolutePath());
+					Logger.log(0, "");
+					Logger.log(1, "Attempting to parse java file: " + f.getAbsolutePath());
 					CompilationUnit cu = JavaParser.parse(f);
+					
 					if (cu.getTypes() == null) {
-						AstVisitor.log(1, f.getAbsolutePath() + " has no classes");
+						Logger.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
 						scannedFiles.add(f.getAbsolutePath());
 						AstVisitor.processTypeDeclarations(0, f.getName(), this, null, cu, cu.getTypes());
 					}
 				}
 			} catch (ParseException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("Unrecoverable ParseException when attempting to parse: " + f.getAbsolutePath());
+			} catch (RuntimeException ex) {
+				System.err.println("Unrecoverable RuntimeException when attempting to parse: " + f.getAbsolutePath());
+			} catch (Exception e) {
+				System.err.println("Unrecoverable Exception when attempting to parse: " + f.getAbsolutePath());
+			} catch (TokenMgrError e) {
+				System.err.println("Unrecoverable TokenMgrError when attempting to parse: " + f.getAbsolutePath());
+			} catch (StackOverflowError e) {
+				System.err.println("Unrecoverable StackOverflowError when attempting to parse: " + f.getAbsolutePath());
 			}
 		}
-		AstVisitor.log(0, "\n");
+		Logger.log(0, "\n");
 
 	}
 
@@ -112,7 +121,7 @@ public class Project {
 
 		scannedFiles = new HashSet<String>();
 		packages = new HashMap<String, Package>();
-		getOrCreateAndGetPackage(depth, "java.lang", false);
+		getOrCreateAndGetPackage(depth, "java.lang", false, false);
 
 		for (File file : files) {
 			scanFile(file);
@@ -123,14 +132,14 @@ public class Project {
 		List<File> fileList = new ArrayList<File>();
 
 		if (!baseDir.getAbsolutePath().contains(".svn")) {
-			//			 AstVisitor.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
+			//			 Logger.log(1, baseDir.getAbsolutePath() + ": exists " + baseDir.exists());
 			if (baseDir.isDirectory()) {
 				String[] files = baseDir.list();
 				String path = baseDir.getPath();
 
 				for (String s : files) {
 					File file = new File(path + File.separator + s);
-					//				AstVisitor.log(2, file.getAbsolutePath() + ": exists " + file.exists());
+					//				Logger.log(2, file.getAbsolutePath() + ": exists " + file.exists());
 					if (file.isDirectory()) {
 						fileList.addAll(getFiles(file));
 					} else {
@@ -179,7 +188,7 @@ public class Project {
 
 			if (!exclude)
 
-				for (Class c : p.classes.values())
+				for (Class c : p.getClasses().values())
 					retval.add(p.name + "." + c.name);
 		}
 
@@ -188,10 +197,10 @@ public class Project {
 		return retval;
 	}
 
-	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath) {
+	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath, boolean fileScanned) {
 		Package pkg = packages.get(name);
 		if (pkg == null) {
-			pkg = new Package(depth, name, inPath);
+			pkg = new Package(depth, name, inPath, fileScanned);
 			pkg.setProject(this);
 			packages.put(name, pkg);
 		}
@@ -199,35 +208,33 @@ public class Project {
 		if (inPath) {
 			pkg.inPath = inPath;
 		}
+		
+		if (fileScanned && !pkg.isFromFile()) {
+			pkg.setFromFile(fileScanned);
+		}
 
-		return pkg;
-	}
-
-	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath, boolean fileScanned) {
-		Package pkg = getOrCreateAndGetPackage(depth, name, inPath);
-		pkg.fromFile = fileScanned;
 		return pkg;
 	}
 
 	public void validate() {
 		int classCount = 0;
-		AstVisitor.log(1, "Beginning Validation:");
+		Logger.log(1, "Beginning Validation:");
 		for (Package pkg : packages.values()) {
 			pkg.validatePassOne(2);
-			classCount += pkg.classes.size();
+			classCount += pkg.getClasses().size();
 		}
 
 		for (Package pkg : packages.values()) {
 			pkg.validatePassTwo(2);
 		}
-		AstVisitor.log(1, "Validation Completed");
+		Logger.log(1, "Validation Completed");
 
-		AstVisitor.log(0, "Validated " + packages.size() + " packages");
-		AstVisitor.log(0, "Validated " + classCount + " classes");
+		Logger.log(0, "Validated " + packages.size() + " packages");
+		Logger.log(0, "Validated " + classCount + " classes");
 	}
 
 	public Class searchForClass(int depth, String pkgDoingSearch, String name) {
-		AstVisitor.log(depth, "Project: Searching for unresolved class: " + name);
+		Logger.log(depth, "Project: Searching for unresolved class: " + name);
 		Class clazz = null;
 		for (String pkgName : packages.keySet()) {
 			if (!pkgDoingSearch.equals(pkgName)) {
@@ -239,7 +246,7 @@ public class Project {
 		}
 
 		if (clazz == null) {
-			Package pkg = getOrCreateAndGetPackage(depth, "java.lang", false);
+			Package pkg = getOrCreateAndGetPackage(depth, "java.lang", false, false);
 			clazz = pkg.getOrCreateAndGetClass(depth, name);
 		}
 		return clazz;
@@ -331,7 +338,7 @@ public class Project {
 
 			if (!filter.getPackagesToExclude().contains(pkg.name))
 			{
-				for (Class cls : pkg.classes.values())
+				for (Class cls : pkg.getClasses().values())
 				{
 					if (!excludedClasses.contains(cls.getCanonicalName()))
 					{
@@ -363,7 +370,7 @@ public class Project {
 			return;
 		}
 		
-		for (Class cls : pkg.classes.values())
+		for (Class cls : pkg.getClasses().values())
 		{
 			for (Package dependentPackage : cls.packageDependencies)
 			{
@@ -409,7 +416,7 @@ public class Project {
 			return;
 		}
 		
-		for (Class referencedByClass : pkg.classes.values())
+		for (Class referencedByClass : pkg.getClasses().values())
 		{
 			for (Package referencedByPackage : referencedByClass.referencedByPackage)
 			{
@@ -498,6 +505,8 @@ public class Project {
 
 		StringBuffer sb = new StringBuffer();
 
+		List<String> edgeList = new ArrayList<String>();
+		
 		sb.append(renderer.getHeader());
 
 		
@@ -507,12 +516,16 @@ public class Project {
 			boolean exclude = filter.getPackagesToExclude().contains(pkg.name);		
 			
 			if (!exclude) {
-				if ((filter.isFromFile() && pkg.fromFile) || !filter.isFromFile()) {
-					sb.append(pkg.createGraph(renderer, filter));
+				if ((filter.isFromFile() && pkg.isFromFile()) || !filter.isFromFile()) {
+					sb.append(pkg.createGraph(renderer, filter, edgeList));
 				}
 			}
 		}
 
+		for (String edge : edgeList) {
+			sb.append(edge);
+		}
+		
 		sb.append(renderer.getFooter());
 
 		if (AstVisitor.DEBUGGING_ENABLED) {
@@ -528,3 +541,4 @@ public class Project {
 		return sb.toString();
 	}
 
+}

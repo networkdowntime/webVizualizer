@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 public abstract class DependentBase {
 
@@ -97,14 +97,14 @@ public abstract class DependentBase {
 	public void addUnresolvedAnnotations(String annotationName) {
 		if (!this.unresolvedAnnotations.contains(annotationName)) {
 			this.unresolvedAnnotations.add(annotationName);
-			AstVisitor.log(3, "Adding unresolved annotation: " + annotationName);
+			Logger.log(3, "Adding unresolved annotation: " + annotationName);
 		}
 	}
 
 	public void addUnresolvedInterface(String interfaceName) {
 		if (!this.unresolvedInterfaces.contains(interfaceName)) {
 			this.unresolvedInterfaces.add(interfaceName);
-			AstVisitor.log(3, "Adding unresolved interface: " + interfaceName);
+			Logger.log(3, "Adding unresolved interface: " + interfaceName);
 		}
 	}
 
@@ -118,7 +118,7 @@ public abstract class DependentBase {
 				count = 0;
 			this.unresolvedClasses.add(className);
 			this.unresolvedClassCount.put(className, count.intValue() + 1);
-			AstVisitor.log(depth, "Adding unresolved class: " + className);
+			Logger.log(depth, "Adding unresolved class: " + className);
 		}
 	}
 
@@ -134,7 +134,7 @@ public abstract class DependentBase {
 	}
 
 	public void addUnresolvedMethodCall(int depth, String typeOrVarName, String methodName) {
-		AstVisitor.log(depth, "Adding unresolved method call: " + typeOrVarName + " -> " + methodName);
+		Logger.log(depth, "Adding unresolved method call: " + typeOrVarName + " -> " + methodName);
 
 		HashSet<String> methods = unresolvedMethods.get(varNameTypeMap);
 		if (methods == null) {
@@ -187,7 +187,7 @@ public abstract class DependentBase {
 
 	public void addVariable(int depth, String name, String type) {
 		if (!varNameTypeMap.containsKey(name)) {
-			AstVisitor.log(depth, "Adding variable to " + this.getCanonicalName() + ": " + type + " " + name);
+			Logger.log(depth, "Adding variable to " + this.getCanonicalName() + ": " + type + " " + name);
 			varNameTypeMap.put(name, type);
 		}
 	}
@@ -207,7 +207,7 @@ public abstract class DependentBase {
 	}
 
 	public Class searchForUnresolvedClass(int depth, String className) {
-		AstVisitor.log(depth, "DependentBase.searchForUnresolvedClass(" + className + ")");
+		Logger.log(depth, "DependentBase.searchForUnresolvedClass(" + className + ")");
 		Class matchedClass = classDependencies.get(className);
 
 		if (matchedClass == null) {
@@ -218,10 +218,10 @@ public abstract class DependentBase {
 	}
 
 	public Class searchForVariableClass(int depth, String variableName) {
-		AstVisitor.log(depth, "DependentBase.searchForVariable(" + variableName + ") in " + getCanonicalName());
+		Logger.log(depth, "DependentBase.searchForVariable(" + variableName + ") in " + getCanonicalName());
 		
 		for (String varName : varNameClassMap.keySet()) {
-			AstVisitor.log(depth + 1, "Considering variable " + varName + " of type " + varNameClassMap.get(varName).getName() + "; matched=" + variableName.trim().equals(varName.trim()));
+			Logger.log(depth + 1, "Considering variable " + varName + " of type " + varNameClassMap.get(varName).getName() + "; matched=" + variableName.trim().equals(varName.trim()));
 		}
 
 		Class matchedClass = varNameClassMap.get(variableName);
@@ -237,36 +237,36 @@ public abstract class DependentBase {
 		Class c = findClass();
 
 		if (this instanceof Method) {
-			AstVisitor.log(depth, "Validating Method: " + ((Method) this).name + "; method's class: " + c.getCanonicalName());
+			Logger.log(depth, "Validating Method: " + ((Method) this).name + "; method's class: " + c.getCanonicalName());
 		} else {
-			AstVisitor.log(depth, "Validating Block");
+			Logger.log(depth, "Validating Block");
 		}
 
 		for (String s : this.unresolvedInterfaces) {
-			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved interfaces: " + s);
+			Logger.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved interfaces: " + s);
 			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
-				AstVisitor.log(depth + 2, "Matched unresolved interface: " + s + " to " + clazz.getCanonicalName());
+				Logger.log(depth + 2, "Matched unresolved interface: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
 		}
 
 		for (String s : this.unresolvedAnnotations) {
-			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
+			Logger.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved annotation: " + s);
 			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
-				AstVisitor.log(depth + 2, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
+				Logger.log(depth + 2, "Matched unresolved annotation: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 				this.annotationDependencies.add(clazz);
 			}
 		}
 
 		for (String s : this.unresolvedClasses) {
-			AstVisitor.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved class: " + s);
+			Logger.log(depth + 1, "Class " + c.getName() + ": Searching for unresolved class: " + s);
 			Class clazz = searchForUnresolvedClass(depth + 2, s);
 			if (clazz != null) {
-				AstVisitor.log(depth + 2, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
+				Logger.log(depth + 2, "Matched unresolved class: " + s + " to " + clazz.getCanonicalName());
 				addResolvedClass(clazz);
 			}
 		}
@@ -274,13 +274,13 @@ public abstract class DependentBase {
 		for (String varName : varNameTypeMap.keySet()) {
 			for (String type : splitType(varNameTypeMap.get(varName))) {
 
-				AstVisitor.log(depth + 1,
+				Logger.log(depth + 1,
 						"Class " + c.getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
 				if (!(isPrimative(type) || "this".equals(type))) {
 					Class clazz = searchForUnresolvedClass(depth + 2, type);
 
 					if (clazz != null) {
-						AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
+						Logger.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
 						if (!"this".equals(type))
 							addResolvedClass(clazz);
 						varNameClassMap.put(varName, clazz);
@@ -306,12 +306,12 @@ public abstract class DependentBase {
 			}
 		}
 
-		AstVisitor.log(depth, this.getClass().getName() + " validatePassTwo(): " + getCanonicalName());
+		Logger.log(depth, this.getClass().getName() + " validatePassTwo(): " + getCanonicalName());
 
 		for (String typeOrVarName : unresolvedMethods.keySet()) {
 			HashSet<String> methodSet = unresolvedMethods.get(typeOrVarName);
 
-			AstVisitor.log(depth + 1, "Checking for unresolved method call: " + typeOrVarName + " in " + getCanonicalName());
+			Logger.log(depth + 1, "Checking for unresolved method call: " + typeOrVarName + " in " + getCanonicalName());
 
 			String tovn = typeOrVarName;
 			Class clazz = null;
@@ -349,7 +349,7 @@ public abstract class DependentBase {
 					addResolvedClass(clazz);
 				}
 				
-				AstVisitor.log(depth + 2, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
+				Logger.log(depth + 2, "DependentBase.validatePassTwo() for " + findClass().name + ": typeOrVarName " + typeOrVarName + " matched to " + clazz.name);
 
 				for (String methodName : methodSet) {
 					HashSet<Method> methods = methodCallMap.get(clazz);
@@ -368,7 +368,7 @@ public abstract class DependentBase {
 
 					if (method != null) {
 						methods.add(method);
-						AstVisitor.log(depth + 3, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
+						Logger.log(depth + 3, "Found Method Call Reference: " + clazz.getCanonicalName() + "." + method.name);
 					}
 				}
 			}

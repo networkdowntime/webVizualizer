@@ -105,6 +105,7 @@ import net.networkdowntime.javaAnalyzer.javaModel.DependentBase;
 import net.networkdowntime.javaAnalyzer.javaModel.Method;
 import net.networkdowntime.javaAnalyzer.javaModel.Package;
 import net.networkdowntime.javaAnalyzer.javaModel.Project;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 @SuppressWarnings("rawtypes")
 public class AstVisitor extends VoidVisitorAdapter {
@@ -174,15 +175,6 @@ public class AstVisitor extends VoidVisitorAdapter {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
-	}
-
-	public static void log(int depth, String str) {
-		if (DEBUGGING_ENABLED) {
-			for (int i = 0; i < depth; i++) {
-				System.out.print("    ");
-			}
-			System.out.println(str);
 		}
 	}
 
@@ -261,7 +253,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -437,7 +429,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ClassOrInterfaceDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 
-		log(0, n.getParentNode().getClass().getName());
+		Logger.log(0, n.getParentNode().getClass().getName());
 		
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
@@ -450,16 +442,16 @@ public class AstVisitor extends VoidVisitorAdapter {
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true);
 		} else if (n.getParentNode() instanceof TypeDeclarationStmt) {
 			logAST(0, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
-			log(0, "Creating class: " + n.getName());
+			Logger.log(0, "Creating class: " + n.getName());
 
 //			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 			newClass.setIsAnonymous(true, current);
 
 		} else {
-			log(0, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getParentNode().getClass().getName());
-			log(1, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getClass().getName());
-			log(2, "Shouldn't get here!!!! " + n.getParentNode().getClass().getName());
+			Logger.log(0, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getParentNode().getClass().getName());
+			Logger.log(1, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getClass().getName());
+			Logger.log(2, "Shouldn't get here!!!! " + n.getParentNode().getClass().getName());
 			return;
 		}
 
@@ -483,7 +475,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -558,11 +550,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with " + current.getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Done with " + current.getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
-		log(heirarchyStack.size(), "Back with " + current.getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Back with " + current.getCanonicalName());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -684,7 +676,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -891,11 +883,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with block");
+		Logger.log(heirarchyStack.size(), "Done with block");
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
-		log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1026,11 +1018,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		log(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
-		log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+		Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 		} else {
 			super.visit(n, arg);
 		}

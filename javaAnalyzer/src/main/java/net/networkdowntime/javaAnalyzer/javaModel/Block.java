@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 /**
  * Used as a partent class for Methods and for Lambdas
@@ -18,7 +18,7 @@ public class Block extends DependentBase {
 
 	public Block(int depth, DependentBase parent) {
 		this.parent = parent;
-		AstVisitor.log(depth, "Creating Block: ");
+		Logger.log(depth, "Creating Block: ");
 	}
 
 	public void addChildBlock(Block block) {
@@ -31,7 +31,7 @@ public class Block extends DependentBase {
 		this.paramMap = paramMap;
 
 		for (String name : paramMap.keySet()) {
-			AstVisitor.log(depth, "Adding Method Parameter: " + name);
+			Logger.log(depth, "Adding Method Parameter: " + name);
 			this.addVariable(depth, name, paramMap.get(name));
 		}
 	}
@@ -43,25 +43,17 @@ public class Block extends DependentBase {
 
 	@Override
 	public void validatePassOne(int depth) {
-		if (this instanceof Method) {
-			AstVisitor.log(depth, "Validating " + this.getClass().getName() + ": " + ((Method) this).getName());
-		} else {
-			AstVisitor.log(depth, "Validating " + this.getClass().getName() + ": ");
-		}
+		Logger.log(depth, "Validating " + this.getClass().getName() + ": ");
 
 		for (String varName : paramMap.keySet()) {
 			for (String type : splitType(paramMap.get(varName))) {
-				if (this instanceof Method) {
-					AstVisitor.log(depth + 1, this.getClass().getName() + " " + ((Method) this).getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
-				} else {
-					AstVisitor.log(depth + 1, this.getClass().getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
-				}
+				Logger.log(depth + 1, this.getClass().getName() + ": Searching for class for variable: " + type + " " + varName + "; isPrimative=" + isPrimative(type) + "; is \"this\"=" + "this".equals(type));
 
 				if (!(isPrimative(type) || "this".equals(type))) {
 					Class clazz = searchForUnresolvedClass(depth + 2, type);
 
 					if (clazz != null) {
-						AstVisitor.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
+						Logger.log(depth + 2, "Matched unresolved class: " + type + " to " + clazz.getCanonicalName());
 						if (!"this".equals(type))
 							addResolvedClass(clazz);
 						varNameClassMap.put(varName, clazz);

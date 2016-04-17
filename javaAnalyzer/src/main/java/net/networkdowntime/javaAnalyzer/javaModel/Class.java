@@ -5,8 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -20,6 +19,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	boolean isAnonymous = false;
 	boolean isEnum = false;
 
+	
 	List<Package> packageDependencies = new ArrayList<Package>();
 	Map<String, Method> methods = new LinkedHashMap<String, Method>();
 	List<String> imports = new ArrayList<String>();
@@ -45,7 +45,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 		this.isAbstract = isAbstract;
 		this.isEnum = isEnum;
 		this.isAnnotation = isAnnotation;
-		AstVisitor.log(depth, "Creating Class: " + pkg.getName() + "." + name);
+		Logger.log(depth, "Creating Class: " + pkg.getName() + "." + name);
 	}
 
 	public void addImplsStr(String implsString) {
@@ -56,18 +56,9 @@ public class Class extends DependentBase implements Comparable<Class> {
 		this.extndsStr = extndsString;
 	}
 
-//	@Override
-//	public String getName() {
-//		return this.name;
-//	}
-
 	public String getExtends() {
 		return this.extndsStr;
 	}
-
-	//	public String getCanonicalName() {
-	//		return this.pkg.getName() + "." + this.name;
-	//	}
 
 	public Method getOrCreateAndGetMethod(int depth, String name) {
 		Method method = methods.get(name);
@@ -85,20 +76,18 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 	public void addImport(int depth, String name) {
 		if (name != null && name.length() > 0) {
-			AstVisitor.log(depth, "Adding import for: " + name);
+			Logger.log(depth, "Adding import for: " + name);
 			imports.add(name);
 			String pkgOrClassName = name.substring(name.lastIndexOf(".") + 1);
 			boolean isClass = Character.isUpperCase(pkgOrClassName.charAt(0));
 
 			if (!isClass) {
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(depth + 1, name,
-						false);
+				Package pkg1 = pkg.getOrCreateAndGetPackage(depth + 1, name, false, false);
 				this.packageDependencies.add(pkg1);
 			} else {
 				String pkgName = name.substring(0, name.lastIndexOf("."));
 				String className = pkgOrClassName;
-				Package pkg1 = this.pkg.prj.getOrCreateAndGetPackage(depth, pkgName,
-						false);
+				Package pkg1 = pkg.getOrCreateAndGetPackage(depth, pkgName, false, false);
 				this.packageDependencies.add(pkg1);
 				pkg1.getOrCreateAndGetClass(depth, className);
 			}
@@ -146,7 +135,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	
 	@Override
 	public Class searchForUnresolvedClass(int depth, String className) {
-		AstVisitor.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
+		Logger.log(depth, "Class.searchForUnresolvedClass(" + className + ")");
 
 		Class matchedClass = null;
 		if (getCanonicalName().equals(className)) {
@@ -163,49 +152,49 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 	@Override
 	public void validatePassOne(int depth) {
-		AstVisitor.log(depth, "Validating Pass One class: " + getCanonicalName());
+		Logger.log(depth, "Validating Pass One class: " + getCanonicalName());
 
-		AstVisitor.log(depth + 1, "Checking for extends:");
+		Logger.log(depth + 1, "Checking for extends:");
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(depth, name, extndsStr);
 			if (clazz != null) {
 				extnds = clazz;
 				addResolvedClass(clazz);
-				AstVisitor.log(depth + 2, "Resolved extends to class: " + clazz.getCanonicalName());
+				Logger.log(depth + 2, "Resolved extends to class: " + clazz.getCanonicalName());
 			}
 		} else {
-			AstVisitor.log(depth + 2, "No extends needed for this class");
+			Logger.log(depth + 2, "No extends needed for this class");
 		}
 
-		AstVisitor.log(depth + 1, "Checking for implements:");
+		Logger.log(depth + 1, "Checking for implements:");
 		if (implsStrings != null && !implsStrings.isEmpty()) {
 			for (String implString : implsStrings) {
 				Class clazz = pkg.searchForUnresolvedClass(depth, name, implString);
 				if (clazz != null && !impls.contains(clazz)) {
 					impls.add(clazz);
 					addResolvedClass(clazz);
-					AstVisitor.log(depth + 2, "Resolved implements to class: " + clazz.getCanonicalName());
+					Logger.log(depth + 2, "Resolved implements to class: " + clazz.getCanonicalName());
 				}
 			}
 		} else {
-			AstVisitor.log(depth + 2, "No implements needed for this class");
+			Logger.log(depth + 2, "No implements needed for this class");
 		}
 
 		super.validatePassOne(depth + 1);
 
-		AstVisitor.log(depth + 1, "Checking for methods:");
+		Logger.log(depth + 1, "Checking for methods:");
 		if (methods != null && !methods.isEmpty()) {
 			for (Method method : methods.values()) {
 				method.validatePassOne(depth + 2);
 			}
 		} else {
-			AstVisitor.log(depth + 2, "No methods for this class");
+			Logger.log(depth + 2, "No methods for this class");
 		}
 	}
 
 	@Override
 	public int validatePassTwo(int depth) {
-		AstVisitor.log(depth, "Validating Pass Two class: " + getCanonicalName());
+		Logger.log(depth, "Validating Pass Two class: " + getCanonicalName());
 
 		List<Method> tmpMethods = new ArrayList<Method>();
 		tmpMethods.addAll(methods.values());
@@ -244,7 +233,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	}
 	
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
-		AstVisitor.log(1, "Class: " + this.name);
+		Logger.log(1, "Class: " + this.name);
 
 		HashSet<String> refsToSkip = new HashSet<String>();
 

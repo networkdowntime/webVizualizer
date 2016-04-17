@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.logger.Logger;
 import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
@@ -14,20 +14,25 @@ public class Package {
 
 	protected String name;
 	protected boolean inPath = false;
-	Project prj;
-	Map<String, Class> classes = new HashMap<String, Class>();
-	boolean fromFile = false;
+	private Project prj;
+	private Map<String, Class> classes = new HashMap<String, Class>();
+	private boolean fromFile = false;
 
 	Integer upstreamReferenceDepth = new Integer(0);
 	Integer downstreamReferenceDepth = new Integer(0);
 		
-	public Package(int depth, String name, boolean inPath) {
+	public Package(int depth, String name, boolean inPath, boolean fileScanned) {
 		this.name = name;
-		AstVisitor.log(depth, "Creating Package: " + name);
+		this.fromFile = fileScanned;
+		Logger.log(depth, "Creating Package: " + name);
 	}
 
 	public void setProject(Project prj) {
 		this.prj = prj;
+	}
+
+	public Package getOrCreateAndGetPackage(int depth, String name, boolean inPath, boolean fileScanned) {
+		return prj.getOrCreateAndGetPackage(depth, name, inPath, fileScanned);
 	}
 
 	public Class getOrCreateAndGetClass(int depth, String name) {
@@ -57,6 +62,10 @@ public class Package {
 		return clazz;
 	}
 
+	public Map<String, Class> getClasses() {
+		return classes;
+	}
+	
 	public void removeClass(Class clazz) {
 		if (!classes.containsKey(clazz.name)) {
 			classes.remove(clazz.name);
@@ -84,14 +93,14 @@ public class Package {
 	}
 	
 	public void validatePassOne(int depth) {
-		AstVisitor.log(depth, "Validate Pass One: package " + name);
+		Logger.log(depth, "Validate Pass One: package " + name);
 		for (Class clazz : classes.values()) {
 			clazz.validatePassOne(depth + 1);
 		}
 	}
 
 	public void validatePassTwo(int depth) {
-		AstVisitor.log(depth, "Validate Pass Two: package " + name);
+		Logger.log(depth, "Validate Pass Two: package " + name);
 		for (Class clazz : classes.values()) {
 			clazz.validatePassTwo(depth + 1);
 		}
@@ -125,7 +134,7 @@ public class Package {
 	}
 		
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
- 		AstVisitor.log(0, "Package: " + this.name);
+		Logger.log(0, "Package: " + this.name);
  		 
 		int green = 0x100;
 		if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 )
@@ -198,5 +207,13 @@ public class Package {
 		}
 
 		return sb.toString();
+	}
+	
+	public boolean isFromFile() {
+		return fromFile;
+	}
+	
+	public void setFromFile(boolean scannedFile) {
+		this.fromFile = scannedFile;
 	}
 }
