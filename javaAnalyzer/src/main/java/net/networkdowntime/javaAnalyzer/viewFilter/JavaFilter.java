@@ -28,11 +28,20 @@ public @Data class JavaFilter {
 	HashSet<String> packagesToExclude = new HashSet<String>();
 	HashSet<String> classesToExclude = new HashSet<String>();
 
+	String advancedSearchQuery = null;
 	boolean showMethods = false;
 	boolean showFields = false;
 	boolean fromFile = false;
 	Integer upstreamReferenceDepth = null;
 	Integer downstreamDependencyDepth = null;
+	
+	public String getAdvancedSearchQuery() {
+		return advancedSearchQuery;
+	}
+	
+	public void setAdvancedSearchQuery(String advancedSearchQuery) {
+		this.advancedSearchQuery = advancedSearchQuery;
+	}
 	
 	public Integer getUpstreamReferenceDepth() {
 		return upstreamReferenceDepth;

@@ -263,7 +263,6 @@ function javaAnalyzerInit(menuItem) {
     	    
     		$('#packageSearch').on('change keyup paste', function() {
     			packageToSearchFor = $("#packageSearch").val();
-    			console.log(packageToSearchFor);
     			$('.packages').parent().hide();
     			$('.packages').filter(function() {
     				return $(this).attr('name').toLowerCase().indexOf(packageToSearchFor.toLowerCase()) > -1;
@@ -314,7 +313,6 @@ function javaAnalyzerInit(menuItem) {
 	    	    
 	    		$('#classSearch').on('change keyup paste', function() {
 	    			packageToSearchFor = $("#classSearch").val();
-	    			console.log(packageToSearchFor);
 	    			$('.classes').parent().hide();
 	    			$('.classes').filter(function() {
 	    				return $(this).attr('name').toLowerCase().indexOf(packageToSearchFor.toLowerCase()) > -1;
@@ -354,6 +352,7 @@ function javaAnalyzerInit(menuItem) {
 		}
 		
 		filter = {
+			advancedSearchQuery : $('#advancedSearchQuery').val(),
 			diagramType : $("#javaDiagramType option:selected").val(), // PACKAGE_DIAGRAM, CLASS_ASSOCIATION_DIAGRAM, METHOD_CALL_DIAGRAM
 			showFields : $("#showFields").prop('checked'), // boolean
 			showMethods : $("#showMethods").prop('checked'), //boolean

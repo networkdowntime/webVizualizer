@@ -188,6 +188,7 @@ public class JavaScanner {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getDot(JavaFilter filter) {
+		System.out.println("advancedSearchQuery: " + filter.getAdvancedSearchQuery());
 		System.out.println("diagramType: " + filter.getDiagramType().toString());
 		System.out.println("isShowFields: " + filter.isShowFields());
 		System.out.println("isShowMethods: " + filter.isShowMethods());

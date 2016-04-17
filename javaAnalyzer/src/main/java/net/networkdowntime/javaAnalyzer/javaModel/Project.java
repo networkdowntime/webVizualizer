@@ -12,6 +12,7 @@ import java.util.Set;
 
 import net.networkdowntime.javaAnalyzer.AstVisitor;
 import net.networkdowntime.javaAnalyzer.Search;
+import net.networkdowntime.javaAnalyzer.TextScrubber;
 import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 import com.github.javaparser.JavaParser;
@@ -117,6 +118,7 @@ public class Project {
 				System.err.println("Unrecoverable StackOverflowError when attempting to parse: " + f.getAbsolutePath());
 			}
 		}
+		search.finalize();
 		Logger.log(0, "\n");
 
 	}
@@ -491,6 +493,16 @@ public class Project {
 	}
 	
 	public String createGraph(JavaFilter filter) {
+		
+		if (filter.getAdvancedSearchQuery() != null) {
+			String query = TextScrubber.scrubToString(filter.getAdvancedSearchQuery());
+			if (!query.isEmpty()) {
+				Map<String, Float> results = search.query(query, 10, filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM);
+				for (String name : results.keySet()) {
+					System.out.println("Search results: " + name + "; score: " + results.get(name));
+				}
+			}
+		}
 		
 		// Replace with test of filter for depth selection
 		Integer downDepth = filter.getDownstreamDependencyDepth();

@@ -115,7 +115,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	public static boolean DEBUGGING_ENABLED = true;
+	public static boolean DEBUGGING_ENABLED = false;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
