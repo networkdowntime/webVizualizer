@@ -82,6 +82,10 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 	width: 75px;
 }
 
+.right {
+	float: right;
+}
+
 .collapsible {
     margin: 0;
     padding:10px;

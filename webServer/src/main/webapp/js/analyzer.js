@@ -244,23 +244,32 @@ function javaAnalyzerInit(menuItem) {
 		$.get('/api/code/javaScanner' + fake + '/packages', function(data) {
     	    $(container).css('overflow-y', 'hidden');
 
-    		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' />").appendTo(packagesDiv).slideDown(250);
+    		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' /><span class='right'><input id='packageSearch' type='text' placeholder='Package search' value=''/></span></div>").appendTo(packagesDiv).slideDown(250);
 
     		$('#packageCheckAll:button').click(function() {
     			console.log(this);
     			if ($(this).attr("value") === 'Uncheck All') {
-        	        $('.packages').prop('checked', false);;
+        	        $('.packages:not(:hidden)').prop('checked', false);;
         	        $(this).val('Check All');            				
         	    	loadClasses();
         			drawGraph();
     			} else {
-        	        $('.packages').prop('checked', true);;
+        	        $('.packages:not(:hidden)').prop('checked', true);;
         	        $(this).val('Uncheck All');
         	    	loadClasses();
         			drawGraph();
     			}
     	    });
     	    
+    		$('#packageSearch').on('change keyup paste', function() {
+    			packageToSearchFor = $("#packageSearch").val();
+    			console.log(packageToSearchFor);
+    			$('.packages').parent().hide();
+    			$('.packages').filter(function() {
+    				return $(this).attr('name').toLowerCase().indexOf(packageToSearchFor.toLowerCase()) > -1;
+    			}).parent().show();;
+    		});
+    		
     		$(data).each(function() {
 	    		$("<div><input class='packages' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(packagesDiv).slideDown(250);
 	    	});
@@ -288,21 +297,30 @@ function javaAnalyzerInit(menuItem) {
 		    success:function(data){
 	    	    $(container).css('overflow-y', 'hidden');
 	    	    
-	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' />").hide().appendTo(classesDiv).slideDown(250);
+	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' /><span class='right'><input id='classSearch' type='text' placeholder='Class search' value=''/></span></div>").hide().appendTo(classesDiv).slideDown(250);
 
 	    		$('#classCheckAll:button').click(function() {
 	    			console.log(this);
 	    			if ($(this).attr("value") === 'Uncheck All') {
-	        	        $('.classes').prop('checked', false);;
+	        	        $('.classes:not(:hidden)').prop('checked', false);;
 	        	        $(this).val('Check All');            				
 	        			drawGraph();
 	    			} else {
-	        	        $('.classes').prop('checked', true);;
+	        	        $('.classes:not(:hidden)').prop('checked', true);;
 	        	        $(this).val('Uncheck All');
 	        			drawGraph();
 	    			}
 	    	    });
 	    	    
+	    		$('#classSearch').on('change keyup paste', function() {
+	    			packageToSearchFor = $("#classSearch").val();
+	    			console.log(packageToSearchFor);
+	    			$('.classes').parent().hide();
+	    			$('.classes').filter(function() {
+	    				return $(this).attr('name').toLowerCase().indexOf(packageToSearchFor.toLowerCase()) > -1;
+	    			}).parent().show();;
+	    		});
+	    		
 		    	$(data).each(function() {
 		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(classesDiv).slideDown(250);
 		    	});
