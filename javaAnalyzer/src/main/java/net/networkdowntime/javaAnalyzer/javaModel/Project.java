@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.networkdowntime.javaAnalyzer.AstVisitor;
+import net.networkdowntime.javaAnalyzer.Search;
 import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 import com.github.javaparser.JavaParser;
@@ -27,8 +28,9 @@ public class Project {
 
 	private Set<File> files = new HashSet<File>();
 	private HashSet<String> scannedFiles = new HashSet<String>();
-	Map<String, Package> packages = new HashMap<String, Package>();
-
+	private Map<String, Package> packages = new HashMap<String, Package>();
+	private Search search = new Search();
+	
 	public Project() {
 		Logger.log(0, "Creating a new Project");
 		getOrCreateAndGetPackage(1, "java.lang", false, false);
@@ -43,6 +45,10 @@ public class Project {
 		return retval;
 	}
 
+	public void addSearchIndex(String packageName, String className, String text) {
+		search.addDocument(packageName, className, text);
+	}
+	
 	/**
 	 * Adds a file or directory containing files to the list of files to be scanned.
 	 * 
@@ -96,7 +102,7 @@ public class Project {
 						Logger.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
 						scannedFiles.add(f.getAbsolutePath());
-						AstVisitor.processTypeDeclarations(0, f.getName(), this, null, cu, cu.getTypes());
+						AstVisitor.processTypeDeclarations(0, f.getName(), this, cu);
 					}
 				}
 			} catch (ParseException e) {

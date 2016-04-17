@@ -33,6 +33,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.body.VariableDeclaratorId;
 import com.github.javaparser.ast.comments.BlockComment;
+import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.comments.LineComment;
 import com.github.javaparser.ast.expr.ArrayAccessExpr;
@@ -114,7 +115,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	public static boolean DEBUGGING_ENABLED = false;
+	public static boolean DEBUGGING_ENABLED = true;
 
 	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
 
@@ -129,9 +130,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		long time = System.currentTimeMillis();
 
-		prj.addFile(new File("src/test/java/"));
-//		prj.addFile(new File("/Users/rwiles/github/jabref/src/main/java/net/sf/jabref/exporter/ExportFormats.java"));
-		
+		prj.addFile(new File("src/test/java/testClasses/TestClass1.java"));
+		//		prj.addFile(new File("/Users/rwiles/github/jabref/src/main/java/net/sf/jabref/exporter/ExportFormats.java"));
+
 		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
 		time = System.currentTimeMillis();
 
@@ -139,7 +140,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		System.out.println("Time to validate (ms): " + (System.currentTimeMillis() - time));
 	}
 
-	public AstVisitor(int depth, String fileName, Project prj, Class base, CompilationUnit cu, List<TypeDeclaration> typeDeclarations) {
+	public AstVisitor(int depth, String fileName, Project prj, CompilationUnit cu) {
 		try {
 			File dir = new File("astDumps");
 			if (!dir.exists())
@@ -157,8 +158,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 		this.visit(cu, null);
 	}
 
-	public static void processTypeDeclarations(int depth, String fileName, Project prj, Class base, CompilationUnit cu, List<TypeDeclaration> typeDeclarations) {
-		new AstVisitor(depth, fileName, prj, base, cu, typeDeclarations);
+	public static void processTypeDeclarations(int depth, String fileName, Project prj, CompilationUnit cu) {
+		new AstVisitor(depth, fileName, prj, cu);
 	}
 
 	public void logAST(int depth, String str) {
@@ -231,7 +232,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			if (currentPackage == null) {
 				this.currentPackage = project.getOrCreateAndGetPackage(1, "default", true, true);
 			}
-			
+
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 		} else {
 			String parentNodeName = null;
@@ -243,6 +244,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 			newClass = currentPackage.getOrCreateAndGetClass(1, parentNodeName + "." + n.getName(), true);
 		}
+
+		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());
+
 		current = newClass;
 		heirarchyStack.push(newClass);
 
@@ -427,10 +431,10 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
+		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "-" + n.getEndLine() + "): " + n.getNameExpr().getName());
 
 		Logger.log(0, n.getParentNode().getClass().getName());
-		
+
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
 			if (currentPackage == null) {
@@ -444,7 +448,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			logAST(0, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 			Logger.log(0, "Creating class: " + n.getName());
 
-//			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
+			//			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
 			newClass.setIsAnonymous(true, current);
 
@@ -455,6 +459,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 			return;
 		}
 
+		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());
+		
 		current = newClass;
 		heirarchyStack.push(newClass);
 
@@ -665,6 +671,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 			}
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parentNodeName + "." + n.getName(), true);
 		}
+
+		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());
 
 		current = newClass;
 		heirarchyStack.push(newClass);
@@ -1006,27 +1014,26 @@ public class AstVisitor extends VoidVisitorAdapter {
 		}
 
 		if (current instanceof Class) {
-		Method newMethod = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
+			Method newMethod = ((Class) current).getOrCreateAndGetMethod(heirarchyStack.size() + 1, n.getName() + "(" + params + ")");
 
-		current = newMethod;
-		heirarchyStack.push(newMethod);
+			current = newMethod;
+			heirarchyStack.push(newMethod);
 
-		((Method) current).setParamMap(heirarchyStack.size() + 1, paramMap);
-		((Method) current).setReturnType(heirarchyStack.size() + 1, n.getType().toString(), true);
+			((Method) current).setParamMap(heirarchyStack.size() + 1, paramMap);
+			((Method) current).setReturnType(heirarchyStack.size() + 1, n.getType().toString(), true);
 
-		depth++;
-		super.visit(n, arg);
-		depth--;
+			depth++;
+			super.visit(n, arg);
+			depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
-		heirarchyStack.pop();
-		if (!heirarchyStack.isEmpty())
-			current = heirarchyStack.peek();
-		Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+			Logger.log(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
+			heirarchyStack.pop();
+			if (!heirarchyStack.isEmpty())
+				current = heirarchyStack.peek();
+			Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 		} else {
 			super.visit(n, arg);
 		}
-
 
 	}
 
@@ -1091,9 +1098,9 @@ public class AstVisitor extends VoidVisitorAdapter {
 	@Override
 	public void visit(ObjectCreationExpr n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
-		
+
 		current.addUnresolvedClass(heirarchyStack.size() + 1, n.getType().getName());
-		
+
 		depth++;
 		super.visit(n, arg);
 		depth--;
