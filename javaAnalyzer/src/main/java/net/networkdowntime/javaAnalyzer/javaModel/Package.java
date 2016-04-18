@@ -18,6 +18,7 @@ public class Package {
 	private Map<String, Class> classes = new HashMap<String, Class>();
 	private boolean fromFile = false;
 
+	Integer searchRank = new Integer(0);
 	Integer upstreamReferenceDepth = new Integer(0);
 	Integer downstreamReferenceDepth = new Integer(0);
 		
@@ -105,8 +106,6 @@ public class Package {
 			clazz.validatePassTwo(depth + 1);
 		}
 	}
-	
-
 
 	// A value > 0xFF for any color means that 
 	// the value should not be used
@@ -132,23 +131,44 @@ public class Package {
 		
 		return color;
 	}
-		
+	
+	private int getColor(int colorStart, int colorEnd, int numberOfsteps, int steps) {
+		int colorStep = (colorStart - colorEnd) / numberOfsteps;
+		return colorStart - (colorStep * steps);
+
+	}
+	
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
 		Logger.log(0, "Package: " + this.name);
- 		 
-		int green = 0x100;
-		if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 )
-		{
-			green = 0x40 + Math.max((6 - this.downstreamReferenceDepth) * 0x20, 0);
+
+		String color;
+		int red, green, blue;
+		red = green = blue = 0xFF;
+
+		if (searchRank > 0) {
+			// yellow
+			red = getColor(0xFF, 0xFF, 10, searchRank);
+			green = getColor(0xFF, 0xE1, 10, searchRank);
+			blue = getColor(0xFF, 0x3B, 10, searchRank);
+		} else if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 && filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0) {
+			// red
+			red = getColor(0xFF, 0xEF, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+			green = getColor(0xFF, 0x53, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+			blue = getColor(0xFF, 0x50, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+
+		} else if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0) {
+			// teal
+			red = getColor(0xFF, 0x00, 6, downstreamReferenceDepth);
+			green = getColor(0xFF, 0xAC, 6, downstreamReferenceDepth);
+			blue = getColor(0xFF, 0xC1, 6, downstreamReferenceDepth);
+		} else if (filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0) {
+			// blue
+			red = getColor(0xFF, 0x03, 6, upstreamReferenceDepth);
+			green = getColor(0xFF, 0x9B, 6, upstreamReferenceDepth);
+			blue = getColor(0xFF, 0xE5, 6, upstreamReferenceDepth);
 		}
 
-		int blue = 0x100;
-		if (filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0 )
-		{
-			blue = 0x40 + Math.max((6 - this.upstreamReferenceDepth) * 0x20, 0);
-		}
-		
-		String color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
+		color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
 		
 		
 		StringBuffer sb = new StringBuffer();

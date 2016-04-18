@@ -34,6 +34,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	HashSet<Class> referencedByClass = new HashSet<Class>();
 	HashSet<Package> referencedByPackage = new HashSet<Package>();
 
+	Integer searchRank = new Integer(0);
 	Integer upstreamReferenceDepth = new Integer(0);
 	Integer downstreamReferenceDepth = new Integer(0);
 	
@@ -158,7 +159,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 		if (extndsStr != null) {
 			Class clazz = pkg.searchForUnresolvedClass(depth, name, extndsStr);
 			if (clazz != null) {
-				extnds = clazz;
+					extnds = clazz;
 				addResolvedClass(clazz);
 				Logger.log(depth + 2, "Resolved extends to class: " + clazz.getCanonicalName());
 			}
@@ -220,39 +221,60 @@ public class Class extends DependentBase implements Comparable<Class> {
 			green = Math.max(0, green);
 			blue = Math.max(0, blue);
 			
-			// Ignore color (use 0x00) if > 0xFF
-			if (red > 0xFF) {red = 0;}
-			if (green > 0xFF) {green = 0;}
-			if (blue > 0xFF) {blue = 0;}
+			// Ignore color (use 0xFF) if > 0xFF
+			if (red > 0xFF) {red = 0xFF;}
+			if (green > 0xFF) {green = 0xFF;}
+			if (blue > 0xFF) {blue = 0xFF;}
 			
-			color = (red << 16) + (green << 8) + blue;
 		}
+		color = (red << 16) + (green << 8) + blue;
 		
 		
 		return color;
 	}
 	
+	private int getColor(int colorStart, int colorEnd, int numberOfsteps, int steps) {
+		int colorStep = (colorStart - colorEnd) / numberOfsteps;
+		return colorStart - (colorStep * steps);
+
+	}
+	
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
+
 		Logger.log(1, "Class: " + this.name);
 
 		HashSet<String> refsToSkip = new HashSet<String>();
 
 		StringBuffer sb = new StringBuffer();
-
-
-		int green = 0x100;		
-		if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 )
-		{
-			green = 0x40 + Math.max((6 - this.downstreamReferenceDepth) * 0x20, 0);
-		}
- 
-		int blue = 0x100;
-		if (filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0 )
-		{
-			blue = 0x40 + Math.max((6 - this.upstreamReferenceDepth) * 0x20, 0);
-		}
 		
-		String color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
+		String color;
+		int red, green, blue;
+		red = green = blue = 0xFF;
+
+		if (searchRank > 0) {
+			// yellow
+			red = getColor(0xFF, 0xFF, 10, searchRank);
+			green = getColor(0xFF, 0xE1, 10, searchRank);
+			blue = getColor(0xFF, 0x3B, 10, searchRank);
+		} else if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0 && filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0) {
+			// red
+			red = getColor(0xFF, 0xEF, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+			green = getColor(0xFF, 0x53, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+			blue = getColor(0xFF, 0x50, 6, Math.min(upstreamReferenceDepth, downstreamReferenceDepth));
+
+		} else if (filter.getDownstreamDependencyDepth() != null && this.downstreamReferenceDepth > 0) {
+			// teal
+			red = getColor(0xFF, 0x00, 6, downstreamReferenceDepth);
+			green = getColor(0xFF, 0xAC, 6, downstreamReferenceDepth);
+			blue = getColor(0xFF, 0xC1, 6, downstreamReferenceDepth);
+		} else if (filter.getUpstreamReferenceDepth() != null && this.upstreamReferenceDepth > 0) {
+			// blue
+			red = getColor(0xFF, 0x03, 6, upstreamReferenceDepth);
+			green = getColor(0xFF, 0x9B, 6, upstreamReferenceDepth);
+			blue = getColor(0xFF, 0xE5, 6, upstreamReferenceDepth);
+		}
+
+		color = "#" + String.format("%06X", mixColorToRGBValue(red, green, blue));
 		
 		
 		if ((filter.getDiagramType() == DiagramType.UNREFERENCED_CLASSES && this.referencedByClass
@@ -261,7 +283,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 			if (isAnonymous) {
 				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<anonymous>\r\n" + this.getName(), "", color));
 			}else if (isInterface) {
-				sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), "", color));
+					sb.append(renderer.getBeginRecord(this.getCanonicalName(), "<interface>\r\n" + this.getName(), "", color));
 			} else {
 				sb.append(renderer.getBeginRecord(this.getCanonicalName(), this.getName(), "", color));
 			}
