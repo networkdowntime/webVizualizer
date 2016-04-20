@@ -168,7 +168,7 @@ public class Package {
 			blue = getColor(0xFF, 0xE5, 6, upstreamReferenceDepth);
 		}
 
-		color = "#" + String.format("%06X", mixColorToRGBValue(0x100, green, blue));
+		color = "#" + String.format("%06X", mixColorToRGBValue(red, green, blue));
 		
 		
 		StringBuffer sb = new StringBuffer();
