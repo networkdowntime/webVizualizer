@@ -60,7 +60,7 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 
 .sidebar {
 	border: 1px solid;
-	width: 300px;
+	width: 350px;
 	height: 100%;
 	overflow: hidden;
 	float: left;
@@ -78,12 +78,49 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 }
 
 .sourceLabel {
-	display: inline-block;
-	width: 75px;
+	float: left;
+	margin-right: 3px;
+}
+
+.sourceDirInputSpan {
+	display: block; 
+	overflow: hidden;
+}
+
+.sourceScan {
+	padding:0px;
+	margin-top: 1px;
+	margin-left: 5px;
+	height: 21px;	
+}
+
+.sourceDirInput {
+	width: 100%;
 }
 
 .right {
 	float: right;
+}
+
+.left {
+	float: left;
+}
+
+.hidden {
+	overflow: hidden;
+}
+
+.inputFiles {
+	overflow: hidden;
+}
+
+.fileText {
+	display: block;
+	overflow: hidden;
+}
+
+.fileLabel {
+	width: 100%;
 }
 
 .collapsible {
@@ -98,7 +135,7 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
     text-decoration:none;
     text-transform:uppercase;
     color: #000;
-    font-size:1em;
+    font-size:0.9em;
     
     white-space: nowrap;
     min-width: 200px;

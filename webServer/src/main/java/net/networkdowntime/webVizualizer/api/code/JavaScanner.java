@@ -14,7 +14,9 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -23,7 +25,6 @@ import net.networkdowntime.javaAnalyzer.javaModel.Project;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
-import org.apache.batik.dom.svg.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
@@ -31,10 +32,8 @@ import org.apache.batik.util.XMLResourceDescriptor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
-import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 
 @Component
 @Scope(value = WebApplicationContext.SCOPE_SESSION)
@@ -81,7 +80,7 @@ public class JavaScanner {
 			// Step -1: We read the input SVG document into Transcoder Input
 			// We use Java NIO for this purpose
 			TranscoderInput input_svg_image = new TranscoderInput(svgDocument);
-			Document doc = input_svg_image.getDocument();
+//			Document doc = input_svg_image.getDocument();
 
 			// Step-2: Define OutputStream to PNG Image and attach to TranscoderOutput
 			OutputStream png_ostream = response.getOutputStream();
@@ -104,7 +103,7 @@ public class JavaScanner {
 	@GET
 	@Path("/files")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> getFile() {
+	public List<String> getFiles() {
 		List<String> retval = new ArrayList<String>();
 		for (File file : project.getFiles()) {
 			retval.add(file.getPath());
@@ -125,7 +124,6 @@ public class JavaScanner {
 		boolean exists = file.exists();
 
 		if (exists) {
-			this.file = file;
 			project.addFile(file);
 		} else {
 			response.setStatus(Response.Status.NOT_FOUND.ordinal());
@@ -136,7 +134,7 @@ public class JavaScanner {
 	@Path("/file")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteFile(@FormParam("path") String path, @Context final HttpServletResponse response) {
+	public void deleteFile(@QueryParam("path") String path, @Context final HttpServletResponse response) {
 
 		System.out.println("path: " + path);
 		boolean deleted = false;

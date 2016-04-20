@@ -214,9 +214,8 @@ function javaAnalyzerInit(menuItem) {
 		xhr.send(params);
 	})
 
-	$("#sourceScan").click(function() {
+	$("#sourceAdd").click(function() {
 		sourceDir = $("#sourceDir").val();
-		console.log(sourceDir);
 		$.ajax({
 		    url:'/api/code/javaScanner' + fake + '/file',
 		    type:'POST',
@@ -225,6 +224,7 @@ function javaAnalyzerInit(menuItem) {
 		    contentType: "application/json",
 		    success:function(res){
 		    	$.cookie("sourceDir", sourceDir);
+		    	loadFiles();
 		    	loadPackages();
 		    	loadClasses();
 				drawGraph();
@@ -236,6 +236,50 @@ function javaAnalyzerInit(menuItem) {
 		});
 		
 	});
+	
+	function loadFiles() {
+		container = $("#sourceDiv").next();
+		filesDiv = $("#inputFiles");
+		$(filesDiv).empty();
+		$.get('/api/code/javaScanner' + fake + '/files', function(data) {
+    	    $(container).css('overflow-y', 'hidden');
+    		$(data).each(function() {
+	    		$("<div class='inputFile'><span class='sourceDel ui-icon ui-icon-minus left sourceScan'/><span class='fileText'><span class='fileLabel'>" + this + "</span></span><div>").hide().appendTo(filesDiv).slideDown(250);
+	    	});
+    	    $(container).css('overflow-y', '');
+    		fixSideBarMaxHeight(null, true);
+    		
+    		$(".sourceDel").click(function() {
+    			sourceDir = $(this).siblings(".fileText, fileLabel").text();
+    			console.log("del files:");
+    			console.log(sourceDir);
+    			$.ajax({
+    			    url:'/api/code/javaScanner' + fake + '/file' + '?' + $.param({'path': sourceDir}),
+    			    type:'DELETE',
+    			    success:function(res){
+    			    	loadFiles();
+    			    	loadPackages();
+    			    	loadClasses();
+    					drawGraph();
+    			    },
+    			    error:function(res){
+    			        alert("Bad things happend! " + res.statusText);
+    			        alert("Bad things happend! " + res);
+    			    }
+    			});
+    			
+    		});
+    		
+		});
+	}
+	
+//<div class="content inputFiles" id="inputFiles">
+//    <span class="ui-icon ui-icon-minus right"></span>
+//    <span class="fileText" style="display: block; overflow: hidden;">
+//      <span style="width: 100%;">...wiles/github/webVizualizer/javaAnalyzer/src/main/java<span>
+//    </span>
+//</div>
+
 	
 	function loadPackages() {
 		container = $("#packagesDiv").next();

@@ -83,8 +83,14 @@
  	 	<div id="javaAnalyzer" class="sidebar">
 			<div class="collapsible" id="sourceDiv">Source<span></span></div>
 			<div class="container" id="sourceContainer">
-				<div class="content">
-					<div><div class="sourceLabel">Source Dir:</div><input id="sourceDir" type="text" placeholder="Path to your code" value=''/><button id="sourceScan">Scan</button></div>
+				<div class="content hidden">
+					<span class="sourceLabel">Scan Dir:</span>  
+  					<button class="right sourceScan" id="sourceAdd">Add</button>
+  					<span class="sourceDirInputSpan">
+  						<input class="sourceDirInput" id="sourceDir" type="text" placeholder="Path to your code" value="">
+  					</span>
+				</div>
+				<div class="content inputFiles" id="inputFiles">
 				</div>
 			</div>
 
