@@ -98,15 +98,6 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 	width: 100%;
 }
 
-.btn-danger {
-	padding: 0px 3px 1px 0px;
-    background-color: #d9534f;
-    border-radius: 4px;
-    border-color: #d43f3a;
-    border: 0px;
-    margin: 2px;
-}
-
 .right {
 	float: right;
 }

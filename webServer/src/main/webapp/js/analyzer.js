@@ -245,7 +245,7 @@ function javaAnalyzerInit(menuItem) {
     	    $(container).css('overflow-y', 'hidden');
     		$(data).each(function() {
     			var html = "<div class='inputFile'>";
-    			html += "<button class='btn btn-danger left sourceDel'><span class='ui-icon ui-icon-minus sourceScan'/></button>";
+    			html += "<span class='ui-icon ui-icon-circle-minus left sourceDel'/>";
     			html += "<span class='fileText'><span class='fileLabel'>" + this + "</span></span>";
     			html += "<div>";
 	    		$(html).hide().appendTo(filesDiv).slideDown(250);
@@ -428,6 +428,10 @@ function javaAnalyzerInit(menuItem) {
 		});
 	
 	}
+
+	loadFiles();
+	loadPackages();
+	loadClasses();
 
 }
 
