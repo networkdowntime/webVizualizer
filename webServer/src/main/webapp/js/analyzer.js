@@ -244,20 +244,24 @@ function javaAnalyzerInit(menuItem) {
 		$.get('/api/code/javaScanner' + fake + '/files', function(data) {
     	    $(container).css('overflow-y', 'hidden');
     		$(data).each(function() {
-	    		$("<div class='inputFile'><span class='sourceDel ui-icon ui-icon-minus left sourceScan'/><span class='fileText'><span class='fileLabel'>" + this + "</span></span><div>").hide().appendTo(filesDiv).slideDown(250);
+    			var html = "<div class='inputFile'>";
+    			html += "<button class='btn btn-danger left sourceDel'><span class='ui-icon ui-icon-minus sourceScan'/></button>";
+    			html += "<span class='fileText'><span class='fileLabel'>" + this + "</span></span>";
+    			html += "<div>";
+	    		$(html).hide().appendTo(filesDiv).slideDown(250);
 	    	});
     	    $(container).css('overflow-y', '');
     		fixSideBarMaxHeight(null, true);
     		
     		$(".sourceDel").click(function() {
-    			sourceDir = $(this).siblings(".fileText, fileLabel").text();
-    			console.log("del files:");
-    			console.log(sourceDir);
+    			var sourceDir = $(this).siblings(".fileText, fileLabel").text();
+    			var parent = $(this).parent();
     			$.ajax({
     			    url:'/api/code/javaScanner' + fake + '/file' + '?' + $.param({'path': sourceDir}),
     			    type:'DELETE',
     			    success:function(res){
-    			    	loadFiles();
+    			    	console.log(parent);
+    			    	$(parent).remove().slideUp(250);
     			    	loadPackages();
     			    	loadClasses();
     					drawGraph();
@@ -273,14 +277,6 @@ function javaAnalyzerInit(menuItem) {
 		});
 	}
 	
-//<div class="content inputFiles" id="inputFiles">
-//    <span class="ui-icon ui-icon-minus right"></span>
-//    <span class="fileText" style="display: block; overflow: hidden;">
-//      <span style="width: 100%;">...wiles/github/webVizualizer/javaAnalyzer/src/main/java<span>
-//    </span>
-//</div>
-
-	
 	function loadPackages() {
 		container = $("#packagesDiv").next();
 		packagesDiv = $(container).children(".content");
@@ -291,7 +287,7 @@ function javaAnalyzerInit(menuItem) {
     		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' /><span class='right'><input id='packageSearch' type='text' placeholder='Package search' value=''/></span></div>").appendTo(packagesDiv).slideDown(250);
 
     		$('#packageCheckAll:button').click(function() {
-    			console.log(this);
+//    			console.log(this);
     			if ($(this).attr("value") === 'Uncheck All') {
         	        $('.packages:not(:hidden)').prop('checked', false);;
         	        $(this).val('Check All');            				
@@ -343,7 +339,7 @@ function javaAnalyzerInit(menuItem) {
 	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' /><span class='right'><input id='classSearch' type='text' placeholder='Class search' value=''/></span></div>").hide().appendTo(classesDiv).slideDown(250);
 
 	    		$('#classCheckAll:button').click(function() {
-	    			console.log(this);
+//	    			console.log(this);
 	    			if ($(this).attr("value") === 'Uncheck All') {
 	        	        $('.classes:not(:hidden)').prop('checked', false);;
 	        	        $(this).val('Check All');            				
@@ -458,16 +454,16 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 
 	// this assumes that all divs would be at least max height tall 
 	maxHeight1 = availableHeight / openContainers;
-	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight1:", maxHeight1);
+//	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight1:", maxHeight1);
 
 	$('.container').css('height', ''); // clear any set heights
 
 	$('.container').each(function() { // if any divs are less than the max height remove them from the calculations and subtract their height
 		sameDiv = divChanging != null && $(this).attr('id') == divChanging.attr('id');
 		if ((!sameDiv && $(this).css('display') != 'none') || (sameDiv && $(this).css('display') == 'none')) {
-			console.log("outerHeight:", $(this).outerHeight());
+//			console.log("outerHeight:", $(this).outerHeight());
 			if ($(this).outerHeight() < maxHeight1) {
-				console.log("inside2");
+//				console.log("inside2");
 				openContainers--;
 				availableHeight -= $(this).outerHeight();
 			} 
@@ -477,19 +473,19 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 	// asserting that maxHeight2 > maxHeight1
 	maxHeight2 = availableHeight / openContainers; // calculate the new max height
 
-	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight2:", maxHeight2);
-	console.log("window width:", $(window).width(), "window height:", $(window).height());
+//	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight2:", maxHeight2);
+//	console.log("window width:", $(window).width(), "window height:", $(window).height());
 
 	$('.container').each(function() { // if the container is open or opening and it's natural height exceeds the new max height set the height 
 		sameDiv = divChanging != null && $(this).attr('id') == divChanging.attr('id');
 		
-		console.log(sameDiv, ($(this).css('display') == 'none'), $(this), divChanging);
+//		console.log(sameDiv, ($(this).css('display') == 'none'), $(this), divChanging);
 		if (sameDiv && $(this).css('display') != 'none') {
 			$(this).css('height', oldHeights[$(this).attr('id')]);
 		}
 	
 		if ((!sameDiv && $(this).css('display') != 'none') || (sameDiv && $(this).css('display') == 'none')) {
-			console.log("outerHeight:", $(this).outerHeight());
+//			console.log("outerHeight:", $(this).outerHeight());
 			if ($(this).outerHeight() > maxHeight2) {
 				if (sameDiv) {
 					$(this).css('height', maxHeight2+'px');
@@ -554,19 +550,15 @@ function analyzer() {
             cookieName: 'connection',
             speed: 'slow',
             animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
-            	console.log("animateOpen");
                 elem.next().slideFadeToggle(opts.speed);
             },
             animateClose: function (elem, opts) { //replace the standard slideDown with custom function
-            	console.log("animateClose");
                 elem.next().slideFadeToggle(opts.speed);
             },
             loadOpen: function (elem) { //replace the standard open state with custom function
-            	console.log("loadOpen");
                 elem.next().show();
             },
             loadClose: function (elem, opts) { //replace the close state with custom function
-            	console.log("loadClose");
                 elem.next().hide();
             }
         });
