@@ -14,17 +14,16 @@ public class TextScrubber {
 	private static Set<String> stopWords = new HashSet<String>();
 	private static int minWordSize = 2;
 	private static boolean stemWords = false;
-	private static boolean includeCamelCase = false;
-	private static boolean preserveHyphenatedWords = false;
+	private static boolean includeCamelCase = true;
+	private static boolean includeHyphenatedWords = false;
 
 	static {
-		System.out.println("static initializer");
 		TextScrubber ts = new TextScrubber();
 		stopWords.addAll(ts.loadWords("stop_words.xml"));
 
 		addStopWords(ts.loadWords("java_keywords.xml"));
 		addStopWords(ts.loadWords("java_common_classes.xml"));
-		setPreserveHyphenatedWords(true);
+		setIncludeHyphenatedWords(true);
 	}
 
 	public static void addStopWords(Set<String> stopWords) {
@@ -43,8 +42,8 @@ public class TextScrubber {
 		TextScrubber.includeCamelCase = includeCamelCase;
 	}
 
-	public static void setPreserveHyphenatedWords(boolean preserveHyphenatedWords) {
-		TextScrubber.preserveHyphenatedWords = preserveHyphenatedWords;
+	public static void setIncludeHyphenatedWords(boolean preserveHyphenatedWords) {
+		TextScrubber.includeHyphenatedWords = preserveHyphenatedWords;
 	}
 
 	public static String scrubToString(String text) {
@@ -96,11 +95,7 @@ public class TextScrubber {
 		text = text.replaceAll("<[a-zA-Z_][a-zA-Z0-9-_\\.]+>", "");
 
 		// explode punctuation to a space
-		text = text.replaceAll("[\\{|\\}|\\(|\\)|=|+|*|<|\\[|\\]|\\>|\\^|\\$|\\&\\&|\\|\\||`|#|~|_]", " ").trim();
-
-		if (!preserveHyphenatedWords) {
-			text = text.replaceAll("\\-", " ").trim();
-		}
+		text = text.replaceAll("[\\{|\\}|\\(|\\)|=|+|*|<|\\[|\\]|\\>|\\^|\\$|\\&\\&|\\|\\||`|#|~|_|'|\"|\\.]", " ").trim();
 
 		text = text.replaceAll("\\\\t", " ").trim();
 		text = text.replaceAll("\\\\r", " ").trim();
@@ -116,6 +111,7 @@ public class TextScrubber {
 		// Split CamelCase
 		if (!text.isEmpty()) {
 			for (String word : text.split("\\s+")) {
+
 				if (word.length() >= minWordSize) {
 					if (!stopWords.contains(word.toLowerCase())) {
 
@@ -123,16 +119,16 @@ public class TextScrubber {
 
 						if (explodedWord.length > 1) {
 							if (includeCamelCase) {
-								output.add((stemWords) ? stemmer.stem(word) : word);
+								handleHyphens(output, stemmer, word);
 							}
 
 							for (String w : explodedWord) {
 								if (w.length() >= minWordSize && !stopWords.contains(w.toLowerCase())) {
-									output.add((stemWords) ? stemmer.stem(w) : w);
+									handleHyphens(output, stemmer, w);
 								}
 							}
 						} else {
-							output.add((stemWords) ? stemmer.stem(word) : word);
+							handleHyphens(output, stemmer, word);
 						}
 					}
 				}
@@ -140,6 +136,25 @@ public class TextScrubber {
 		}
 
 		return output;
+	}
+	
+	private static void handleHyphens(List<String> output, PorterStemmer stemmer, String word) {
+		if (includeHyphenatedWords) {
+			if (word.contains("-")) { // add the hyphenated word
+				output.add((stemWords) ? stemmer.stem(word.toLowerCase()) : word.toLowerCase());
+			}
+			for (String w : word.split("-")) { // split and add the component words
+				if (!stopWords.contains(word.toLowerCase())) {
+					output.add((stemWords) ? stemmer.stem(w.toLowerCase()) : w.toLowerCase());
+				}
+			}
+		} else { // don't include the hyphenated word
+			for (String w : word.split("-")) { // split and add the component words
+				if (!stopWords.contains(word.toLowerCase())) {
+					output.add((stemWords) ? stemmer.stem(w.toLowerCase()) : w.toLowerCase());
+				}
+			}
+		}		
 	}
 
 	private Set<String> loadWords(String resource) {

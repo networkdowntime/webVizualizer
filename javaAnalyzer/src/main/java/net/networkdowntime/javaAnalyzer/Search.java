@@ -79,7 +79,7 @@ public class Search {
 			Analyzer analyzer = new StandardAnalyzer();
 
 			QueryParser parser = new QueryParser("body", analyzer);
-			Query query = parser.parse(queryString);
+			Query query = parser.parse(TextScrubber.scrubToString(queryString));
 			TopDocs results = searcher.search(query, topNResults);
 			ScoreDoc[] hits = results.scoreDocs;
 
