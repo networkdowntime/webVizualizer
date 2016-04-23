@@ -247,6 +247,8 @@ function javaAnalyzerInit(menuItem) {
 		drawGraph();
 	});
 		
+	var graphVizFile = null;	
+		
 	function drawGraph() {
 		var uncheckedPackages = $.makeArray( $.map($(".packages"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
 		var uncheckedClasses = $.makeArray( $.map($(".classes"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
@@ -284,6 +286,15 @@ function javaAnalyzerInit(menuItem) {
 			     var engine = $("#javaLayout option:selected").val(); // dot, neato
 			     
 			     var result = Viz(dotFile, format, engine);
+			     
+			     //  Make file that can be downloaded later.
+			     var data = new Blob([dotFile], {type: 'text/plain'});
+	    		 if (graphVizFile !== null) {
+      				window.URL.revokeObjectURL(graphVizFile);
+    			 }
+    			 graphVizFile = window.URL.createObjectURL(data);
+			     var link = document.getElementById('saveToGv');
+			     link.href = graphVizFile;
 			     
 			     //console.log(result);
 			     $("#imgDiv").html(result);
