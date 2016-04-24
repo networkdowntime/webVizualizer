@@ -109,6 +109,10 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 	height: 21px;	
 }
 
+.add-remove-icon-align {
+	margin-top: 3px;
+}
+
 .sourceDirInput {
 	width: 100%;
 }

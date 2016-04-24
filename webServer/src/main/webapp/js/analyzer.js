@@ -41,7 +41,7 @@ function javaAnalyzerInit(menuItem) {
 			$("#referenceChainDetails").hide();
 			
 		}
-		
+    	fixSideBarMaxHeight(null, true);
 	});
 	
 	$.each(layouts, function(value, label) {
@@ -95,7 +95,7 @@ function javaAnalyzerInit(menuItem) {
 		    	loadFiles();
 		    	loadPackages();
 		    	loadClasses();
-				drawGraph();
+//				drawGraph();
 		    },
 		    error:function(res){
 		        alert("Bad things happend! " + res.statusText);
@@ -112,13 +112,16 @@ function javaAnalyzerInit(menuItem) {
 		$.get('/api/code/javaScanner' + fake + '/files', function(data) {
     	    $(container).css('overflow-y', 'hidden');
     		$(data).each(function() {
+        	    $(container).css('overflow-y', 'hidden');
     			var html = "<div class='inputFile'>";
-    			html += "<span class='ui-icon ui-icon-circle-minus left sourceDel'/>";
+    			html += "<span class='ui-icon ui-icon-circle-minus left add-remove-icon-align sourceDel'/>";
     			html += "<span class='fileText'><span class='fileLabel'>" + this + "</span></span>";
     			html += "<div>";
-	    		$(html).hide().appendTo(filesDiv).slideDown(250);
+	    		$(html).appendTo(filesDiv);
 	    	});
     	    $(container).css('overflow-y', '');
+    	    console.log();
+    	    console.log("Files fix side bar", $("#classesContainer").outerHeight());
     		fixSideBarMaxHeight(null, true);
     		
     		$(".sourceDel").click(function() {
@@ -128,11 +131,11 @@ function javaAnalyzerInit(menuItem) {
     			    url:'/api/code/javaScanner' + fake + '/file' + '?' + $.param({'path': sourceDir}),
     			    type:'DELETE',
     			    success:function(res){
-    			    	console.log(parent);
     			    	$(parent).remove().slideUp(250);
+    		    		fixSideBarMaxHeight(null, true);
     			    	loadPackages();
     			    	loadClasses();
-    					drawGraph();
+//    					drawGraph();
     			    },
     			    error:function(res){
     			        alert("Bad things happend! " + res.statusText);
@@ -152,7 +155,7 @@ function javaAnalyzerInit(menuItem) {
 		$.get('/api/code/javaScanner' + fake + '/packages', function(data) {
     	    $(container).css('overflow-y', 'hidden');
 
-    		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' /><span class='right'><input id='packageSearch' type='text' placeholder='Package search' value=''/></span></div>").appendTo(packagesDiv).slideDown(250);
+    		$("<div><input type='button' id='packageCheckAll' value='Uncheck All' /><span class='right'><input id='packageSearch' type='text' placeholder='Package search' value=''/></span></div>").appendTo(packagesDiv);
 
     		$('#packageCheckAll:button').click(function() {
 //    			console.log(this);
@@ -178,18 +181,21 @@ function javaAnalyzerInit(menuItem) {
     		});
     		
     		$(data).each(function() {
-	    		$("<div><input class='packages' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(packagesDiv).slideDown(250);
+	    		$("<div><input class='packages' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").appendTo(packagesDiv);
 	    	});
     	    $(container).css('overflow-y', '');
-    		fixSideBarMaxHeight(null, true)
+    	    
+    	    console.log();
+    	    console.log("Packages fix side bar", $("#packagesContainer").outerHeight());
+    		fixSideBarMaxHeight(null, true);
     	    $(".packages").change(function() {
     	    	loadClasses();
-    			drawGraph();
+//    			drawGraph();
     	    });
 	    });
 	}
 
-	function loadClasses() {
+	function loadClasses(animate) {
 		var uncheckedPackages = $.makeArray( $.map($(".packages"), function(i) { if (!$(i).prop('checked')) { return $(i).val(); } }) );
 
 		container = $("#classesDiv").next();
@@ -201,10 +207,10 @@ function javaAnalyzerInit(menuItem) {
 		    data: JSON.stringify(uncheckedPackages),
 		    dataType: 'json',
 		    contentType: "application/json",
-		    success:function(data){
-	    	    $(container).css('overflow-y', 'hidden');
+		    success:function(data) {
+//	    	    $(container).css('overflow-y', 'hidden');
 	    	    
-	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' /><span class='right'><input id='classSearch' type='text' placeholder='Class search' value=''/></span></div>").hide().appendTo(classesDiv).slideDown(250);
+	    		$("<div><input type='button' id='classCheckAll' value='Uncheck All' /><span class='right'><input id='classSearch' type='text' placeholder='Class search' value=''/></span></div>").appendTo(classesDiv);
 
 	    		$('#classCheckAll:button').click(function() {
 //	    			console.log(this);
@@ -228,13 +234,17 @@ function javaAnalyzerInit(menuItem) {
 	    		});
 	    		
 		    	$(data).each(function() {
-		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").hide().appendTo(classesDiv).slideDown(250);
+		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").appendTo(classesDiv);
 		    	});
-	    	    $(container).css('overflow-y', '');
-	    	    $(".classes").change(function() {
-	    			drawGraph();
-	    	    });
-	    		fixSideBarMaxHeight(null, true);
+
+	    	    console.log();
+	    	    console.log("Classes fix side bar", $("#classesContainer").outerHeight());
+	    		fixSideBarMaxHeight(null, animate);
+
+//	    		$(container).css('overflow-y', '');
+//	    	    $(".classes").change(function() {
+//	    			drawGraph();
+//	    	    });
 		    },
 		    error:function(res){
 		        alert("Bad thing happend! " + res.statusText);
@@ -310,80 +320,9 @@ function javaAnalyzerInit(menuItem) {
 
 	loadFiles();
 	loadPackages();
-	loadClasses();
+	loadClasses(false);
 
-}
-
-
-
-function fixSideBarMaxHeight(divChanging, animateChange) {
-	
-	totalLabelHeight = 0;
-	$('.collapsible').each(function() { totalLabelHeight += $(this).outerHeight(); });
-	
-	availableHeight = ($(window).height() - totalLabelHeight - $(".sidebar").offset().top);
-	
-	oldHeights = new Object();
-	
-	openContainers = 0;
-	$('.container').each(function() { // count all open or opening containers
-		oldHeights[$(this).attr('id')] = $(this).outerHeight();
-		sameDiv = divChanging != null && $(this).attr('id') == divChanging.attr('id');
-
-		if ((!sameDiv && $(this).css('display') != 'none') || (sameDiv && $(this).css('display') == 'none')) { 
-			openContainers++;
-		} 
-	});
-
-	// this assumes that all divs would be at least max height tall 
-	maxHeight1 = availableHeight / openContainers;
-//	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight1:", maxHeight1);
-
-	$('.container').css('height', ''); // clear any set heights
-
-	$('.container').each(function() { // if any divs are less than the max height remove them from the calculations and subtract their height
-		sameDiv = divChanging != null && $(this).attr('id') == divChanging.attr('id');
-		if ((!sameDiv && $(this).css('display') != 'none') || (sameDiv && $(this).css('display') == 'none')) {
-//			console.log("outerHeight:", $(this).outerHeight());
-			if ($(this).outerHeight() < maxHeight1) {
-//				console.log("inside2");
-				openContainers--;
-				availableHeight -= $(this).outerHeight();
-			} 
-		}
-	});
-	
-	// asserting that maxHeight2 > maxHeight1
-	maxHeight2 = availableHeight / openContainers; // calculate the new max height
-
-//	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "maxHeight2:", maxHeight2);
-//	console.log("window width:", $(window).width(), "window height:", $(window).height());
-
-	$('.container').each(function() { // if the container is open or opening and it's natural height exceeds the new max height set the height 
-		sameDiv = divChanging != null && $(this).attr('id') == divChanging.attr('id');
-		
-//		console.log(sameDiv, ($(this).css('display') == 'none'), $(this), divChanging);
-		if (sameDiv && $(this).css('display') != 'none') {
-			$(this).css('height', oldHeights[$(this).attr('id')]);
-		}
-	
-		if ((!sameDiv && $(this).css('display') != 'none') || (sameDiv && $(this).css('display') == 'none')) {
-//			console.log("outerHeight:", $(this).outerHeight());
-			if ($(this).outerHeight() > maxHeight2) {
-				if (sameDiv) {
-					$(this).css('height', maxHeight2+'px');
-				} else {
-					if (animateChange) {
-						$(this).css('height', oldHeights[$(this).attr('id')]).animate({ height: maxHeight2 }, 'slow');
-					} else {
-						$(this).css('height', maxHeight2);
-					}
-				}
-			} 
-		}
-	});
-
-}
+};
 
 function analyzer() {
 	
@@ -417,7 +356,7 @@ function analyzer() {
 //			$("#"+this.id).css({ position: "absolute" });
 			
 			window[this.initializer](this); // calls the initializer function specified in the mainMenu data structure
-			fixSideBarMaxHeight(null, true);
+//			fixSideBarMaxHeight(null, true);
 		});
 		
 		
@@ -444,7 +383,7 @@ function analyzer() {
                 elem.next().hide();
             }
         });
-		
+
 	}
 	
 	function initializeMainMenu() {
