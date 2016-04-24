@@ -25,8 +25,6 @@ function initializeDragScrollZoom() {
 
 	divToMove.css("top", tp+"px");
 	divToMove.css("left", left+"px");
-
-	console.log("naturalWidth: ", naturalWidth, "naturalHeight:", naturalHeight, "left:", left, "top:", tp);
 }
 
 ;(function($){ // secure $ jQuery alias
@@ -99,8 +97,6 @@ $.fn.dragscrollzoom = function( options ){
 			var left = divToMove.css('left').substring(0, divToMove.css('left').length - 2);
 			var top = divToMove.css('top').substring(0, divToMove.css('top').length - 2);
 			
-			// console.log(left, delta.left, divToMove.css('left'), (left - delta.left));
-
 			var newLeft = parseInt(left) + delta.left;
 			var newTop = parseInt(top) + delta.top;
 			
@@ -174,7 +170,6 @@ $.fn.dragscrollzoom = function( options ){
 			var newX = natX * scale;
 			var deltaX = x - newX;
 			var newLeft = (left + deltaX );
-			console.log(x, newX, deltaX, left, newLeft);
 			$("#imgDiv").css('left', newLeft + "px");
 		});
 	});

@@ -324,6 +324,135 @@ function javaAnalyzerInit(menuItem) {
 
 };
 
+;(function($){ // secure $ jQuery alias
+
+	var div = $(this);
+	
+	function setScale() {
+		scale = scale + (direction * halfStep);
+		
+		if (scale < 0.1 ) scale = 0.1;
+		if (scale > 2) scale = 2;
+
+		var newWidth = naturalWidth * scale;
+		var newHeight = naturalHeight * scale;
+		
+		image.width(newWidth);
+		image.height(newHeight);		
+	}
+		
+	$.fn.clickthroughhandler = function( options ){
+
+		$(this).bind("mousewheel", function() {
+	        return false;
+	    });
+
+		var hasMoved = false;
+		var x = 0;
+		var y = 0;
+		
+		var settings = $.extend(
+			{   
+				dragSelector:'>:first',
+				acceptPropagatedEvent: true,
+	            preventDefault: true
+			},options || {});
+		 
+		
+		var clickthrough = {
+			mouseDownHandler : function(event) {
+				// mousedown, left click, check propagation
+
+				if (event.which!=1 ||
+					(!event.data.acceptPropagatedEvent && event.target != this)){ 
+					return false; 
+				}
+				
+				// Initial coordinates will be the last when dragging
+				event.data.lastCoord = {left: event.clientX, top: event.clientY}; 
+				hasMoved = false;
+				
+				$.event.add( document, "mouseup", 
+							 clickthrough.mouseUpHandler, event.data );
+				$.event.add( document, "mousemove", 
+							 clickthrough.mouseMoveHandler, event.data );
+				if (event.data.preventDefault) {
+	                event.preventDefault();
+	                return false;
+	            }
+			},
+			mouseMoveHandler : function(event) { // User is dragging
+				// How much did the mouse move?
+				var delta = {left: (event.clientX - event.data.lastCoord.left),
+							 top: (event.clientY - event.data.lastCoord.top)};
+				
+				if (event.clientX - event.data.lastCoord.left != 0 || event.clientY - event.data.lastCoord.top != 0) {
+					hasMoved = true;
+				}
+				
+				// Save where the cursor is
+				event.data.lastCoord={left: event.clientX, top: event.clientY};
+				if (event.data.preventDefault) {
+	                event.preventDefault();
+	                return false;
+	            };
+
+			},
+			mouseUpHandler : function(event) { // Stop scrolling
+				$.event.remove( document, "mousemove", clickthrough.mouseMoveHandler);
+				$.event.remove( document, "mouseup", clickthrough.mouseUpHandler);
+				
+				if (!hasMoved) {
+					x = event.clientX;
+					y = event.clientY;
+
+					event.stopPropagation();
+					$(div).hide();
+					
+					console.log('handle click through', x, y);
+					
+					var element = document.elementFromPoint(event.clientX, event.clientY);
+					console.log('event', event);
+					console.log('element', element);
+				
+//					var evt = document.createEvent("MouseEvents");
+//	                evt.initMouseEvent('dblclick', true, true, window, (e=='dblclick')?2:1, x, y, x, y, false, false, false, false, 0, null);
+	            }
+				
+				if (event.data.preventDefault) {
+	                event.preventDefault();
+	                return false;
+	            }
+			}
+		};
+		
+		// set up the initial events
+		this.each(function() {
+			// closure object data for each scrollable element
+			var data = {scrollable : $(this),
+						acceptPropagatedEvent : settings.acceptPropagatedEvent,
+	                    preventDefault : settings.preventDefault };
+			// Set mouse initiating event on the desired descendant
+			$(this).bind('mousedown', data, clickthrough.mouseDownHandler);
+
+			$(this).on('mousewheel', function(event) {
+				console.log('mousewheel');
+			});
+
+			$(this).on('clickthrough', function(event) {
+				console.log('clickthrough');
+				if (!hasMoved) {
+					var element = document.elementFromPoint(event.clientX, event.clientY);
+					console.log('element', element);
+				}
+				$(this).show();
+			});
+			
+		});
+	}; //end plugin clickthroughhandler
+
+	})( jQuery ); // confine scope
+
 function analyzer() {
 	
 	// Public Variables
