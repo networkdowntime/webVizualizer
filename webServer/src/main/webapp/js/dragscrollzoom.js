@@ -18,7 +18,7 @@ function initializeDragScrollZoom() {
 	var viewWidth = $("#scrollDiv").width();
 	var viewHeight = $("#scrollDiv").height();
 	
-	var divToMove = $("#scrollDiv").children("div:first");
+	var divToMove = $("#imgDiv");
 	
 	left = -1 * (naturalWidth - viewWidth) / 2;
 	tp = -1 * (naturalHeight - viewHeight) / 2;
@@ -53,10 +53,10 @@ $.fn.dragscrollzoom = function( options ){
         return false;
     });
 	
-	var divToMove = $(this).children("div:first");
+	var divToMove = $("#imgDiv");
 
 	divToMove.css("z-index", "-1");
-	divToMove.css("position", "relative");
+	divToMove.css("position", "absolute");
 	divToMove.css("top", "0px");
 	divToMove.css("left", "0px");
 	

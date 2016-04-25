@@ -307,7 +307,10 @@ function javaAnalyzerInit(menuItem) {
 			     link.href = graphVizFile;
 			     
 			     //console.log(result);
-			     $("#imgDiv").html(result);
+			     $("#scrollDiv").after(result);
+			     $('svg').attr('display', 'block');
+			     $('svg').attr('position', 'absolute');
+			     $('svg').attr('z-index', '-1');
 			     initializeDragScrollZoom();
 		    },
 		    error:function(res){
