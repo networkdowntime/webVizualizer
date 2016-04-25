@@ -6,7 +6,25 @@ var scale = 1;
 var image;
 
 function initializeDragScrollZoom() {
-	image = $($("#imgDiv").children("svg:first")[0]);
+	var overlay = $('#scrollDiv');
+	var totalHeight = $(window).height();
+	var totalWidth = $(window).width();
+	var top = $('.header').outerHeight();
+	var left = $('.sidebar').outerWidth();
+	
+	overlay.css('position', 'absolute');
+	overlay.css('opacity', '0');
+	overlay.css('filter', 'alpha(opacity = 0)');
+	overlay.css('background', 'transparent');
+	
+	overlay.css('top', top);
+	overlay.css('left', left);
+	overlay.css('width', totalWidth - left);
+	overlay.css('height', totalHeight - top);
+	overlay.show();
+	overlay.css('z-index', '1');
+		
+	var image = $($("#imgDiv").children("svg:first")[0]);
 
 	naturalWidth = image.width();
 	naturalHeight = image.height();
