@@ -79,6 +79,7 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 	height: 100%;
 	overflow: hidden;
 	float: left;
+	background: white;
 }
 
 .filterLabel {
@@ -127,6 +128,33 @@ html, body { height: 100%; width: 100%; margin: 0; overflow: hidden;}
 
 .hidden {
 	overflow: hidden;
+}
+
+.context-menu {
+}
+
+.custom-menu {
+	list-style-type: none;
+	padding-left:0;
+	display: none;
+    position: absolute;
+	z-index: 1000;
+    overflow: hidden;
+    border: 1px solid #CCC;
+    white-space: nowrap;
+    font-family: sans-serif;
+    background: #FFF;
+    color: #333;
+    border-radius: 5px;
+}
+
+.custom-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.custom-menu li:hover {
+    background-color: #DEF;
 }
 
 .inputFiles {

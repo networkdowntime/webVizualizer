@@ -1,7 +1,9 @@
 package net.networkdowntime.webVizualizer.api.code;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -109,6 +111,58 @@ public class JavaScanner {
 			retval.add(file.getPath());
 		}
 		return retval;
+	}
+
+	@GET
+	@Path("/file")
+	@Produces(MediaType.TEXT_HTML)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String getFile(@QueryParam("class") String className, @Context final HttpServletResponse response) {
+
+		System.out.println("class: " + className);
+
+		String fileName = project.searchForFileOfClass(className);
+		File f = new File(fileName);
+		if (fileName != null && f.exists() && f.isFile()) {
+			
+			String header = readResourceFile("javaCodeHtmlHeader.txt");
+			header = header.replaceAll("#TITLE_GOES_HERE", className);
+			
+			StringBuilder builder = new StringBuilder();
+			builder.append(header);
+
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(f));
+				while (reader.ready()) {
+					builder.append(reader.readLine() + "<br>");
+				}
+				reader.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			builder.append(readResourceFile("javaCodeHtmlFooter.txt"));
+			return builder.toString();
+		} else {
+			response.setStatus(Response.Status.NO_CONTENT.ordinal());
+		}
+		return "";
+	}
+
+	private String readResourceFile(String resourceName) {
+		ClassLoader classLoader = this.getClass().getClassLoader();
+		File file = new File(classLoader.getResource(resourceName).getFile());
+		StringBuilder builder = new StringBuilder();
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			while (reader.ready()) {
+				builder.append(reader.readLine());
+			}
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
 	}
 
 	@POST

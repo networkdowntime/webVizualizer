@@ -103,7 +103,7 @@ public class Project {
 						Logger.log(1, f.getAbsolutePath() + " has no classes");
 					} else {
 						scannedFiles.add(f.getAbsolutePath());
-						AstVisitor.processTypeDeclarations(0, f.getName(), this, cu);
+						AstVisitor.processTypeDeclarations(0, f.getAbsolutePath(), this, cu);
 					}
 				}
 			} catch (ParseException e) {
@@ -258,6 +258,20 @@ public class Project {
 			clazz = pkg.getOrCreateAndGetClass(depth, name);
 		}
 		return clazz;
+	}
+
+	public String searchForFileOfClass(String className) {
+		Logger.log(0, "Project: Searching for file for class: " + className);
+		String fileName = null;
+
+		for (Package p : packages.values()) {
+			for (Class c : p.getClasses().values()) {
+				if (c.fromFile && c.getCanonicalName().equals(className)) {
+					fileName = c.fileName;
+				}
+			}
+		}
+		return fileName;
 	}
 
 	// public static final String[] excludePkgs = { "java.", "javax." };

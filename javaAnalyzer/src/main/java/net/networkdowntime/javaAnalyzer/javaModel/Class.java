@@ -29,6 +29,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 	List<Class> impls = new ArrayList<Class>();
 	List<String> implsStrings = new ArrayList<String>();
 	boolean fromFile = false;
+	String fileName = null;
 	DependentBase anonymousClassDefinedIn = null;
 
 	HashSet<Class> referencedByClass = new HashSet<Class>();

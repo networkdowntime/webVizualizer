@@ -120,8 +120,6 @@ function javaAnalyzerInit(menuItem) {
 	    		$(html).appendTo(filesDiv);
 	    	});
     	    $(container).css('overflow-y', '');
-    	    console.log();
-    	    console.log("Files fix side bar", $("#classesContainer").outerHeight());
     		fixSideBarMaxHeight(null, true);
     		
     		$(".sourceDel").click(function() {
@@ -185,8 +183,6 @@ function javaAnalyzerInit(menuItem) {
 	    	});
     	    $(container).css('overflow-y', '');
     	    
-    	    console.log();
-    	    console.log("Packages fix side bar", $("#packagesContainer").outerHeight());
     		fixSideBarMaxHeight(null, true);
     	    $(".packages").change(function() {
     	    	loadClasses();
@@ -226,19 +222,17 @@ function javaAnalyzerInit(menuItem) {
 	    	    });
 	    	    
 	    		$('#classSearch').on('change keyup paste', function() {
-	    			packageToSearchFor = $("#classSearch").val();
+	    			classToSearchFor = $("#classSearch").val();
 	    			$('.classes').parent().hide();
 	    			$('.classes').filter(function() {
-	    				return $(this).attr('name').toLowerCase().indexOf(packageToSearchFor.toLowerCase()) > -1;
-	    			}).parent().show();;
+	    				return $(this).attr('name').toLowerCase().indexOf(classToSearchFor.toLowerCase()) > -1;
+	    			}).parent().show();
 	    		});
 	    		
 		    	$(data).each(function() {
 		    		$("<div><input class='classes' type='checkbox' name="+this+" value="+this+" checked>" + this + "</div>").appendTo(classesDiv);
 		    	});
 
-	    	    console.log();
-	    	    console.log("Classes fix side bar", $("#classesContainer").outerHeight());
 	    		fixSideBarMaxHeight(null, animate);
 
 //	    		$(container).css('overflow-y', '');
@@ -365,6 +359,8 @@ function javaAnalyzerInit(menuItem) {
 					return false; 
 				}
 				
+				$(".custom-menu").hide(100);
+				
 				// Initial coordinates will be the last when dragging
 				event.data.lastCoord = {left: event.clientX, top: event.clientY}; 
 				$('#scrollDiv').data('clickthrough:hasMoved', false);
@@ -400,11 +396,68 @@ function javaAnalyzerInit(menuItem) {
 			    	$('#scrollDiv').hide();
 
 					$('svg').css('z-index', '100');
-					console.log('handle click through', x, y);
 					
 					var element = document.elementFromPoint(event.clientX, event.clientY);
 					console.log('element', element);
-
+					if ($(element).is('polygon') || $(element).is('text')) {
+						var name = $(element).siblings('text').context.textContent;
+						var title = $(element).siblings('title')[0].textContent.replace(/_/g, '.');
+						
+						var isPackage = false;
+						var isClass = false;
+		    			$('.packages').each(function(index) {
+		    				isPackage = isPackage || $(this).attr('name') === name;
+		    			});
+						
+		    			$('.classes').each(function() {
+		    				isClass = isClass || $(this).attr('name').replace(/_/g, '.') === title;
+		    				if ($(this).attr('name').replace(/_/g, '.') === title) {
+		    					title = $(this).attr('name');
+		    				}
+		    			});
+						
+						console.log('isPackage', isPackage);
+						console.log('isClass', isClass);
+	
+						if (isPackage) { // not adding a context to a package right now
+//						    $(".custom-menu").finish().toggle(100).
+//						    
+//						    // In the right position (the mouse)
+//						    css({
+//						        top: event.pageY + "px",
+//						        left: event.pageX + "px"
+//						    });
+						}
+						
+						if (isClass) {
+							var menu = $(".custom-menu"); 
+						    $(menu).finish().toggle(100).
+							    css({
+							        top: event.pageY + "px",
+							        left: event.pageX + "px"
+							    });
+						    
+						    $(".custom-menu li").click(function(){
+								// This is the triggered action name
+								switch($(this).attr("data-action")) {
+									// A case for each action. Your actions here
+									case "source": 
+										var win = window.open('/api/code/javaScanner' + fake + '/file?class=' + encodeURIComponent(title), '_blank');
+										if(win){
+										    //Browser has allowed it to be opened
+										    win.focus();
+										}else{
+										    //Broswer has blocked it
+										    alert('Please allow popups for this site');
+										}
+										break;
+							    }
+							    // Hide it AFTER the action was triggered
+								$(".custom-menu").hide(100);
+								$(".custom-menu li").off('click');
+							});
+						}
+					}
 					$('svg').css('z-index', '-1');
 			    	$('#scrollDiv').show();
 	            }
@@ -426,7 +479,6 @@ function javaAnalyzerInit(menuItem) {
 			$(this).bind('mousedown', data, clickthrough.mouseDownHandler);
 
 			$(this).on('mousewheel', function(event) {
-				console.log('mousewheel');
 			});
 
 		});

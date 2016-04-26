@@ -45,9 +45,10 @@ public class Package {
 		return clazz;
 	}
 
-	public Class getOrCreateAndGetClass(int depth, String name, boolean fileScanned) {
+	public Class getOrCreateAndGetClass(int depth, String name, boolean fileScanned, String fileName) {
 		Class clazz = getOrCreateAndGetClass(depth, name);
 		clazz.fromFile = fileScanned;
+		clazz.fileName = fileName;
 		return clazz;
 	}
 

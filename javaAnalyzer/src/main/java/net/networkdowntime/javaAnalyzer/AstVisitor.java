@@ -122,7 +122,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 	private Project project = null;
 	private Package currentPackage = null;
 	private DependentBase current = null;
-
+	private String fileName = null;
+	
 	private Set<String> imports = new LinkedHashSet<String>();
 
 	public static void main(String[] args) {
@@ -141,11 +142,13 @@ public class AstVisitor extends VoidVisitorAdapter {
 	}
 
 	public AstVisitor(int depth, String fileName, Project prj, CompilationUnit cu) {
+		this.fileName = fileName;
 		try {
+			File f = new File(fileName);
 			File dir = new File("astDumps");
 			if (!dir.exists())
 				dir.mkdir();
-			fileName = "astDumps/" + fileName.replace(".java", ".txt");
+			fileName = "astDumps/" + f.getName().replace(".java", ".txt");
 			File astDump = new File(fileName);
 			astDumpWriter = new BufferedWriter(new FileWriter(astDump));
 		} catch (IOException e) {
@@ -233,7 +236,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 				this.currentPackage = project.getOrCreateAndGetPackage(1, "default", true, true);
 			}
 
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true, this.fileName);
 		} else {
 			String parentNodeName = null;
 			if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
@@ -242,7 +245,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 				parentNodeName = ((AnnotationDeclaration) n.getParentNode()).getName();
 			}
 
-			newClass = currentPackage.getOrCreateAndGetClass(1, parentNodeName + "." + n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(1, parentNodeName + "." + n.getName(), true, this.fileName);
 		}
 
 		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());
@@ -440,16 +443,16 @@ public class AstVisitor extends VoidVisitorAdapter {
 			if (currentPackage == null) {
 				this.currentPackage = project.getOrCreateAndGetPackage(1, "default", true, true);
 			}
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true, this.fileName);
 		} else if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
 			ClassOrInterfaceDeclaration parent = (ClassOrInterfaceDeclaration) n.getParentNode();
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true, this.fileName);
 		} else if (n.getParentNode() instanceof TypeDeclarationStmt) {
 			logAST(0, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
 			Logger.log(0, "Creating class: " + n.getName());
 
 			//			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true, this.fileName);
 			newClass.setIsAnonymous(true, current);
 
 		} else {
@@ -661,7 +664,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true, this.fileName);
 		} else {
 			String parentNodeName = null;
 			if (n.getParentNode() instanceof ClassOrInterfaceDeclaration) {
@@ -669,7 +672,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 			} else if (n.getParentNode() instanceof AnnotationDeclaration) {
 				parentNodeName = ((AnnotationDeclaration) n.getParentNode()).getName();
 			}
-			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parentNodeName + "." + n.getName(), true);
+			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parentNodeName + "." + n.getName(), true, this.fileName);
 		}
 
 		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());

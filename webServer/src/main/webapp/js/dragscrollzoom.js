@@ -40,8 +40,6 @@ function initializeDragScrollZoom() {
 	left = (-1 * (naturalWidth - viewWidth) / 2) + left;
 	tp = (-1 * (naturalHeight - viewHeight) / 2) + top;
 
-	console.log('tp', tp, 'left', left);
-	
 	// for some reason using jQuery to position the SVG doesn't work 
 	document.getElementById("svgId").style.cssText = "top:"+tp+"px; left:"+left+"px; position: absolute; z-index: -1;";
 }
