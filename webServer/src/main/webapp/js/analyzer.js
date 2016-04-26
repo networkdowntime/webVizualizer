@@ -56,7 +56,7 @@ function javaAnalyzerInit(menuItem) {
 	if (sourceDir != null) $("#sourceDir").val(sourceDir);
 	
 	$("#saveToPng").click(function() {
-		var svg = $("#imgDiv").html();
+		var svg = $("svg")[0].outerHTML;
 		
 		var xhr = new XMLHttpRequest();
 		var url = "/api/code/javaScanner/toPng";
