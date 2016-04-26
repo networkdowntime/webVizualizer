@@ -42,9 +42,9 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 
 	var evenHeight = availableHeight / openContainers; // if an even height split
 	
-	console.log("totalWindowHeight:", totalWindowHeight, "total window height:", $(window).height() , "totalLabelBarHeight:", totalLabelBarHeight);
-	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "evenHeight:", evenHeight);
-	console.log(oldNaturalHeights);
+//	console.log("totalWindowHeight:", totalWindowHeight, "total window height:", $(window).height() , "totalLabelBarHeight:", totalLabelBarHeight);
+//	console.log("availableHeight:", availableHeight, "openContainers:", openContainers, "evenHeight:", evenHeight);
+//	console.log(oldNaturalHeights);
 	
 	$('.container').css('height', ''); // clear any set heights
 
@@ -61,15 +61,15 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 					changing = true;
 				} 
 			}
-			console.log($(this).attr('id'), $(this).outerHeight());
+//			console.log($(this).attr('id'), $(this).outerHeight());
 		});
 		prevEvenHeight = evenHeight;
 		evenHeight = availableHeight / openContainers; // calculate the new max height
-		console.log("adjusted availableHeight:", availableHeight, "adjusted openContainers:", openContainers, "evenHeight: ", evenHeight);
+//		console.log("adjusted availableHeight:", availableHeight, "adjusted openContainers:", openContainers, "evenHeight: ", evenHeight);
 	} while (changing && openContainers > 0);
 	
 	var maxHeight2 = availableHeight / openContainers; // calculate the new max height
-	console.log("adjusted availableHeight:", availableHeight, "adjusted openContainers:", openContainers, "maxHeight2: ", maxHeight2);
+//	console.log("adjusted availableHeight:", availableHeight, "adjusted openContainers:", openContainers, "maxHeight2: ", maxHeight2);
 
 
 	$('.container').each(function() { // if the container is open or opening and it's natural height exceeds the new max height set the height 
@@ -88,20 +88,20 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 					$(this).css('height', maxHeight2+'px');
 				} else {
 					if (animateChange) {
-						console.log('animate change1', $(this).attr('id'), oldNaturalHeights[$(this).attr('id')]);
+//						console.log('animate change1', $(this).attr('id'), oldNaturalHeights[$(this).attr('id')]);
 						$(this).css('height', oldNaturalHeights[$(this).attr('id')]+'px').animate({ height: maxHeight2 }, 'fast');
 					} else {
-						console.log('change1', $(this).attr('id'), maxHeight2);
+//						console.log('change1', $(this).attr('id'), maxHeight2);
 						$(this).height(maxHeight2).animate({ height: maxHeight2 }, 'fast');;
 					}
 				}
 			} else {
 				if (!sameDiv) {
 					if (animateChange) {
-						console.log('animate change2', $(this).attr('id'), oldNaturalHeights[$(this).attr('id')]);
+//						console.log('animate change2', $(this).attr('id'), oldNaturalHeights[$(this).attr('id')]);
 						$(this).height(outerHeight).animate({ height: outerHeight }, 'fast');
 					} else {				
-						console.log('change2', $(this).attr('id'), outerHeight);
+//						console.log('change2', $(this).attr('id'), outerHeight);
 						$(this).height(outerHeight).animate({ height: outerHeight }, 'fast');
 					}
 				}
@@ -109,5 +109,5 @@ function fixSideBarMaxHeight(divChanging, animateChange) {
 		}
 	});
 	
-	console.log('final heights', getCurrentHeights());
+//	console.log('final heights', getCurrentHeights());
 }

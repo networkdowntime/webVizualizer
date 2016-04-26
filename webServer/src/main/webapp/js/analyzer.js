@@ -306,11 +306,8 @@ function javaAnalyzerInit(menuItem) {
 			     var link = document.getElementById('saveToGv');
 			     link.href = graphVizFile;
 			     
-			     //console.log(result);
+			     $('svg').remove();
 			     $("#scrollDiv").after(result);
-			     $('svg').attr('display', 'block');
-			     $('svg').attr('position', 'absolute');
-			     $('svg').attr('z-index', '-1');
 			     initializeDragScrollZoom();
 		    },
 		    error:function(res){
@@ -327,10 +324,8 @@ function javaAnalyzerInit(menuItem) {
 
 };
 
-;(function($){ // secure $ jQuery alias
-
-	var div = $(this);
-	
+(function($){ // secure $ jQuery alias
+	  
 	function setScale() {
 		scale = scale + (direction * halfStep);
 		
@@ -350,7 +345,6 @@ function javaAnalyzerInit(menuItem) {
 	        return false;
 	    });
 
-		var hasMoved = false;
 		var x = 0;
 		var y = 0;
 		
@@ -373,8 +367,9 @@ function javaAnalyzerInit(menuItem) {
 				
 				// Initial coordinates will be the last when dragging
 				event.data.lastCoord = {left: event.clientX, top: event.clientY}; 
-				hasMoved = false;
-				
+				$('#scrollDiv').data('clickthrough:hasMoved', false);
+				$('#scrollDiv').data('clickthrough:lastCoord', {left: event.clientX, top: event.clientY});
+
 				$.event.add( document, "mouseup", 
 							 clickthrough.mouseUpHandler, event.data );
 				$.event.add( document, "mousemove", 
@@ -386,40 +381,32 @@ function javaAnalyzerInit(menuItem) {
 			},
 			mouseMoveHandler : function(event) { // User is dragging
 				// How much did the mouse move?
-				var delta = {left: (event.clientX - event.data.lastCoord.left),
-							 top: (event.clientY - event.data.lastCoord.top)};
+				var delta = {left: (event.clientX - $('#scrollDiv').data('clickthrough:lastCoord').left),
+							 top: (event.clientY - $('#scrollDiv').data('clickthrough:lastCoord').top)};
 				
-				if (event.clientX - event.data.lastCoord.left != 0 || event.clientY - event.data.lastCoord.top != 0) {
-					hasMoved = true;
+				if (delta.left != 0 || event.clientY - delta.top != 0) {
+					$('#scrollDiv').data('clickthrough:hasMoved', true);
 				}
-				
-				// Save where the cursor is
-				event.data.lastCoord={left: event.clientX, top: event.clientY};
-				if (event.data.preventDefault) {
-	                event.preventDefault();
-	                return false;
-	            };
-
 			},
 			mouseUpHandler : function(event) { // Stop scrolling
 				$.event.remove( document, "mousemove", clickthrough.mouseMoveHandler);
 				$.event.remove( document, "mouseup", clickthrough.mouseUpHandler);
 				
-				if (!hasMoved) {
+				if (!$('#scrollDiv').data('clickthrough:hasMoved')) {
 					x = event.clientX;
 					y = event.clientY;
 
 					event.stopPropagation();
-					$(div).hide();
-					
+			    	$('#scrollDiv').hide();
+
+					$('svg').css('z-index', '100');
 					console.log('handle click through', x, y);
 					
 					var element = document.elementFromPoint(event.clientX, event.clientY);
-					console.log('event', event);
 					console.log('element', element);
-				
-//					var evt = document.createEvent("MouseEvents");
-//	                evt.initMouseEvent('dblclick', true, true, window, (e=='dblclick')?2:1, x, y, x, y, false, false, false, false, 0, null);
+
+					$('svg').css('z-index', '-1');
+			    	$('#scrollDiv').show();
 	            }
 				
 				if (event.data.preventDefault) {
@@ -442,15 +429,6 @@ function javaAnalyzerInit(menuItem) {
 				console.log('mousewheel');
 			});
 
-			$(this).on('clickthrough', function(event) {
-				console.log('clickthrough');
-				if (!hasMoved) {
-					var element = document.elementFromPoint(event.clientX, event.clientY);
-					console.log('element', element);
-				}
-				$(this).show();
-			});
-			
 		});
 	}; //end plugin clickthroughhandler
 
@@ -475,6 +453,16 @@ function analyzer() {
 	// Private Functions
 	function initializeSideBars() {
 		$(window).resize(function() {
+	    	var overlay = $('#scrollDiv');
+	    	var totalHeight = $(window).height();
+	    	var totalWidth = $(window).width();
+	    	var top = $('.header').outerHeight();
+	    	var left = $('.sidebar').outerWidth();
+	    	overlay.css('top', top);
+	    	overlay.css('left', left);
+	    	overlay.css('width', totalWidth - left);
+	    	overlay.css('height', totalHeight - top);
+
 			fixSideBarMaxHeight(null, false);
 		});
 		
@@ -483,7 +471,29 @@ function analyzer() {
 //			$("#"+this.id).hide();
 //			$("#"+this.id).zIndex(-1);
 			$("#"+this.id).resizable({
-			    handles: 'e', minWidth: 5
+			    handles: 'e', minWidth: 5,
+			    resize: function( event, ui ) {
+			    	var overlay = $('#scrollDiv');
+			    	var totalHeight = $(window).height();
+			    	var totalWidth = $(window).width();
+			    	var top = $('.header').outerHeight();
+			    	var left = $('.sidebar').outerWidth();
+			    	overlay.css('top', top);
+			    	overlay.css('left', left);
+			    	overlay.css('width', totalWidth - left);
+			    	overlay.css('height', totalHeight - top);
+			    },
+			    stop: function( event, ui ) {
+			    	var overlay = $('#scrollDiv');
+			    	var totalHeight = $(window).height();
+			    	var totalWidth = $(window).width();
+			    	var top = $('.header').outerHeight();
+			    	var left = $('.sidebar').outerWidth();
+			    	overlay.css('top', top);
+			    	overlay.css('left', left);
+			    	overlay.css('width', totalWidth - left);
+			    	overlay.css('height', totalHeight - top);
+			    }
 			});
 //			$("#"+this.id).css({ position: "absolute" });
 			

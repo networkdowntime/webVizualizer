@@ -6,6 +6,9 @@ var scale = 1;
 var image;
 
 function initializeDragScrollZoom() {
+	image = $('svg');
+	
+	// begin, fix the size/placement of the scrollDiv overlay
 	var overlay = $('#scrollDiv');
 	var totalHeight = $(window).height();
 	var totalWidth = $(window).width();
@@ -23,26 +26,24 @@ function initializeDragScrollZoom() {
 	overlay.css('height', totalHeight - top);
 	overlay.show();
 	overlay.css('z-index', '1');
-		
-	var image = $($("#imgDiv").children("svg:first")[0]);
-
-	naturalWidth = image.width();
-	naturalHeight = image.height();
-
-	direction = 0;
-	halfStep = 0.1;
-	scale = 1;
+	// end, fixing the size/placement of the scrollDiv overlay	
+	
+	var svg = $("svg");
+	$(svg).attr('id', 'svgId');
+	
+	naturalWidth = svg.width();
+	naturalHeight = svg.height();
 
 	var viewWidth = $("#scrollDiv").width();
 	var viewHeight = $("#scrollDiv").height();
 	
-	var divToMove = $("#imgDiv");
-	
-	left = -1 * (naturalWidth - viewWidth) / 2;
-	tp = -1 * (naturalHeight - viewHeight) / 2;
+	left = (-1 * (naturalWidth - viewWidth) / 2) + left;
+	tp = (-1 * (naturalHeight - viewHeight) / 2) + top;
 
-	divToMove.css("top", tp+"px");
-	divToMove.css("left", left+"px");
+	console.log('tp', tp, 'left', left);
+	
+	// for some reason using jQuery to position the SVG doesn't work 
+	document.getElementById("svgId").style.cssText = "top:"+tp+"px; left:"+left+"px; position: absolute; z-index: -1;";
 }
 
 ;(function($){ // secure $ jQuery alias
@@ -71,7 +72,7 @@ $.fn.dragscrollzoom = function( options ){
         return false;
     });
 	
-	var divToMove = $("#imgDiv");
+	var divToMove = $("svg");
 
 	divToMove.css("z-index", "-1");
 	divToMove.css("position", "absolute");
@@ -111,7 +112,8 @@ $.fn.dragscrollzoom = function( options ){
 			// How much did the mouse move?
 			var delta = {left: (event.clientX - event.data.lastCoord.left),
 						 top: (event.clientY - event.data.lastCoord.top)};
-			
+
+			var divToMove = $("svg");
 			var left = divToMove.css('left').substring(0, divToMove.css('left').length - 2);
 			var top = divToMove.css('top').substring(0, divToMove.css('top').length - 2);
 			
@@ -152,9 +154,9 @@ $.fn.dragscrollzoom = function( options ){
 		$(this).bind('mousedown', data, dragscroll.mouseDownHandler);
 
 		$(this).on('mousewheel', function(event) {
-			var divToMove = $(this).children("div:first");
+			var divToMove = $('svg');
 			
-			var svg = $("#imgDiv").children("svg:first");
+			var svg = $('svg');
 			
 			var width = svg.width(); // current image width
 			var height = svg.height(); // current image height
@@ -183,12 +185,12 @@ $.fn.dragscrollzoom = function( options ){
 			var newY = natY * scale;
 			var deltaY = y - newY;
 			var newTop = (top + deltaY );
-			$("#imgDiv").css('top', newTop + "px");
+			$(svg).css('top', newTop + "px");
 
 			var newX = natX * scale;
 			var deltaX = x - newX;
 			var newLeft = (left + deltaX );
-			$("#imgDiv").css('left', newLeft + "px");
+			$(svg).css('left', newLeft + "px");
 		});
 	});
 }; //end plugin dragscrollzoom
