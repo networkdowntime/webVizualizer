@@ -484,8 +484,8 @@ public class Project {
 				c.upstreamReferenceDepth = 0;
 			}
 		}
-		if (filter.getAdvancedSearchQuery() != null) {
-			String query = TextScrubber.scrubToString(filter.getAdvancedSearchQuery());
+		if (filter.getAdvancedSearchQuery() != null) {		
+			String query = filter.getAdvancedSearchQuery();
 			if (!query.isEmpty()) {
 				if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
 					filter.setPackagesToExclude(new HashSet<String>(getPackageNames()));

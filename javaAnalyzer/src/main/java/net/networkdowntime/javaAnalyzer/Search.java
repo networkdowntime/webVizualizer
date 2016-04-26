@@ -77,9 +77,8 @@ public class Search {
 			IndexReader reader = DirectoryReader.open(directory);
 			searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
-
-			QueryParser parser = new QueryParser("body", analyzer);
-			Query query = parser.parse(TextScrubber.scrubToString(queryString));
+			
+			Query query = new QueryParser("body", analyzer).parse(queryString);
 			TopDocs results = searcher.search(query, topNResults);
 			ScoreDoc[] hits = results.scoreDocs;
 
