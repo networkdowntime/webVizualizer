@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.networkdowntime.javaAnalyzer.AstVisitor;
 import net.networkdowntime.javaAnalyzer.Search;
@@ -495,9 +498,18 @@ public class Project {
 					filter.setClassesToExclude(new HashSet<String>(getClassNames(new ArrayList<String>())));
 				}
 				int rank = 0;
-				Map<String, Float> results = search.query(query, 10, filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM);
+				LinkedHashMap<String, Float> results = new LinkedHashMap<String, Float>(search.query(query, 10, filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM));
+				results = results.entrySet().stream()
+		        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+		        .collect(Collectors.toMap(
+		                Map.Entry::getKey, 
+		                Map.Entry::getValue, 
+		                (x,y)-> {throw new AssertionError();},
+		                LinkedHashMap::new
+		        ));
+				
 				for (String name : results.keySet()) {
-					System.out.println("Search results: " + name + "; score: " + results.get(name));
+//					System.out.println("Search results: " + name + "; score: " + results.get(name));
 					if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
 						filter.getPackagesToExclude().remove(name);
 					} else {
@@ -505,7 +517,6 @@ public class Project {
 						for (Package pkg : this.packages.values()) {
 							for (Class c : pkg.getClasses().values()) {
 								if (c.getCanonicalName().equals(name)) {
-									System.out.println("\tmatched: " + c.getCanonicalName());
 									c.searchRank = rank; 
 								}
 							}
