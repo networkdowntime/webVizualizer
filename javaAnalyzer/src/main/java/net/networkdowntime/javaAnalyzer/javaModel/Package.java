@@ -218,7 +218,7 @@ public class Package {
 					if (clazz.name == null) {
 						System.err.println("!!!" + this.name + ": class with null name");
 					} else {
-						if (!filter.getClassesToExclude().contains(this.name + "." + clazz.name)) {
+						if (!filter.getClassesToExclude().contains(clazz.getCanonicalName())) {
 							sb.append(clazz.createGraph(renderer, filter, edgeList));
 						}
 					}
