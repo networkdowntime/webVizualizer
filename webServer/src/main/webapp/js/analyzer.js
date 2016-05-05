@@ -3,8 +3,8 @@
  */
 // TODO Move the loading of the plugins to a rest call
 var plugins = [
-    { script: "/dbAnalyzer/js/dbAnalyzer.js", label: "DB Analyzer", id: "dbAnalyzer" }, 
-    { script: "/javaAnalyzer/js/javaAnalyzer.js", label: "Java Analyzer", id: "javaAnalyzer" }
+    { label: "DB Analyzer", id: "dbAnalyzer", script: "/dbAnalyzer/js/dbAnalyzer.js", sidebar: "/dbAnalyzer/sidebar.html" }, 
+    { label: "Java Analyzer", id: "javaAnalyzer", script: "/javaAnalyzer/js/javaAnalyzer.js", sidebar: "/javaAnalyzer/sidebar.html" }
    ];
 	
 var currentPlugin;
@@ -105,7 +105,6 @@ $(document).ready(function() {
 					$('svg').css('z-index', '100');
 					
 					var element = document.elementFromPoint(event.clientX, event.clientY);
-					console.log('element', element);
 					if ($(element).is('polygon') || $(element).is('text')) {
 						var name = $(element).siblings('text').context.textContent;
 						var title = $(element).siblings('title')[0].textContent.replace(/_/g, '.');
@@ -123,9 +122,6 @@ $(document).ready(function() {
 		    				}
 		    			});
 						
-						console.log('isPackage', isPackage);
-						console.log('isClass', isClass);
-	
 						if (isPackage) { // not adding a context to a package right now
 						}
 						
@@ -197,81 +193,77 @@ function analyzer() {
 	};
 	
 	// Private Functions
+	function fixScrollDiv() {
+    	var overlay = $('#scrollDiv');
+    	var totalHeight = $(window).height();
+    	var totalWidth = $(window).width();
+    	var top = $('.header').outerHeight();
+    	var left = $('.sidebar').outerWidth();
+    	overlay.css('top', top);
+    	overlay.css('left', left);
+    	overlay.css('width', totalWidth - left);
+    	overlay.css('height', totalHeight - top);
+	};
+
+    $.fn.slideFadeToggle = function(speed, easing, callback) {
+    	fixSideBarMaxHeight($('#' + currentPlugin.id), this, true);
+        return this.animate({opacity: 'toggle', height: 'toggle'}, speed, easing, callback);
+    };
+
 	function initializeSideBars() {
 		$(window).resize(function() {
-	    	var overlay = $('#scrollDiv');
-	    	var totalHeight = $(window).height();
-	    	var totalWidth = $(window).width();
-	    	var top = $('.header').outerHeight();
-	    	var left = $('.sidebar').outerWidth();
-	    	overlay.css('top', top);
-	    	overlay.css('left', left);
-	    	overlay.css('width', totalWidth - left);
-	    	overlay.css('height', totalHeight - top);
-
-			fixSideBarMaxHeight($('#javaAnalyzer'), null, false);
-			fixSideBarMaxHeight($('#dbAnalyzer'), null, false);
+			fixScrollDiv();
+			
+	    	if (currentPlugin) {
+	        	fixSideBarMaxHeight($('#' + currentPlugin.id), this, true);
+	    	}
 		});
 		
 		$(plugins).each(function() {
-			// hide the main divs
-			$("#"+this.id).hide();
-			$("#"+this.id).zIndex(-1);
-			$("#"+this.id).resizable({
-			    handles: 'e', minWidth: 5,
-			    resize: function( event, ui ) {
-			    	var overlay = $('#scrollDiv');
-			    	var totalHeight = $(window).height();
-			    	var totalWidth = $(window).width();
-			    	var top = $('.header').outerHeight();
-			    	var left = $('.sidebar').outerWidth();
-			    	overlay.css('top', top);
-			    	overlay.css('left', left);
-			    	overlay.css('width', totalWidth - left);
-			    	overlay.css('height', totalHeight - top);
-			    },
-			    stop: function( event, ui ) {
-			    	var overlay = $('#scrollDiv');
-			    	var totalHeight = $(window).height();
-			    	var totalWidth = $(window).width();
-			    	var top = $('.header').outerHeight();
-			    	var left = $('.sidebar').outerWidth();
-			    	overlay.css('top', top);
-			    	overlay.css('left', left);
-			    	overlay.css('width', totalWidth - left);
-			    	overlay.css('height', totalHeight - top);
-			    }
-			});
+			// load the sidebar for the plugin
+			var id = this.id;
+			var script = this.script;
+			
+			$.get(this.sidebar, function(data) {
+				element = $(data);
+				$('.mainBody').prepend(element);
+				element.attr('id', id);
+				element.hide();
+				element.zIndex(-1);
+				element.resizable({
+					handles: 'e', minWidth: 5,
+				    resize: function( event, ui ) {
+						fixScrollDiv();
+				    },
+				    stop: function( event, ui ) {
+						fixScrollDiv();
+				    }
+				});
 
-			$.getScript(this.script, function() {
+		        //collapsible management
+				element.find('.collapsible').collapsible({
+		            defaultOpen: 'connection',
+		            cookieName: 'connection',
+		            speed: 'slow',
+		            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
+		                elem.next().slideFadeToggle(opts.speed);
+		            },
+		            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
+		                elem.next().slideFadeToggle(opts.speed);
+		            },
+		            loadOpen: function (elem) { //replace the standard open state with custom function
+		                elem.next().show();
+		            },
+		            loadClose: function (elem, opts) { //replace the close state with custom function
+		                elem.next().hide();
+		            }
+		        });
+		        
+				$.getScript(script, function() {
+				});
+
 			});
 		});
-		
-		
-        $.fn.slideFadeToggle = function(speed, easing, callback) {
-        	fixSideBarMaxHeight($('#' + currentPlugin.id), this, true);
-            return this.animate({opacity: 'toggle', height: 'toggle'}, speed, easing, callback);
-        };
-
-        //collapsible management
-        $('.collapsible').collapsible({
-            defaultOpen: 'connection',
-            cookieName: 'connection',
-            speed: 'slow',
-            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
-            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
-            loadOpen: function (elem) { //replace the standard open state with custom function
-                elem.next().show();
-            },
-            loadClose: function (elem, opts) { //replace the close state with custom function
-                elem.next().hide();
-            }
-        });
-
 	}
 	
 	function initializeMainMenu() {
@@ -306,6 +298,7 @@ function analyzer() {
 					if (label == this.label) {
 						$("#"+this.id).show();
 						$("#"+this.id).zIndex(1);
+			        	fixSideBarMaxHeight($('.mainBody').find('#' + this.id)[0], null, true);
 						currentPlugin = this;
 					} else {
 						$("#"+this.id).hide();
