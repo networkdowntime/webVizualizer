@@ -1,12 +1,17 @@
 package net.networkdowntime.db.viewFilter;
 
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * A filter class to include or exclude tables based on whether they have a foreign key.
  * 
  * @author Ryan.Wiles
  * 
  */
-public enum FkFilter {
+@XmlRootElement
+public enum FkFilter implements Serializable {
 	/**
 	 * NoFK indicates that you want to filter out tables that have a foreign key.
 	 */

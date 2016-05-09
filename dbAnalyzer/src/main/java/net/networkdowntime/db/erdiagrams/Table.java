@@ -4,31 +4,28 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import lombok.Data;
-
-
-public @Data class Table {
+public class Table {
 
 	/**
 	 * The name of the table
 	 */
 	private String name;
-	
+
 	/**
 	 * The comments for the table
 	 */
 	private String comment;
-	
+
 	/**
 	 * The number of rows in the database for this table
 	 */
 	private BigDecimal numberOfRows;
-	
+
 	/**
 	 * A map of the columns in this table
 	 */
 	private Map<String, Column> columns = new LinkedHashMap<String, Column>();
-	
+
 	/**
 	 * A map of the constraints defined for this table
 	 */
@@ -74,23 +71,63 @@ public @Data class Table {
 	}
 
 	public boolean hasPK() {
-		for (Column col : columns.values()) { 
+		for (Column col : columns.values()) {
 			if (isColumnPK(col)) {
 				return true;
 			}
 		}
-				
+
 		return false;
 	}
 
 	public boolean hasFK() {
-		for (Column col : columns.values()) { 
+		for (Column col : columns.values()) {
 			if (isColumnFK(col)) {
 				return true;
 			}
 		}
-				
+
 		return false;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public BigDecimal getNumberOfRows() {
+		return numberOfRows;
+	}
+
+	public void setNumberOfRows(BigDecimal numberOfRows) {
+		this.numberOfRows = numberOfRows;
+	}
+
+	public Map<String, Column> getColumns() {
+		return columns;
+	}
+
+	public void setColumns(Map<String, Column> columns) {
+		this.columns = columns;
+	}
+
+	public Map<String, Constraint> getConstraints() {
+		return constraints;
+	}
+
+	public void setConstraints(Map<String, Constraint> constraints) {
+		this.constraints = constraints;
 	}
 
 }

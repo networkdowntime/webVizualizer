@@ -1,10 +1,11 @@
 package net.networkdowntime.javaAnalyzer.viewFilter;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import javax.xml.bind.annotation.XmlRootElement;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*
  * Package diagram of varying scope (selective inclusion of packages)
@@ -20,7 +21,9 @@ import lombok.Data;
  * Find unreferenced database tables
  */
 
-public @Data class JavaFilter {
+@XmlRootElement
+public class JavaFilter implements Serializable {
+	private static final long serialVersionUID = 4822611572090720144L;
 
 	@JsonProperty("diagramType")
 	DiagramType diagramType = DiagramType.CLASS_ASSOCIATION_DIAGRAM;

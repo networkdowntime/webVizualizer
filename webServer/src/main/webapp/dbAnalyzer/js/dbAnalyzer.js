@@ -1,7 +1,3 @@
-var fake = "";
-//fake = "Fake";
-
-
 // begin variable declarations
 var layouts = { 'dot' : 'Top Down', 'neato' : 'Natural' };
 var pkFilter = { 'All' : 'All', 'NoPK' : 'No PK', 'HasPK' : 'Has PK' };
@@ -23,7 +19,7 @@ $.each(fkFilter, function(value, label) {
 	$("#fkFilter").append("<option value='"+value+"'"+all+">"+label+"</option>");
 });
 
-$.get('/api/db/connection' + fake + '/supportedDatabases', function(data) {
+$.get('/api/db/connection/supportedDatabases', function(data) {
 	var select = $("#dbType");
 	$(data).each(function() {
 		$(select).append("<option value="+this+">"+this+"</option>");
@@ -48,9 +44,9 @@ $("#connect").click(function() {
 	var url = $.trim($("#jdbcUrl").val());
 	
 	$.ajax({
-	    url:'/api/db/connection' + fake + '/connect',
+	    url:'/api/db/connection/connect',
 	    type:'POST',
-	    data: { dbType: dbType, username: user, password: passwd, jdbcUrl: url},
+	    data: JSON.stringify({ dbType: dbType, username: user, password: passwd, jdbcUrl: url}),
 	    dataType: 'json',
 	    contentType: "application/json",
 	    success:function(res){
@@ -68,19 +64,30 @@ $("#connect").click(function() {
 });
 
 $("#connectionRender").click(function() {
+	var excludeFKForColumnsNamed = $('#excludeFKForColumnsNamed').val().split(',');
+	$(excludeFKForColumnsNamed).each(function(i, val) {
+		excludeFKForColumnsNamed[i] = val.trim();
+	});
+	
+	var excludeTablesContaining = $('#excludeTablesContaining').val().split(',');
+	$(excludeTablesContaining).each(function(i, val) {
+		excludeTablesContaining[i] = val.trim();
+	});
+	
 	filter = {
 		showAllColumnsOnTables : $("#showAllColumnsOnTables").prop('checked'), // boolean
 		includeTablesWithMoreXRows : $("#includeTablesWithMoreXRows").val(), // long
-		tablesToExclude : getExcludedTables(), // Set<String>
 		pkFilter : $("#pkFilter option:selected").val(), // NoPK, HasPK, All
+		fkFilter : $("#fkFilter option:selected").val(), // NoFK, HasFK, All
 		connectWithFKs : $("#connectWithFKs").prop('checked'), // boolean
 		showLabelsOnFKs : $("#showLabelsOnFKs").prop('checked'), //boolean
-		excludeFKForColumnsNamed : [], //["CREATED_BY", "UPDATED_BY"], // Set<String>
-		fkFilter : $("#fkFilter option:selected").val() // NoFK, HasFK, All
+		excludeFKForColumnsNamed : excludeFKForColumnsNamed, //["CREATED_BY", "UPDATED_BY"], // Set<String>
+		excludeTablesContaining : excludeTablesContaining,
+		tablesToExclude : getExcludedTables() // Set<String>
 	};
 	
 	$.ajax({
-	    url:'/api/db/connection' + fake + '/dot',
+	    url:'/api/db/connection/dot',
 	    type:'POST',
 	    data: JSON.stringify(filter),
 	    dataType: 'text',
@@ -90,7 +97,6 @@ $("#connectionRender").click(function() {
 		     
 		     var format = "svg"; // dot, plain, svg, xdot
 		     var engine = $("#dbLayout option:selected").val(); // dot, neato
-		     
 		     var result = Viz(dotFile, format, engine);
 		     
 		     $('svg').remove();
@@ -113,7 +119,7 @@ function loadSchemas() {
 	schemasDiv = $(container).children(".content");
 	$(schemasDiv).empty();
 
-	$.get('/api/db/connection' + fake + '/schemasWithTables', function(data) {
+	$.get('/api/db/connection/schemasWithTables', function(data) {
 	    
 		$("<div><input type='button' id='schemaCheckAll' value='Check Shown' /><span class='right'><input id='schemaSearch' type='text' placeholder='Schema search' value=''/></span></div>").appendTo(schemasDiv);
 
@@ -152,7 +158,7 @@ function loadSchemas() {
 
 function scanSchemas() {
 	var checkedSchemas = $.makeArray( $.map($(".schemas"), function(i) { if ($(i).prop('checked')) { return $(i).val(); } }) );
-	$.get('/api/db/connection' + fake + '/scanSchemas', { schemas : checkedSchemas }, function(data) {
+	$.get('/api/db/connection/scanSchemas', { schemas : checkedSchemas }, function(data) {
 		loadTables();
     });
 }
@@ -161,7 +167,7 @@ function loadTables() {
 	container = $("#tablesDiv").next();
 	tablesDiv = $(container).children(".content");
 	$(tablesDiv).empty();
-	$.get('/api/db/connection' + fake + '/scannedTables', function(data) {
+	$.get('/api/db/connection/scannedTables', function(data) {
 	    
 		$("<div><input type='button' id='tableCheckAll' value='Uncheck Shown' /><span class='right'><input id='tableSearch' type='text' placeholder='Table search' value=''/></span></div>").appendTo(tablesDiv);
 

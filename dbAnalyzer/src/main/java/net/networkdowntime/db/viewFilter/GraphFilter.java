@@ -1,9 +1,10 @@
 package net.networkdowntime.db.viewFilter;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.Data;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -20,7 +21,9 @@ import net.networkdowntime.db.erdiagrams.Table;
  * @author Ryan.Wiles
  * 
  */
-public @Data class GraphFilter {
+@XmlRootElement
+public class GraphFilter implements Serializable {
+	private static final long serialVersionUID = 3970369374477127442L;
 
 	/**
 	 * Flag that instructs the filter to excludes columns that don't contain a primary key or foreign key constraint.
@@ -144,6 +147,78 @@ public @Data class GraphFilter {
 		}
 
 		return skip;
+	}
+
+	public boolean isShowAllColumnsOnTables() {
+		return showAllColumnsOnTables;
+	}
+
+	public void setShowAllColumnsOnTables(boolean showAllColumnsOnTables) {
+		this.showAllColumnsOnTables = showAllColumnsOnTables;
+	}
+
+	public long getIncludeTablesWithMoreXRows() {
+		return includeTablesWithMoreXRows;
+	}
+
+	public void setIncludeTablesWithMoreXRows(long includeTablesWithMoreXRows) {
+		this.includeTablesWithMoreXRows = includeTablesWithMoreXRows;
+	}
+
+	public Set<String> getTablesToExclude() {
+		return tablesToExclude;
+	}
+
+	public void setTablesToExclude(Set<String> tablesToExclude) {
+		this.tablesToExclude = tablesToExclude;
+	}
+
+	public PkFilter getPkFilter() {
+		return pkFilter;
+	}
+
+	public void setPkFilter(PkFilter pkFilter) {
+		this.pkFilter = pkFilter;
+	}
+
+	public boolean isConnectWithFKs() {
+		return connectWithFKs;
+	}
+
+	public void setConnectWithFKs(boolean connectWithFKs) {
+		this.connectWithFKs = connectWithFKs;
+	}
+
+	public boolean isShowLabelsOnFKs() {
+		return showLabelsOnFKs;
+	}
+
+	public void setShowLabelsOnFKs(boolean showLabelsOnFKs) {
+		this.showLabelsOnFKs = showLabelsOnFKs;
+	}
+
+	public Set<String> getExcludeFKForColumnsNamed() {
+		return excludeFKForColumnsNamed;
+	}
+
+	public void setExcludeFKForColumnsNamed(Set<String> excludeFKForColumnsNamed) {
+		this.excludeFKForColumnsNamed = excludeFKForColumnsNamed;
+	}
+
+	public Set<String> getExcludeTablesContaining() {
+		return excludeTablesContaining;
+	}
+
+	public void setExcludeTablesContaining(Set<String> excludeTablesContaining) {
+		this.excludeTablesContaining = excludeTablesContaining;
+	}
+
+	public FkFilter getFkFilter() {
+		return fkFilter;
+	}
+
+	public void setFkFilter(FkFilter fkFilter) {
+		this.fkFilter = fkFilter;
 	}
 
 }

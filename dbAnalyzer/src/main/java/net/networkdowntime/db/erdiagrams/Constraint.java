@@ -2,16 +2,13 @@ package net.networkdowntime.db.erdiagrams;
 
 import java.util.ArrayList;
 
-import lombok.Data;
-
-
 /**
  * Representation of the Constraint in a Database
  * 
  * @author Ryan.Wiles
  * 
  */
-public @Data class Constraint {
+public class Constraint {
 
 	private String name;
 
@@ -43,4 +40,53 @@ public @Data class Constraint {
 	public Constraint(String name) {
 		this.name = name;
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Schema getRefSchema() {
+		return refSchema;
+	}
+
+	public void setRefSchema(Schema refSchema) {
+		this.refSchema = refSchema;
+	}
+
+	public Table getRefTable() {
+		return refTable;
+	}
+
+	public void setRefTable(Table refTable) {
+		this.refTable = refTable;
+	}
+
+	public ArrayList<Column> getRefColumn() {
+		return refColumn;
+	}
+
+	public void setRefColumn(ArrayList<Column> refColumn) {
+		this.refColumn = refColumn;
+	}
+
+	public ArrayList<Column> getColumns() {
+		return columns;
+	}
+
+	public void setColumns(ArrayList<Column> columns) {
+		this.columns = columns;
+	}
+
+	public ConstraintType getConstraintType() {
+		return constraintType;
+	}
+
+	public void setConstraintType(ConstraintType constraintType) {
+		this.constraintType = constraintType;
+	}
+
 }

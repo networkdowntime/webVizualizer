@@ -3,6 +3,7 @@ package net.networkdowntime.db.erdiagrams;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -106,7 +107,7 @@ public class ERDiagramCreator {
 
 	public List<String> getAllScannedTables() {
 		List<String> tables = new ArrayList<String>();
-		if (dw.schemas != null) {
+		if (dw != null && dw.schemas != null) {
 			for (String schema : dw.schemas.keySet()) {
 				for (String table : dw.schemas.get(schema).getTables().keySet()) {
 					tables.add(schema + "." + table);
@@ -124,7 +125,11 @@ public class ERDiagramCreator {
 	}
 
 	private String getGraph(List<String> tables, GraphFilter filter) {
-		Map<String, Schema> schemas = this.dw.schemas;
+		
+		Map<String, Schema> schemas = new HashMap<String, Schema>();
+		if (dw != null && dw.schemas != null) {
+			schemas.putAll(dw.schemas);
+		}
 
 		GraphvizRenderer renderer = new GraphvizNeatoRenderer();
 

@@ -74,7 +74,7 @@ $("#sourceAdd").click(function() {
 	$.ajax({
 	    url:'/api/code/javaScanner' + fake + '/file',
 	    type:'POST',
-	    data: { path: sourceDir },
+	    data: JSON.stringify({ path: sourceDir }),
 	    dataType: 'json',
 	    contentType: "application/json",
 	    success:function(res){
@@ -123,7 +123,7 @@ function loadFiles() {
 			    type:'DELETE',
 			    success:function(res){
 			    	$(parent).remove().slideUp(250);
-		    		fixSideBarMaxHeight$('#javaAnalyzer'), (null, true);
+		    		fixSideBarMaxHeight($('#javaAnalyzer'), null, true);
 			    	loadPackages();
 			    	loadClasses();
 			    },
@@ -188,7 +188,7 @@ function loadClasses() {
 	$.ajax({
 	    url:'/api/code/javaScanner' + fake + '/classes',
 	    type:'POST',
-	    data: JSON.stringify(uncheckedPackages),
+	    data: JSON.stringify({ excludePackages: uncheckedPackages }),
 	    dataType: 'json',
 	    contentType: "application/json",
 	    success:function(data) {
@@ -261,7 +261,6 @@ function drawGraph() {
 		     
 		     var format = "svg"; // dot, plain, svg, xdot
 		     var engine = $("#javaLayout option:selected").val(); // dot, neato
-		     
 		     var result = Viz(dotFile, format, engine);
 		     
 		     //  Make file that can be downloaded later.

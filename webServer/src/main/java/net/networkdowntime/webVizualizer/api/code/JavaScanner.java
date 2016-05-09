@@ -4,19 +4,21 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -25,21 +27,26 @@ import javax.ws.rs.core.Response;
 
 import net.networkdowntime.javaAnalyzer.javaModel.Project;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
+import net.networkdowntime.webVizualizer.dto.Status;
 
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.util.XMLResourceDescriptor;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-@Component
-@Scope(value = WebApplicationContext.SCOPE_SESSION)
-@Path("code/javaScanner")
+@RestController
+@RequestMapping("api/code/javaScanner")
 public class JavaScanner {
 
 	static File file;
@@ -79,7 +86,7 @@ public class JavaScanner {
 				svgRoot.setAttribute("height", height + "pt");
 			}
 
-			// Step -1: We read the input SVG document into Transcoder Input
+			// Step-1: We read the input SVG document into Transcoder Input
 			// We use Java NIO for this purpose
 			TranscoderInput input_svg_image = new TranscoderInput(svgDocument);
 //			Document doc = input_svg_image.getDocument();
@@ -102,9 +109,7 @@ public class JavaScanner {
 		}
 	}
 
-	@GET
-	@Path("/files")
-	@Produces(MediaType.APPLICATION_JSON)
+	@RequestMapping(value = "/files", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public List<String> getFiles() {
 		List<String> retval = new ArrayList<String>();
 		for (File file : project.getFiles()) {
@@ -113,11 +118,9 @@ public class JavaScanner {
 		return retval;
 	}
 
-	@GET
-	@Path("/file")
-	@Produces(MediaType.TEXT_HTML)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public String getFile(@QueryParam("class") String className, @Context final HttpServletResponse response) {
+	@RequestMapping(value = "/file", method = RequestMethod.GET, produces = { "plain/text;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
+	@ResponseBody
+	public String getFile(@QueryParam("class") String className, HttpServletResponse response) {
 
 		System.out.println("class: " + className);
 
@@ -144,7 +147,7 @@ public class JavaScanner {
 			builder.append(readResourceFile("javaCodeHtmlFooter.txt"));
 			return builder.toString();
 		} else {
-			response.setStatus(Response.Status.NO_CONTENT.ordinal());
+			response.setStatus(HttpStatus.NO_CONTENT.ordinal());
 		}
 		return "";
 	}
@@ -165,30 +168,27 @@ public class JavaScanner {
 		return builder.toString();
 	}
 
-	@POST
-	@Path("/file")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void postFile(@FormParam("path") String path, @Context final HttpServletResponse response) {
-
+	@RequestMapping(value = "/file", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
+	@ResponseStatus(value = HttpStatus.OK)
+	public Status postFile(@RequestBody Map<String, String> body) {
+		String path = body.get("path");
 		System.out.println("path: " + path);
 
 		File file = new File(path);
 
 		boolean exists = file.exists();
 
+		Status status = new Status(false);
 		if (exists) {
 			project.addFile(file);
-		} else {
-			response.setStatus(Response.Status.NOT_FOUND.ordinal());
+			status.setSuccess(true);
 		}
+		return status;
 	}
 
-	@DELETE
-	@Path("/file")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void deleteFile(@QueryParam("path") String path, @Context final HttpServletResponse response) {
+	@RequestMapping(value = "/file", method = RequestMethod.DELETE)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void deleteFile(@RequestParam("path") String path, HttpServletResponse response) {
 
 		System.out.println("path: " + path);
 		boolean deleted = false;
@@ -200,32 +200,24 @@ public class JavaScanner {
 			}
 		}
 
-		if (deleted) {
-			response.setStatus(Response.Status.NO_CONTENT.ordinal());
-		} else {
+		if (!deleted) {
 			response.setStatus(Response.Status.NOT_FOUND.ordinal());
 		}
 	}
 
-	@GET
-	@Path("/packages")
-	@Produces(MediaType.APPLICATION_JSON)
+	@RequestMapping(value = "/packages", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public List<String> getPackages() {
 		return project.getPackageNames();
 	}
 
-	@GET
-	@Path("/classes")
-	@Produces(MediaType.APPLICATION_JSON)
+	@RequestMapping(value = "/classes", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public List<String> getClasses() {
 		return project.getClassNames(new ArrayList<String>());
 	}
 
-	@POST
-	@Path("/classes")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public List<String> postClasses(List<String> excludePackages) {
+	@RequestMapping(value = "/classes", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
+	public List<String> postClasses(@RequestBody Map<String, Object> body) {
+		List<String> excludePackages = (List<String>) body.get("excludePackages");
 		System.out.println("excludePackages: " + excludePackages);
 		if (excludePackages != null) {
 			for (String s : excludePackages)
@@ -235,15 +227,14 @@ public class JavaScanner {
 		return project.getClassNames(excludePackages);
 	}
 
-	@POST
-	@Path("/dot")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_PLAIN)
-	public String getDot(JavaFilter filter) {
+	@RequestMapping(value = "/dot", method = RequestMethod.POST, produces = { "plain/text;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
+	@ResponseBody
+	public String getDot(@RequestBody JavaFilter filter) {
 		System.out.println("advancedSearchQuery: " + filter.getAdvancedSearchQuery());
 		System.out.println("diagramType: " + filter.getDiagramType().toString());
 		System.out.println("isShowFields: " + filter.isShowFields());
 		System.out.println("isShowMethods: " + filter.isShowMethods());
+		System.out.println("isFromFile: " + filter.isFromFile());
 		System.out.println("getUpstreamReferenceDepth: " + filter.getUpstreamReferenceDepth());
 		System.out.println("getDownstreamDependencyDepth: " + filter.getDownstreamDependencyDepth());
 		System.out.println("Excluded Packages:");
@@ -255,11 +246,10 @@ public class JavaScanner {
 			System.out.println("\t" + s);
 		}
 
-//		project = new Project();
-//		project.addFile(file);
-
 		project.validate();
-		return project.createGraph(filter);
+		String dot = project.createGraph(filter);
+		
+		return dot;
 	}
 
 }

@@ -1,4 +1,4 @@
-<beans xmlns="http://www.springframework.org/schema/beans"
+<!-- <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:sec="http://www.springframework.org/schema/security"
@@ -8,4 +8,4 @@
    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 	<context:component-scan base-package="net.networkdowntime.webVizualizer.api" />
 	<context:component-scan base-package="net.networkdowntime.webVizualizer.api.db" />
-</beans>
+</beans> -->
