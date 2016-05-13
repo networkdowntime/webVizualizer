@@ -1,16 +1,8 @@
 /**
  * 
  */
-// TODO Move the loading of the plugins to a rest call
-var plugins = [
-    { label: "DB Analyzer", id: "dbAnalyzer", script: "/dbAnalyzer/js/dbAnalyzer.js", sidebar: "/dbAnalyzer/sidebar.html" }, 
-    { label: "Java Analyzer", id: "javaAnalyzer", script: "/javaAnalyzer/js/javaAnalyzer.js", sidebar: "/javaAnalyzer/sidebar.html" }
-   ];
-	
+var plugins = new Object;
 var currentPlugin;
-
-var fake = "";
-//fake = "Fake";
 
 $(document).ready(function() {
     $(document)
@@ -138,7 +130,7 @@ $(document).ready(function() {
 								switch($(this).attr("data-action")) {
 									// A case for each action. Your actions here
 									case "source": 
-										var win = window.open('/api/code/javaScanner' + fake + '/file?class=' + encodeURIComponent(title), '_blank');
+										var win = window.open('/api/code/javaScanner/file?class=' + encodeURIComponent(title), '_blank');
 										if(win){
 										    //Browser has allowed it to be opened
 										    win.focus();
@@ -188,11 +180,23 @@ function analyzer() {
 	
 	// Public Functions
 	this.init = function() {
-		initializeSideBars();
-		initializeMainMenu();
+		loadPlugins();
 	};
 	
 	// Private Functions
+	function loadPlugins() {
+		var pluginsUrl = '/api/plugin/plugins';
+		$.get(pluginsUrl, function(data) {
+			plugins = $(data);
+			$(data).each(function() {
+				console.log(this);
+			});
+			initializeSideBars();
+			initializeMainMenu();
+		});
+
+	}
+	
 	function fixScrollDiv() {
     	var overlay = $('#scrollDiv');
     	var totalHeight = $(window).height();
@@ -222,9 +226,10 @@ function analyzer() {
 		$(plugins).each(function() {
 			// load the sidebar for the plugin
 			var id = this.id;
-			var script = this.script;
-			
-			$.get(this.sidebar, function(data) {
+			var sideBarUrl = '/api/plugin/sideBar' + '?' + $.param({'pluginClass': this.pluginClass})
+			var jsUrl = '/api/plugin/javaScript' + '?' + $.param({'pluginClass': this.pluginClass})
+
+			$.get(sideBarUrl, function(data) {
 				element = $(data);
 				$('.mainBody').prepend(element);
 				element.attr('id', id);
@@ -259,7 +264,7 @@ function analyzer() {
 		            }
 		        });
 		        
-				$.getScript(script, function() {
+				$.getScript(jsUrl, function() {
 				});
 
 			});
