@@ -147,8 +147,18 @@ public class Class extends DependentBase implements Comparable<Class> {
 		}
 
 		if (matchedClass == null) {
-			matchedClass = pkg.searchForUnresolvedClass(depth + 1, name, className);
+			for (String importedClass : imports) {
+				if (importedClass.endsWith("." + className)) {
+					matchedClass = pkg.searchForUnresolvedClass(depth + 1, null, importedClass, true);
+					break;
+				}
+			}
 		}
+		
+		if (matchedClass == null) {
+			matchedClass = pkg.searchForUnresolvedClass(depth + 1, name, className, false);
+		}
+		
 		return matchedClass;
 	}
 
@@ -158,7 +168,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 
 		Logger.log(depth + 1, "Checking for extends:");
 		if (extndsStr != null) {
-			Class clazz = pkg.searchForUnresolvedClass(depth, name, extndsStr);
+			Class clazz = pkg.searchForUnresolvedClass(depth, name, extndsStr, true);
 			if (clazz != null) {
 					extnds = clazz;
 				addResolvedClass(clazz);
@@ -171,7 +181,7 @@ public class Class extends DependentBase implements Comparable<Class> {
 		Logger.log(depth + 1, "Checking for implements:");
 		if (implsStrings != null && !implsStrings.isEmpty()) {
 			for (String implString : implsStrings) {
-				Class clazz = pkg.searchForUnresolvedClass(depth, name, implString);
+				Class clazz = pkg.searchForUnresolvedClass(depth, name, implString, true);
 				if (clazz != null && !impls.contains(clazz)) {
 					impls.add(clazz);
 					addResolvedClass(clazz);

@@ -122,17 +122,6 @@ public abstract class DependentBase {
 		}
 	}
 
-	public void addResolvedClass(Class clazz) {
-		classDependencies.put(clazz.name, clazz);
-
-		if (this instanceof Class) {
-			clazz.addReferencedByClass((Class) this);
-		}
-		if (parent != null) {
-			parent.addResolvedClass(clazz);
-		}
-	}
-
 	public void addUnresolvedMethodCall(int depth, String typeOrVarName, String methodName) {
 		Logger.log(depth, "Adding unresolved method call: " + typeOrVarName + " -> " + methodName);
 
@@ -144,47 +133,6 @@ public abstract class DependentBase {
 		methods.add(methodName);
 	}
 
-	protected boolean isVoid(String name) {
-		boolean retval = false;
-
-		if ("void".equals(name))
-			retval = true;
-
-		return retval;
-	}
-
-	protected boolean isPrimative(String name) {
-		boolean retval = false;
-
-		if ("boolean".equals(name) || "boolean[]".equals(name))
-			retval = true;
-		else if ("byte".equals(name) || "byte[]".equals(name))
-			retval = true;
-		else if ("short".equals(name) || "short[]".equals(name))
-			retval = true;
-		else if ("int".equals(name) || "int[]".equals(name))
-			retval = true;
-		else if ("long".equals(name) || "long[]".equals(name))
-			retval = true;
-		else if ("float".equals(name) || "float[]".equals(name))
-			retval = true;
-		else if ("double".equals(name) || "double[]".equals(name))
-			retval = true;
-		else if ("char".equals(name) || "char[]".equals(name))
-			retval = true;
-
-		return retval;
-	}
-
-	public static List<String> splitType(String type) {
-		List<String> genericsExpansion = new ArrayList<String>();
-		type = type.replaceAll("[<|,>]", " ");
-		for (String genericType : type.split("\\s+")) {
-			genericsExpansion.add(genericType);
-		}
-		return genericsExpansion;
-	}
-
 	public void addVariable(int depth, String name, String type) {
 		if (!varNameTypeMap.containsKey(name)) {
 			Logger.log(depth, "Adding variable to " + this.getCanonicalName() + ": " + type + " " + name);
@@ -192,17 +140,14 @@ public abstract class DependentBase {
 		}
 	}
 
-	public Class findClass() {
+	public void addResolvedClass(Class clazz) {
+		classDependencies.put(clazz.name, clazz);
 
-		DependentBase db = this;
-
-		while (db.getParent() != null)
-			db = db.getParent();
-
-		if (db instanceof Class) {
-			return (Class) db;
-		} else {
-			return null;
+		if (this instanceof Class) {
+			clazz.addReferencedByClass((Class) this);
+		}
+		if (parent != null) {
+			parent.addResolvedClass(clazz);
 		}
 	}
 
@@ -231,6 +176,29 @@ public abstract class DependentBase {
 				matchedClass = parent.searchForVariableClass(depth + 1, variableName);
 		}
 		return matchedClass;
+	}
+
+	public static List<String> splitType(String type) {
+		List<String> genericsExpansion = new ArrayList<String>();
+		type = type.replaceAll("[<|,>]", " ");
+		for (String genericType : type.split("\\s+")) {
+			genericsExpansion.add(genericType.trim());
+		}
+		return genericsExpansion;
+	}
+
+	public Class findClass() {
+
+		DependentBase db = this;
+
+		while (db.getParent() != null)
+			db = db.getParent();
+
+		if (db instanceof Class) {
+			return (Class) db;
+		} else {
+			return null;
+		}
 	}
 
 	public void validatePassOne(int depth) {
@@ -374,6 +342,38 @@ public abstract class DependentBase {
 			}
 		}
 		return depth + 1;
+	}
+
+	protected boolean isVoid(String name) {
+		boolean retval = false;
+	
+		if ("void".equals(name))
+			retval = true;
+	
+		return retval;
+	}
+
+	protected boolean isPrimative(String name) {
+		boolean retval = false;
+	
+		if ("boolean".equals(name) || "boolean[]".equals(name))
+			retval = true;
+		else if ("byte".equals(name) || "byte[]".equals(name))
+			retval = true;
+		else if ("short".equals(name) || "short[]".equals(name))
+			retval = true;
+		else if ("int".equals(name) || "int[]".equals(name))
+			retval = true;
+		else if ("long".equals(name) || "long[]".equals(name))
+			retval = true;
+		else if ("float".equals(name) || "float[]".equals(name))
+			retval = true;
+		else if ("double".equals(name) || "double[]".equals(name))
+			retval = true;
+		else if ("char".equals(name) || "char[]".equals(name))
+			retval = true;
+	
+		return retval;
 	}
 
 }

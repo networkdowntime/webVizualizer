@@ -9,7 +9,6 @@ import net.networkdowntime.javaAnalyzer.viewFilter.DiagramType;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
-
 public class Package {
 
 	protected String name;
@@ -21,7 +20,7 @@ public class Package {
 	Integer searchRank = new Integer(0);
 	Integer upstreamReferenceDepth = new Integer(0);
 	Integer downstreamReferenceDepth = new Integer(0);
-		
+
 	public Package(int depth, String name, boolean inPath, boolean fileScanned) {
 		this.name = name;
 		this.fromFile = fileScanned;
@@ -52,22 +51,30 @@ public class Package {
 		return clazz;
 	}
 
-	public Class searchForUnresolvedClass(int depth, String classInitiatingSearch, String classToSearchFor) {
-		Class clazz = classes.get(name + "." + classInitiatingSearch + "." + classToSearchFor);
-		if (clazz == null) {
-			clazz = classes.get(classToSearchFor);
-		}
-		if (clazz == null && classInitiatingSearch != null) {
-			clazz = prj.searchForClass(depth, name, classToSearchFor);
-		}
+	public Class searchForUnresolvedClass(int depth, String classInitiatingSearch, String classToSearchFor, boolean searchProject) {
+		Class clazz = null;
 
+		if (classToSearchFor.contains(".")) {
+			String classPackage = classToSearchFor.substring(0, classToSearchFor.lastIndexOf("."));
+			if (!name.equals(classPackage)) {
+				clazz = prj.searchForClass(depth, name, classToSearchFor);
+			}
+		} else {
+			clazz = classes.get(name + "." + classInitiatingSearch + "." + classToSearchFor);
+			if (clazz == null) {
+				clazz = classes.get(classToSearchFor);
+			}
+			if (searchProject && clazz == null && classInitiatingSearch != null) {
+				clazz = prj.searchForClass(depth, name, classToSearchFor);
+			}
+		}
 		return clazz;
 	}
 
 	public Map<String, Class> getClasses() {
 		return classes;
 	}
-	
+
 	public void removeClass(Class clazz) {
 		if (!classes.containsKey(clazz.name)) {
 			classes.remove(clazz.name);
@@ -93,7 +100,7 @@ public class Package {
 	public void setDownstreamReferenceDepth(Integer downstreamReferenceDepth) {
 		this.downstreamReferenceDepth = downstreamReferenceDepth;
 	}
-	
+
 	public void validatePassOne(int depth) {
 		Logger.log(depth, "Validate Pass One: package " + name);
 		for (Class clazz : classes.values()) {
@@ -110,35 +117,38 @@ public class Package {
 
 	// A value > 0xFF for any color means that 
 	// the value should not be used
-	private int mixColorToRGBValue(int red, int green, int blue)
-	{
+	private int mixColorToRGBValue(int red, int green, int blue) {
 		int color = 0xFFFFFF; // white
-				
-		if (red < 0x100 || green < 0x100 || blue < 0x100)
-		{
+
+		if (red < 0x100 || green < 0x100 || blue < 0x100) {
 			// Limit negative values
 			red = Math.max(0, red);
 			green = Math.max(0, green);
 			blue = Math.max(0, blue);
-			
+
 			// Ignore color (use 0x00) if > 0xFF
-			if (red > 0xFF) {red = 0;}
-			if (green > 0xFF) {green = 0;}
-			if (blue > 0xFF) {blue = 0;}
-			
+			if (red > 0xFF) {
+				red = 0;
+			}
+			if (green > 0xFF) {
+				green = 0;
+			}
+			if (blue > 0xFF) {
+				blue = 0;
+			}
+
 			color = (red << 16) + (green << 8) + blue;
 		}
-		
-		
+
 		return color;
 	}
-	
+
 	private int getColor(int colorStart, int colorEnd, int numberOfsteps, int steps) {
 		int colorStep = (colorStart - colorEnd) / numberOfsteps;
 		return colorStart - (colorStep * steps);
 
 	}
-	
+
 	public String createGraph(GraphvizRenderer renderer, JavaFilter filter, List<String> edgeList) {
 		Logger.log(0, "Package: " + this.name);
 
@@ -170,8 +180,7 @@ public class Package {
 		}
 
 		color = "#" + String.format("%06X", mixColorToRGBValue(red, green, blue));
-		
-		
+
 		StringBuffer sb = new StringBuffer();
 
 		if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
@@ -229,11 +238,11 @@ public class Package {
 
 		return sb.toString();
 	}
-	
+
 	public boolean isFromFile() {
 		return fromFile;
 	}
-	
+
 	public void setFromFile(boolean scannedFile) {
 		this.fromFile = scannedFile;
 	}

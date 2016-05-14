@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import net.networkdowntime.javaAnalyzer.AstVisitor;
 import net.networkdowntime.javaAnalyzer.Search;
-import net.networkdowntime.javaAnalyzer.TextScrubber;
 import net.networkdowntime.javaAnalyzer.logger.Logger;
 
 import com.github.javaparser.JavaParser;
@@ -228,6 +227,14 @@ public class Project {
 	}
 
 	public void validate() {
+//		scannedFiles = new HashSet<String>();
+//		packages = new HashMap<String, Package>();
+//		getOrCreateAndGetPackage(0, "java.lang", false, false);
+//
+//		for (File file : files) {
+//			scanFile(file);
+//		}
+
 		int classCount = 0;
 		Logger.log(1, "Beginning Validation:");
 		for (Package pkg : packages.values()) {
@@ -247,15 +254,26 @@ public class Project {
 	public Class searchForClass(int depth, String pkgDoingSearch, String name) {
 		Logger.log(depth, "Project: Searching for unresolved class: " + name);
 		Class clazz = null;
-		for (String pkgName : packages.keySet()) {
-			if (!pkgDoingSearch.equals(pkgName)) {
-				Package pkg = packages.get(pkgName);
-				clazz = pkg.searchForUnresolvedClass(depth, null, name);
-				if (clazz != null)
-					break;
+
+		if (name.contains(".")) {
+			String pkgName = name.substring(0, name.lastIndexOf("."));
+			Package pkg = packages.get(pkgName);
+			if (pkg != null) {
+				clazz = pkg.searchForUnresolvedClass(depth, null, name.substring(name.lastIndexOf(".") + 1), false);
+				if (clazz == null) {
+					clazz = pkg.getOrCreateAndGetClass(depth, name.substring(name.lastIndexOf(".") + 1));
+				}
+			}
+		} else {
+			for (String pkgName : packages.keySet()) {
+				if (!pkgDoingSearch.equals(pkgName)) {
+					Package pkg = packages.get(pkgName);
+					clazz = pkg.searchForUnresolvedClass(depth, null, name, false);
+					if (clazz != null)
+						break;
+				}
 			}
 		}
-
 		if (clazz == null) {
 			Package pkg = getOrCreateAndGetPackage(depth, "java.lang", false, false);
 			clazz = pkg.getOrCreateAndGetClass(depth, name);
@@ -487,7 +505,7 @@ public class Project {
 				c.upstreamReferenceDepth = 0;
 			}
 		}
-		if (filter.getAdvancedSearchQuery() != null) {		
+		if (filter.getAdvancedSearchQuery() != null) {
 			String query = filter.getAdvancedSearchQuery();
 			if (!query.isEmpty()) {
 				if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
@@ -500,16 +518,16 @@ public class Project {
 				int rank = 0;
 				LinkedHashMap<String, Float> results = new LinkedHashMap<String, Float>(search.query(query, 10, filter.getDiagramType() != DiagramType.PACKAGE_DIAGRAM));
 				results = results.entrySet().stream()
-		        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-		        .collect(Collectors.toMap(
-		                Map.Entry::getKey, 
-		                Map.Entry::getValue, 
-		                (x,y)-> {throw new AssertionError();},
-		                LinkedHashMap::new
-		        ));
-				
+						.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+						.collect(Collectors.toMap(
+								Map.Entry::getKey,
+								Map.Entry::getValue,
+								(x, y) -> {
+									throw new AssertionError();
+								},
+								LinkedHashMap::new));
+
 				for (String name : results.keySet()) {
-//					System.out.println("Search results: " + name + "; score: " + results.get(name));
 					if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
 						filter.getPackagesToExclude().remove(name);
 					} else {
@@ -517,7 +535,7 @@ public class Project {
 						for (Package pkg : this.packages.values()) {
 							for (Class c : pkg.getClasses().values()) {
 								if (c.getCanonicalName().equals(name)) {
-									c.searchRank = rank; 
+									c.searchRank = rank;
 								}
 							}
 						}
