@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
 
 import net.networkdowntime.javaAnalyzer.javaModel.Project;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
@@ -40,9 +38,9 @@ public class JavaScanner {
 		return retval;
 	}
 
-	@RequestMapping(value = "/file", method = RequestMethod.GET, produces = { "plain/text;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
+	@RequestMapping(value = "/file", method = RequestMethod.GET, produces = { "text/html;charset=UTF-8" })
 	@ResponseBody
-	public String getFile(@QueryParam("class") String className, HttpServletResponse response) {
+	public String getFile(@RequestParam("class") String className, HttpServletResponse response) {
 
 		System.out.println("class: " + className);
 
@@ -123,7 +121,7 @@ public class JavaScanner {
 		}
 
 		if (!deleted) {
-			response.setStatus(Response.Status.NOT_FOUND.ordinal());
+			response.setStatus(HttpStatus.NOT_FOUND.ordinal());
 		}
 	}
 
