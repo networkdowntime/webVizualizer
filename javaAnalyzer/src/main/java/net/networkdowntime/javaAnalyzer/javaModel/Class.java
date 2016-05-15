@@ -1,6 +1,7 @@
 package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,6 +51,10 @@ public class Class extends DependentBase implements Comparable<Class> {
 		Logger.log(depth, "Creating Class: " + pkg.getName() + "." + name);
 	}
 
+	public void accept(ModelVisitor visitor) {
+		visitor.visit(this);
+	}
+	
 	public void addImplsStr(String implsString) {
 		this.implsStrings.add(implsString);
 	}
@@ -382,6 +387,18 @@ public class Class extends DependentBase implements Comparable<Class> {
 	@Override
 	public int compareTo(Class clazz) {
 		return this.getCanonicalName().compareTo(clazz.getCanonicalName());
+	}
+
+	public boolean isFromFile() {
+		return fromFile;
+	}
+
+	public List<Package> getPackageDependencies() {
+		return packageDependencies;
+	}
+
+	public Package getPackage() {
+		return this.pkg;
 	}
 
 }

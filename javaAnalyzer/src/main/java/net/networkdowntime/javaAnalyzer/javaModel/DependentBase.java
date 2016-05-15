@@ -36,6 +36,10 @@ public abstract class DependentBase {
 		return parent;
 	}
 
+	public HashMap<String, Class> getClassDependencies() {
+		return classDependencies;
+	}
+
 	public String getName() {
 		if (this instanceof Class) {
 			Class currentClass = (Class) this;

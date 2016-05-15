@@ -21,6 +21,10 @@ public class Block extends DependentBase {
 		Logger.log(depth, "Creating Block: ");
 	}
 
+	public void accept(ModelVisitor visitor) {
+		visitor.visit(this);
+	}
+	
 	public void addChildBlock(Block block) {
 		this.childBlocks.add(block);
 	}

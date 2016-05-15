@@ -39,6 +39,10 @@ public class Project {
 		getOrCreateAndGetPackage(1, "java.lang", false, false);
 	}
 
+	public void accept(ModelVisitor visitor) {
+		visitor.visit(this);
+	}
+	
 	public List<File> getFiles() {
 		List<File> retval = new ArrayList<File>();
 		retval.addAll(this.files);
@@ -469,7 +473,7 @@ public class Project {
 		}
 	}
 
-	private void unExcludePackagesBasedOnDepth(Integer maxDownDepth, Integer maxUpDepth, JavaFilter filter) {
+	public void unExcludePackagesBasedOnDepth(Integer maxDownDepth, Integer maxUpDepth, JavaFilter filter) {
 		HashSet<String> excludedPackages = filter.getPackagesToExclude();
 		HashMap<String, Integer> unExcludedPackages = new HashMap<String, Integer>();
 		for (String pkgName : packages.keySet()) {
@@ -593,6 +597,28 @@ public class Project {
 		}
 
 		return sb.toString();
+	}
+
+	public void resetReferenceDepths() {
+		for (Package pkg : this.packages.values()) {
+			pkg.downstreamReferenceDepth = 0;
+			pkg.upstreamReferenceDepth = 0;
+
+			for (Class c : pkg.getClasses().values()) {
+				c.downstreamReferenceDepth = 0;
+				c.upstreamReferenceDepth = 0;
+			}
+		}
+	}
+
+	public void resetSearchRank() {
+		for (Package pkg : this.packages.values()) {
+			pkg.searchRank = 0;
+
+			for (Class c : pkg.getClasses().values()) {
+				c.searchRank = 0;
+			}
+		}
 	}
 
 }

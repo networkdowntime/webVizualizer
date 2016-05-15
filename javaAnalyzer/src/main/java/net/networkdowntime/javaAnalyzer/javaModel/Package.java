@@ -27,6 +27,10 @@ public class Package {
 		Logger.log(depth, "Creating Package: " + name);
 	}
 
+	public void accept(ModelVisitor visitor) {
+		visitor.visit(this);
+	}
+	
 	public void setProject(Project prj) {
 		this.prj = prj;
 	}
@@ -245,5 +249,9 @@ public class Package {
 
 	public void setFromFile(boolean scannedFile) {
 		this.fromFile = scannedFile;
+	}
+
+	public int getSearchRank() {
+		return this.searchRank;
 	}
 }

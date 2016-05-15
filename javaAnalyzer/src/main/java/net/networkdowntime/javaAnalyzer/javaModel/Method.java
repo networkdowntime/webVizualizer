@@ -13,6 +13,10 @@ public class Method extends Block {
 		Logger.log(depth, "Creating Method: " + clazz.pkg.getName() + "." + clazz.name + "." + name);
 	}
 
+	public void accept(ModelVisitor visitor) {
+		visitor.visit(this);
+	}
+	
 	public void setReturnType(int depth, String type, boolean addUnresolveClass) {
 		Logger.log(depth, "Setting Method Return Type: " + type);
 		this.returnType = type;
