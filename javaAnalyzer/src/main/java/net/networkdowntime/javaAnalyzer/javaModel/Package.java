@@ -254,4 +254,8 @@ public class Package {
 	public int getSearchRank() {
 		return this.searchRank;
 	}
+
+	public void setSearchRank(int searchRank) {
+		this.searchRank = searchRank;
+	}
 }

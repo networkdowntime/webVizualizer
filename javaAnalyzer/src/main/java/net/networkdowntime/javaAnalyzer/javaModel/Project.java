@@ -621,4 +621,8 @@ public class Project {
 		}
 	}
 
+	public Map<String, Float> searchQuery(String queryString, int topNResults, boolean classesNotPackages) {
+		return search.query(queryString, topNResults, classesNotPackages);
+	}
+
 }

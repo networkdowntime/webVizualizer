@@ -132,7 +132,6 @@ public class AstVisitor extends VoidVisitorAdapter {
 		long time = System.currentTimeMillis();
 
 		prj.addFile(new File("src/test/java/testClasses/TestClass1.java"));
-		//		prj.addFile(new File("/Users/rwiles/github/jabref/src/main/java/net/sf/jabref/exporter/ExportFormats.java"));
 
 		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
 		time = System.currentTimeMillis();
