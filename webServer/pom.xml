@@ -12,7 +12,7 @@
 	<artifactId>webServer</artifactId>
 	<packaging>jar</packaging>
 
-	<name>vizualizer</name>
+	<name>webServer</name>
 	<build>
 		<defaultGoal>install</defaultGoal>
 		<resources>

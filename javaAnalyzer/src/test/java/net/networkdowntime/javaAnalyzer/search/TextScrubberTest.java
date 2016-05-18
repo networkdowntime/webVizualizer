@@ -1,10 +1,12 @@
-package net.networkdowntime.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer.search;
 
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
 
 import org.junit.Test;
+
+import net.networkdowntime.javaAnalyzer.search.TextScrubber;
 
 public class TextScrubberTest {
 	

@@ -9,10 +9,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import net.networkdowntime.javaAnalyzer.graphBuilder.GraphBuilderFactory;
 import net.networkdowntime.javaAnalyzer.javaModel.Project;
 import net.networkdowntime.javaAnalyzer.viewFilter.JavaFilter;
 import net.networkdowntime.webVizualizer.dto.Status;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/code/javaScanner")
 public class JavaScanner {
+	private static final Logger LOGGER = LogManager.getLogger(JavaScanner.class.getName());
 
 	static File file;
 	Project project = new Project();
@@ -61,7 +65,7 @@ public class JavaScanner {
 				}
 				reader.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 
 			builder.append(readResourceFile("javaCodeHtmlFooter.txt"));
@@ -83,7 +87,7 @@ public class JavaScanner {
 			}
 			reader.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 		return builder.toString();
 	}
@@ -167,7 +171,8 @@ public class JavaScanner {
 		}
 
 		project.validate();
-		String dot = project.createGraph(filter);
+//		String dot = project.createGraph(filter);
+		String dot = GraphBuilderFactory.createGraph(project, filter);
 		
 		return dot;
 	}

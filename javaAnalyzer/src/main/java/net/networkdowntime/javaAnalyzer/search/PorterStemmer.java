@@ -12,7 +12,7 @@
 //
 //***************************************************************************
 
-package net.networkdowntime.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer.search;
 
 
 /**

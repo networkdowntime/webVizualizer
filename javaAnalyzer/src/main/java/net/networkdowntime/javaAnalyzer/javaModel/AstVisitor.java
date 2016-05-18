@@ -1,15 +1,20 @@
-package net.networkdowntime.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer.javaModel;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -100,31 +105,54 @@ import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.type.WildcardType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-import net.networkdowntime.javaAnalyzer.javaModel.Block;
-import net.networkdowntime.javaAnalyzer.javaModel.Class;
-import net.networkdowntime.javaAnalyzer.javaModel.DependentBase;
-import net.networkdowntime.javaAnalyzer.javaModel.Method;
-import net.networkdowntime.javaAnalyzer.javaModel.Package;
-import net.networkdowntime.javaAnalyzer.javaModel.Project;
-import net.networkdowntime.javaAnalyzer.logger.Logger;
-
 @SuppressWarnings("rawtypes")
 public class AstVisitor extends VoidVisitorAdapter {
+	private static final Logger LOGGER = LogManager.getLogger(AstVisitor.class.getName());
+
 	// begin dump the AST
 	int depth = 0;
 	BufferedWriter astDumpWriter = null;
 	// end dump the AST
 
-	public static boolean DEBUGGING_ENABLED = false;
+	private static final boolean DEBUGGING_ENABLED = false;
 
-	private Stack<DependentBase> heirarchyStack = new Stack<DependentBase>();
+	private Deque<DependentBase> heirarchyStack = new ArrayDeque<DependentBase>();
 
 	private Project project = null;
 	private Package currentPackage = null;
 	private DependentBase current = null;
 	private String fileName = null;
-	
+
 	private Set<String> imports = new LinkedHashSet<String>();
+
+	public AstVisitor(int depth, String fileName, Project prj, CompilationUnit cu) {
+		this.fileName = fileName;
+		if (DEBUGGING_ENABLED) {
+			try {
+				File dir = new File("astDumps");
+				if (!dir.exists())
+					dir.mkdir();
+				File astDump = new File("astDumps/" + new File(this.fileName).getName().replace(".java", ".txt"));
+				astDumpWriter = new BufferedWriter(new FileWriter(astDump));
+			} catch (IOException e) {
+				LOGGER.error(e);
+			}
+		}
+
+		this.depth = depth;
+		this.project = prj;
+
+		this.visit(cu, null);
+
+		if (DEBUGGING_ENABLED) {
+			try {
+				astDumpWriter.flush();
+				astDumpWriter.close();
+			} catch (IOException e) {
+				LOGGER.error(e);
+			}
+		}
+	}
 
 	public static void main(String[] args) {
 		Project prj = new Project();
@@ -133,35 +161,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 		prj.addFile(new File("src/test/java/testClasses/TestClass1.java"));
 
-		System.out.println("Time to parse files (ms): " + (System.currentTimeMillis() - time));
+		LOGGER.info("Time to parse files (ms): " + (System.currentTimeMillis() - time));
 		time = System.currentTimeMillis();
 
 		prj.validate();
-		System.out.println("Time to validate (ms): " + (System.currentTimeMillis() - time));
-	}
-
-	public AstVisitor(int depth, String fileName, Project prj, CompilationUnit cu) {
-		this.fileName = fileName;
-		try {
-			File f = new File(fileName);
-			File dir = new File("astDumps");
-			if (!dir.exists())
-				dir.mkdir();
-			fileName = "astDumps/" + f.getName().replace(".java", ".txt");
-			File astDump = new File(fileName);
-			astDumpWriter = new BufferedWriter(new FileWriter(astDump));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		this.depth = depth;
-		this.project = prj;
-
-		this.visit(cu, null);
-	}
-
-	public static void processTypeDeclarations(int depth, String fileName, Project prj, CompilationUnit cu) {
-		new AstVisitor(depth, fileName, prj, cu);
+		LOGGER.info("Time to validate (ms): " + (System.currentTimeMillis() - time));
 	}
 
 	public void logAST(int depth, String str) {
@@ -174,9 +178,8 @@ public class AstVisitor extends VoidVisitorAdapter {
 			sb.append("\r");
 			try {
 				astDumpWriter.write(sb.toString());
-				astDumpWriter.flush();
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 	}
@@ -259,7 +262,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		logIndented(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -435,7 +438,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 	public void visit(ClassOrInterfaceDeclaration n, Object arg) {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "-" + n.getEndLine() + "): " + n.getNameExpr().getName());
 
-		Logger.log(0, n.getParentNode().getClass().getName());
+		logIndented(0, n.getParentNode().getClass().getName());
 
 		Class newClass;
 		if (n.getParentNode() instanceof CompilationUnit) {
@@ -448,21 +451,21 @@ public class AstVisitor extends VoidVisitorAdapter {
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), parent.getName() + "." + n.getName(), true, this.fileName);
 		} else if (n.getParentNode() instanceof TypeDeclarationStmt) {
 			logAST(0, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.getNameExpr().getName());
-			Logger.log(0, "Creating class: " + n.getName());
+			logIndented(0, "Creating class: " + n.getName());
 
 			//			MethodDeclaration parent = (MethodDeclaration) n.getParentNode().getParentNode().getParentNode();
 			newClass = currentPackage.getOrCreateAndGetClass(heirarchyStack.size(), n.getName(), true, this.fileName);
 			newClass.setIsAnonymous(true, current);
 
 		} else {
-			Logger.log(0, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getParentNode().getClass().getName());
-			Logger.log(1, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getClass().getName());
-			Logger.log(2, "Shouldn't get here!!!! " + n.getParentNode().getClass().getName());
+			logIndented(0, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getParentNode().getClass().getName());
+			logIndented(1, "Shouldn't get here!!!! " + n.getParentNode().getParentNode().getClass().getName());
+			logIndented(2, "Shouldn't get here!!!! " + n.getParentNode().getClass().getName());
 			return;
 		}
 
 		project.addSearchIndex(currentPackage.getName(), newClass.getCanonicalName(), n.toString());
-		
+
 		current = newClass;
 		heirarchyStack.push(newClass);
 
@@ -483,7 +486,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		logIndented(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -535,12 +538,12 @@ public class AstVisitor extends VoidVisitorAdapter {
 		// TODO implement handling modifiers
 
 		String params = "";
-		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+		Map<String, String> paramMap = new LinkedHashMap<String, String>();
 
 		if (n.getParameters() != null) {
 			for (Parameter param : n.getParameters()) {
 				params += (params.isEmpty()) ? "" : ", ";
-				params += param.getType();// + " " + param.getId().getName();
+				params += param.getType();
 
 				paramMap.put(param.getId().getName(), param.getType().toString());
 			}
@@ -558,11 +561,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with " + current.getCanonicalName());
+		logIndented(heirarchyStack.size(), "Done with " + current.getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
-		Logger.log(heirarchyStack.size(), "Back with " + current.getCanonicalName());
+		logIndented(heirarchyStack.size(), "Back with " + current.getCanonicalName());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -686,7 +689,7 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
+		logIndented(heirarchyStack.size(), "Done with " + ((Class) current).getCanonicalName());
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
@@ -871,12 +874,12 @@ public class AstVisitor extends VoidVisitorAdapter {
 		logAST(depth, n.getClass().getName() + "(" + n.getBeginLine() + "): " + n.toString());
 
 		String params = "";
-		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+		Map<String, String> paramMap = new LinkedHashMap<String, String>();
 
 		if (n.getParameters() != null) {
 			for (Parameter param : n.getParameters()) {
 				params += (params.isEmpty()) ? "" : ", ";
-				params += param.getType();// + " " + param.getId().getName();
+				params += param.getType();
 
 				paramMap.put(param.getId().getName(), param.getType().toString());
 			}
@@ -893,11 +896,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 		super.visit(n, arg);
 		depth--;
 
-		Logger.log(heirarchyStack.size(), "Done with block");
+		logIndented(heirarchyStack.size(), "Done with block");
 		heirarchyStack.pop();
 		if (!heirarchyStack.isEmpty())
 			current = heirarchyStack.peek();
-		Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+		logIndented(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -972,18 +975,18 @@ public class AstVisitor extends VoidVisitorAdapter {
 			// class name as the type
 			typeOrVarName = "this";
 
-			//			System.out.println("Method call nameExpr: " + n.getNameExpr().toString());
+			//			LOGGER.info("Method call nameExpr: " + n.getNameExpr().toString());
 			//
 			//			for (Node child : n.getChildrenNodes()) {
-			//				System.out.println("  Method call (" + child.getClass().getName() + "): " + child.toString());
+			//				LOGGER.info("  Method call (" + child.getClass().getName() + "): " + child.toString());
 			//			}
 			//
 			//			for (Type t : n.getTypeArgs()) {
-			//				System.out.println("  Type Arg: " + t.toString());
+			//				LOGGER.info("  Type Arg: " + t.toString());
 			//			}
 			//
 			//			for (Expression t : n.getArgs()) {
-			//				System.out.println("  Arg: " + t.toString());
+			//				LOGGER.info("  Arg: " + t.toString());
 			//			}
 		}
 
@@ -1004,12 +1007,12 @@ public class AstVisitor extends VoidVisitorAdapter {
 		// TODO implement handling modifiers
 
 		String params = "";
-		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+		Map<String, String> paramMap = new LinkedHashMap<String, String>();
 
 		if (n.getParameters() != null) {
 			for (Parameter param : n.getParameters()) {
 				params += (params.isEmpty()) ? "" : ", ";
-				params += param.getType();// + " " + param.getId().getName();
+				params += param.getType();
 
 				paramMap.put(param.getId().getName(), param.getType().toString());
 			}
@@ -1028,11 +1031,11 @@ public class AstVisitor extends VoidVisitorAdapter {
 			super.visit(n, arg);
 			depth--;
 
-			Logger.log(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
+			logIndented(heirarchyStack.size(), "Done with " + ((Method) current).getCanonicalName());
 			heirarchyStack.pop();
 			if (!heirarchyStack.isEmpty())
 				current = heirarchyStack.peek();
-			Logger.log(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
+			logIndented(heirarchyStack.size(), "Back with " + ((DependentBase) current).getCanonicalName());
 		} else {
 			super.visit(n, arg);
 		}
@@ -1411,4 +1414,13 @@ public class AstVisitor extends VoidVisitorAdapter {
 
 	}
 
+	public void logIndented(int depth, String str) {
+		if (LOGGER.isDebugEnabled()) {
+			String retval = "";
+			for (int i = 0; i < depth; i++) {
+				retval += "    ";
+			}
+			LOGGER.debug(retval + str);
+		}
+	}
 }

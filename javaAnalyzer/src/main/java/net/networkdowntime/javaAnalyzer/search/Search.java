@@ -1,4 +1,4 @@
-package net.networkdowntime.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer.search;
 
 import java.io.IOException;
 import java.util.Date;
@@ -102,7 +102,7 @@ public class Search {
 		return searchResults;
 	}
 
-	public void finalize() {
+	public void finishedIndexing() {
 		try {
 			indexWriter.close();
 		} catch (IOException e) {

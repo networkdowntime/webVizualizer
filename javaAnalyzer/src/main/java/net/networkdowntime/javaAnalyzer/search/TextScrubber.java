@@ -1,4 +1,4 @@
-package net.networkdowntime.javaAnalyzer;
+package net.networkdowntime.javaAnalyzer.search;
 
 import java.io.BufferedReader;
 import java.io.File;

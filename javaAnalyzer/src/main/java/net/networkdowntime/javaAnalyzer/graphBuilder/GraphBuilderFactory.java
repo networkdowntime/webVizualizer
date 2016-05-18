@@ -11,9 +11,9 @@ public class GraphBuilderFactory {
 		if (filter.getDiagramType() == DiagramType.PACKAGE_DIAGRAM) {
 			builder = new PackageGraphBuilder();
 		} else if (filter.getDiagramType() == DiagramType.CLASS_ASSOCIATION_DIAGRAM) {
-			builder = new PackageGraphBuilder();
+			builder = new ClassGraphBuilder();
 		} else {
-			builder = new PackageGraphBuilder();
+			builder = new UnreferencedGraphBuilder();
 		}
 		
 		return builder.createGraph(project, filter);
