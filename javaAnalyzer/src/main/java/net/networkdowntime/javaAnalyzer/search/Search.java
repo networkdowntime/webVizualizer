@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -26,6 +28,8 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 public class Search {
+	private static final Logger LOGGER = LogManager.getLogger(Search.class.getName());
+
 	private Directory directory = new RAMDirectory();
 	private IndexWriter indexWriter = null;
 	
@@ -37,7 +41,7 @@ public class Search {
 				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND); // package create  Represents the creation or appended to the existing index database  
 				indexWriter = new IndexWriter(directory, iwc); // to write the document to the index database  
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error(e);
 			}
 		}
 	}
@@ -55,17 +59,17 @@ public class Search {
 		document.add(packagePath);
 		document.add(classPath);
 
-		Field FieldBody = new TextField("body", TextScrubber.scrubToString(text), Store.YES);
-		document.add(FieldBody);
+		Field fieldBody = new TextField("body", TextScrubber.scrubToString(text), Store.YES);
+		document.add(fieldBody);
 
 		try {
 			indexWriter.addDocument(document);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 
 		long endTime = new Date().getTime();
-		System.out.println("  spent  " + (endTime - startTime) + "  milliseconds to add " + className + " the search index");
+		LOGGER.info("  spent  " + (endTime - startTime) + "  milliseconds to add " + className + " the search index");
 
 	}
 
@@ -97,7 +101,7 @@ public class Search {
 
 			reader.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 		return searchResults;
 	}
@@ -106,7 +110,7 @@ public class Search {
 		try {
 			indexWriter.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 
 		indexWriter = null;

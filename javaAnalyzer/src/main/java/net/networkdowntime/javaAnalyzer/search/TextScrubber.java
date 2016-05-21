@@ -8,7 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class TextScrubber {
+	private static final Logger LOGGER = LogManager.getLogger(TextScrubber.class.getName());
 
 	private static Set<String> preProcessStopWords = new HashSet<String>();
 	private static Set<String> stopWords = new HashSet<String>();
@@ -109,35 +113,35 @@ public class TextScrubber {
 		text = text.replaceAll("\\s+", " ");
 
 		// Split CamelCase
-		if (!text.isEmpty()) {
-			for (String word : text.split("\\s+")) {
+		if (text.isEmpty()) {
+			return output;
+		}
+		
+		for (String word : text.split("\\s+")) {
 
-				if (word.length() >= minWordSize) {
-					if (!stopWords.contains(word.toLowerCase())) {
+			if (word.length() >= minWordSize && !stopWords.contains(word.toLowerCase())) {
 
-						String[] explodedWord = word.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])"); // CamelCase splitter
+				String[] explodedWord = word.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])"); // CamelCase splitter
 
-						if (explodedWord.length > 1) {
-							if (includeCamelCase) {
-								handleHyphens(output, stemmer, word);
-							}
+				if (explodedWord.length > 1) {
+					if (includeCamelCase) {
+						handleHyphens(output, stemmer, word);
+					}
 
-							for (String w : explodedWord) {
-								if (w.length() >= minWordSize && !stopWords.contains(w.toLowerCase())) {
-									handleHyphens(output, stemmer, w);
-								}
-							}
-						} else {
-							handleHyphens(output, stemmer, word);
+					for (String w : explodedWord) {
+						if (w.length() >= minWordSize && !stopWords.contains(w.toLowerCase())) {
+							handleHyphens(output, stemmer, w);
 						}
 					}
+				} else {
+					handleHyphens(output, stemmer, word);
 				}
 			}
 		}
 
 		return output;
 	}
-	
+
 	private static void handleHyphens(List<String> output, PorterStemmer stemmer, String word) {
 		if (includeHyphenatedWords) {
 			if (word.contains("-")) { // add the hyphenated word
@@ -154,7 +158,7 @@ public class TextScrubber {
 					output.add((stemWords) ? stemmer.stem(w.toLowerCase()) : w.toLowerCase());
 				}
 			}
-		}		
+		}
 	}
 
 	private Set<String> loadWords(String resource) {
@@ -174,7 +178,7 @@ public class TextScrubber {
 			}
 			reader.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 
 		return words;
