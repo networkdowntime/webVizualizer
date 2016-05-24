@@ -29,6 +29,7 @@ public class Project {
 	private Set<String> scannedFiles = new HashSet<String>();
 	private Map<String, Package> packages = new HashMap<String, Package>();
 	private Search search = new Search();
+	private boolean isValidated = false;
 
 	public Project() {
 		logIndented(0, "Creating a new Project");
@@ -164,6 +165,7 @@ public class Project {
 
 	public void addPackage(Package pkg) {
 		if (!packages.containsKey(pkg.getName())) {
+			isValidated = false;
 			packages.put(pkg.getName(), pkg);
 		}
 	}
@@ -210,6 +212,7 @@ public class Project {
 		if (pkg == null) {
 			pkg = new Package(depth, name, inPath, fileScanned);
 			pkg.setProject(this);
+			isValidated = false;
 			packages.put(name, pkg);
 		}
 
@@ -224,6 +227,10 @@ public class Project {
 		return pkg;
 	}
 
+	public boolean isValidated() {
+		return isValidated;
+	}
+	
 	public void validate() {
 		//		scannedFiles = new HashSet<String>();
 		//		packages = new HashMap<String, Package>();
@@ -233,20 +240,30 @@ public class Project {
 		//			scanFile(file);
 		//		}
 
-		int classCount = 0;
-		logIndented(1, "Beginning Validation:");
-		for (Package pkg : packages.values()) {
-			pkg.validatePassOne(2);
-			classCount += pkg.getClasses().size();
-		}
+		if (!isValidated)
+		{
+			int classCount = 0;
+			logIndented(1, "Beginning Validation:");
+			for (Package pkg : packages.values()) {
+				pkg.validatePassOne(2);
+				classCount += pkg.getClasses().size();
+			}
 
-		for (Package pkg : packages.values()) {
-			pkg.validatePassTwo(2);
-		}
-		logIndented(1, "Validation Completed");
+			for (Package pkg : packages.values()) {
+				pkg.validatePassTwo(2);
+			}
 
-		logIndented(0, "Validated " + packages.size() + " packages");
-		logIndented(0, "Validated " + classCount + " classes");
+			isValidated = true;
+
+			logIndented(1, "Validation Completed");
+
+			logIndented(0, "Validated " + packages.size() + " packages");
+			logIndented(0, "Validated " + classCount + " classes");
+		}
+		else
+		{
+			logIndented(1, "Validation Requested, but is already completed.");
+		}
 	}
 
 	public Class searchForClass(int depth, String pkgDoingSearch, String name) {
