@@ -1,4 +1,4 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams.database;
+package net.networkdowntime.dbAnalyzer.databases;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -15,27 +15,27 @@ import javax.sql.DataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.Column;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Constraint;
-import net.networkdowntime.dbAnalyzer.erdiagrams.ConstraintType;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Schema;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Table;
+import net.networkdowntime.dbAnalyzer.dbModel.Column;
+import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
+import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
+import net.networkdowntime.dbAnalyzer.dbModel.Table;
 import oracle.jdbc.pool.OracleDataSource;
 
-
 public class OracleAbstraction implements DatabaseAbstraction {
+	private static final Logger LOGGER = LogManager.getLogger(OracleAbstraction.class.getName());
 
 	private QueryRunner run = new QueryRunner();
-	private boolean debugOutput = false;
 	private DataSource ds;
 
 	@SuppressWarnings("unused")
 	private OracleAbstraction() {
 	}
 
-	public OracleAbstraction(boolean debugOutput, String userName, String password, String url) {
-		this.debugOutput = debugOutput;
+	public OracleAbstraction(String userName, String password, String url) {
 		this.ds = createConnection(userName, password, url);
 	}
 
@@ -110,8 +110,7 @@ public class OracleAbstraction implements DatabaseAbstraction {
 	}
 
 	public Map<String, Schema> getTableNames(List<String> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableNames");
+		LOGGER.debug("Begin getTableNames");
 		long startTime = System.currentTimeMillis();
 
 		Map<String, Schema> schemas = new LinkedHashMap<String, Schema>();
@@ -129,11 +128,9 @@ public class OracleAbstraction implements DatabaseAbstraction {
 
 				List<Object[]> tableList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
-				if (this.debugOutput)
-					System.out.println("Found tables:");
+				LOGGER.debug("Found tables:");
 				for (Object[] tableInfo : tableList) {
-					if (this.debugOutput)
-						System.out.println("\t" + schema.getName() + "." + tableInfo[0] + ": " + tableInfo[1]);
+					LOGGER.debug("\t" + schema.getName() + "." + tableInfo[0] + ": " + tableInfo[1]);
 
 					BigDecimal numberOfRows = (BigDecimal) tableInfo[2];
 					if (numberOfRows == null) {
@@ -163,14 +160,12 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableNames: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableNames: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 		return schemas;
 	}
 
 	public void getTableColumns(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableColumns");
+		LOGGER.debug("Begin getTableColumns");
 		long startTime = System.currentTimeMillis();
 
 		Connection conn = null;
@@ -199,15 +194,13 @@ public class OracleAbstraction implements DatabaseAbstraction {
 						+ " where OWNER = '" + schema.getName() + "'"
 						+ " order by TABLE_NAME, column_id";
 
-				if (this.debugOutput)
-					System.out.println(query);
+				LOGGER.debug(query);
 
 				List<Object[]> columnList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
-				if (this.debugOutput)
-					System.out.println("Found Columns For Tables in Schema " + schema.getName() + ":");
+				LOGGER.debug("Found Columns For Tables in Schema " + schema.getName() + ":");
 				for (Object[] columnInfo : columnList) {
-					// if (this.debugOutput) System.out.println("\t" + columnInfo[0] + ": " + columnInfo[4]);
+					// if (this.debugOutput) LOGGER.debug("\t" + columnInfo[0] + ": " + columnInfo[4]);
 					Column col = new Column((String) columnInfo[0]);
 					col.setOrdinalPosition(((BigDecimal) columnInfo[1]).intValue());
 					col.setColumnDefault((String) columnInfo[2]);
@@ -221,8 +214,7 @@ public class OracleAbstraction implements DatabaseAbstraction {
 					col.setScale((BigDecimal) columnInfo[10]);
 					String tableName = (String) columnInfo[11];
 
-					if (this.debugOutput)
-						System.out.println("\tFound Column " + col.getName() + " For Table " + tableName + " in Schema " + schema.getName() + ":");
+					LOGGER.debug("\tFound Column " + col.getName() + " For Table " + tableName + " in Schema " + schema.getName() + ":");
 
 					if (col.getPrecision() != null) {
 						StringBuffer columnType = new StringBuffer();
@@ -240,17 +232,16 @@ public class OracleAbstraction implements DatabaseAbstraction {
 
 					Table table = schema.getTables().get(tableName);
 
-					if (table != null)
+					if (table != null) {
 						table.getColumns().put(col.getName(), col);
-					else if (this.debugOutput)
-						System.err.println("!!! Couldn't find table " + tableName);
+					} else {
+						LOGGER.error("!!! Couldn't find table " + tableName);
+					}
 				}
 
-				if (this.debugOutput) {
-					for (Table table : schema.getTables().values()) {
-						System.out.println("Found Columns For Table " + table.getName() + ":");
-						System.out.println("\t" + table.getColumns().keySet());
-					}
+				for (Table table : schema.getTables().values()) {
+					LOGGER.debug("Found Columns For Table " + table.getName() + ":");
+					LOGGER.debug("\t" + table.getColumns().keySet());
 				}
 			}
 		} catch (SQLException e) {
@@ -263,14 +254,12 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableColumns: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableColumns: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 
 	}
 
 	public void getTableConstrints(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableConstraints");
+		LOGGER.debug("Begin getTableConstraints");
 		long startTime = System.currentTimeMillis();
 
 		/*
@@ -291,15 +280,13 @@ public class OracleAbstraction implements DatabaseAbstraction {
 				String query = "SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME FROM all_constraints WHERE CONSTRAINT_TYPE in ('P', 'U', 'R') and owner = '"
 						+ schema.getName() + "'";
 
-				if (this.debugOutput)
-					System.out.println(query);
+				LOGGER.debug(query);
 
 				List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
-				if (this.debugOutput)
-					System.out.println("Found Constraints For Schema " + schema.getName() + ":");
+				LOGGER.debug("Found Constraints For Schema " + schema.getName() + ":");
 				for (Object[] constriantInfo : constraintList) {
-					// if (this.debugOutput) System.out.println("\t" + constriantInfo[0] + ": " +
+					// if (this.debugOutput) LOGGER.debug("\t" + constriantInfo[0] + ": " +
 					// constriantInfo[1]);
 					Constraint con = new Constraint((String) constriantInfo[0]);
 					if ("P".equals(constriantInfo[1])) {
@@ -313,12 +300,10 @@ public class OracleAbstraction implements DatabaseAbstraction {
 
 					Table table = schema.getTables().get(tableName);
 					if (table != null) {
-						if (this.debugOutput)
-							System.out.println("\tFound " + con.getConstraintType() + " constraint " + con.getName() + " for table " + tableName);
+						LOGGER.debug("\tFound " + con.getConstraintType() + " constraint " + con.getName() + " for table " + tableName);
 						table.addConstraint(con.getName(), con);
 					} else {
-						if (this.debugOutput)
-							System.err.println("!!! Couldn't find table " + tableName);
+						System.err.println("!!! Couldn't find table " + tableName);
 					}
 				}
 			}
@@ -332,13 +317,11 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 	}
 
 	public void followTableConstrints(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin followTableConstraints");
+		LOGGER.debug("Begin followTableConstraints");
 		long startTime = System.currentTimeMillis();
 
 		Connection conn = null;
@@ -346,8 +329,7 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			conn = ds.getConnection();
 
 			for (Schema schema : schemasToScan.values()) {
-				if (this.debugOutput)
-					System.out.println("Getting constraint references for " + schema.getName());
+				LOGGER.debug("Getting constraint references for " + schema.getName());
 
 				String query = "SELECT distinct "
 						+ " ac.table_name" // 0
@@ -362,8 +344,7 @@ public class OracleAbstraction implements DatabaseAbstraction {
 						+ " and ac.owner = '" + schema.getName() + "'"
 						+ " and ac.constraint_type in ('P', 'R')";
 
-				if (this.debugOutput)
-					System.out.println(query);
+				LOGGER.debug(query);
 
 				List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
@@ -375,9 +356,8 @@ public class OracleAbstraction implements DatabaseAbstraction {
 					String referencedTable = (String) constriantInfo[4];
 					String referencedColumn = (String) constriantInfo[5];
 
-					if (this.debugOutput)
-						System.out.println("\t" + constraintName + " for table " + tableName + " column " + columnName + " referencing " + referencedSchema
-								+ "." + referencedTable + "." + referencedColumn);
+					LOGGER.debug("\t" + constraintName + " for table " + tableName + " column " + columnName + " referencing " + referencedSchema
+							+ "." + referencedTable + "." + referencedColumn);
 
 					Table table = schema.getTables().get(tableName);
 					if (table != null) {
@@ -395,16 +375,13 @@ public class OracleAbstraction implements DatabaseAbstraction {
 									Column refColumn = refTable.getColumns().get(referencedColumn);
 									con.getRefColumn().add(refColumn);
 								} else {
-									if (this.debugOutput)
-										System.err.println("!!! Couldn't find referenced Table " + referencedTable);
+									System.err.println("!!! Couldn't find referenced Table " + referencedTable);
 								}
 							} else {
-								if (this.debugOutput)
-									System.err.println("!!! Couldn't find referenced Schema " + referencedSchema);
+								System.err.println("!!! Couldn't find referenced Schema " + referencedSchema);
 							}
 						} else {
-							if (this.debugOutput)
-								System.err.println("!!! Referenced Schema string is null: " + referencedSchema);
+							System.err.println("!!! Referenced Schema string is null: " + referencedSchema);
 						}
 					}
 				}
@@ -419,8 +396,7 @@ public class OracleAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End followTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End followTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 	}
 
 	// dot -Tpng -O tlx_schema.gv

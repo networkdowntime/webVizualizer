@@ -19,7 +19,7 @@ $.each(fkFilter, function(value, label) {
 	$("#fkFilter").append("<option value='"+value+"'"+all+">"+label+"</option>");
 });
 
-$.get('/api/db/connection/supportedDatabases', function(data) {
+$.get('/api/db/dbScanner/supportedDatabases', function(data) {
 	var select = $("#dbType");
 	$(data).each(function() {
 		$(select).append("<option value="+this+">"+this+"</option>");
@@ -71,7 +71,7 @@ $("#connect").click(function() {
 	var url = $.trim($("#jdbcUrl").val());
 	
 	$.ajax({
-	    url:'/api/db/connection/connect',
+	    url:'/api/db/dbScanner/addConnection',
 	    type:'POST',
 	    data: JSON.stringify({ dbType: dbType, username: user, password: passwd, jdbcUrl: url}),
 	    dataType: 'json',
@@ -114,7 +114,7 @@ $("#connectionRender").click(function() {
 	};
 	
 	$.ajax({
-	    url:'/api/db/connection/dot',
+	    url:'/api/db/dbScanner/dot',
 	    type:'POST',
 	    data: JSON.stringify(filter),
 	    dataType: 'text',
@@ -146,7 +146,7 @@ function loadSchemas() {
 	schemasDiv = $(container).children(".content");
 	$(schemasDiv).empty();
 
-	$.get('/api/db/connection/schemasWithTables', function(data) {
+	$.get('/api/db/dbScanner/schemasWithTables', function(data) {
 	    
 		$("<div><input type='button' id='schemaCheckAll' value='Check Shown' /><span class='right'><input id='schemaSearch' type='text' placeholder='Schema search' value=''/></span></div>").appendTo(schemasDiv);
 
@@ -185,7 +185,7 @@ function loadSchemas() {
 
 function scanSchemas() {
 	var checkedSchemas = $.makeArray( $.map($(".schemas"), function(i) { if ($(i).prop('checked')) { return $(i).val(); } }) );
-	$.get('/api/db/connection/scanSchemas', { schemas : checkedSchemas }, function(data) {
+	$.get('/api/db/dbScanner/scanSchemas', { schemas : checkedSchemas }, function(data) {
 		loadTables();
     });
 }
@@ -194,7 +194,7 @@ function loadTables() {
 	container = $("#tablesDiv").next();
 	tablesDiv = $(container).children(".content");
 	$(tablesDiv).empty();
-	$.get('/api/db/connection/scannedTables', function(data) {
+	$.get('/api/db/dbScanner/scannedTables', function(data) {
 	    
 		$("<div><input type='button' id='tableCheckAll' value='Uncheck Shown' /><span class='right'><input id='tableSearch' type='text' placeholder='Table search' value=''/></span></div>").appendTo(tablesDiv);
 

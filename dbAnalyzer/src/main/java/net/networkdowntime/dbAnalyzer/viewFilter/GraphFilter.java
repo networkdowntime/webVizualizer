@@ -8,11 +8,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.Column;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Constraint;
-import net.networkdowntime.dbAnalyzer.erdiagrams.ConstraintType;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Schema;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Table;
+import net.networkdowntime.dbAnalyzer.dbModel.Column;
+import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
+import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
+import net.networkdowntime.dbAnalyzer.dbModel.Table;
 
 
 /**

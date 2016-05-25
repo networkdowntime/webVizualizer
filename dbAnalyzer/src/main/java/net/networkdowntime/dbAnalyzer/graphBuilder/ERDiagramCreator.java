@@ -1,35 +1,28 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams;
+package net.networkdowntime.dbAnalyzer.graphBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.database.DatabaseAbstraction;
-import net.networkdowntime.dbAnalyzer.erdiagrams.database.DatabaseAbstractionFactory;
+import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstraction;
+import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory;
+import net.networkdowntime.dbAnalyzer.dbModel.Column;
+import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
+import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
+import net.networkdowntime.dbAnalyzer.dbModel.DatabaseWalker;
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
+import net.networkdowntime.dbAnalyzer.dbModel.Table;
 import net.networkdowntime.dbAnalyzer.viewFilter.GraphFilter;
 import net.networkdowntime.renderer.GraphvizNeatoRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
-public class ERDiagramCreator {
-
-	public static final String DTO_PACKAGE_PATTERN = "#schema.#table";
+public class ERDiagramCreator implements GraphBuilder {
 
 	private static final boolean DEBUG_OUTPUT = true;
-
-	private DatabaseWalker dw;
+	private DatabaseWalker dbWalker;
 
 	public ERDiagramCreator() {
-	}
-
-	public ERDiagramCreator(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url, String[] schemasToScan) {
-		DatabaseAbstraction dbAbstraction = DatabaseAbstractionFactory.getDatabaseAbstraction(DEBUG_OUTPUT, dbType, userName, password, url);
-		if ("success".equals(dbAbstraction.testConnection())) {
-			dw = new DatabaseWalker(dbAbstraction, schemasToScan);
-			dw.startWalking();
-		} else {
-			System.out.println("unable to connect");
-		}
 	}
 
 	public DatabaseAbstraction setConnection(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url) {
@@ -38,58 +31,15 @@ public class ERDiagramCreator {
 	}
 
 	public void analyzeDatabase(DatabaseAbstraction dbAbstraction, List<String> schemasToScan) {
-		dw = new DatabaseWalker(dbAbstraction, schemasToScan);
-		dw.startWalking();
+		dbWalker = new DatabaseWalker(dbAbstraction, schemasToScan);
+		dbWalker.startWalking();
 	}
-
-//	public void createDiagramFile(GraphFilter filter) {
-//
-//		File graphFile = new File("graphFile.gv");
-//		try {
-//			FileWriter fw = new FileWriter(graphFile);
-//			fw.write(createGraphvizString(filter));
-//			fw.close();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-	/**
-	 * @param args
-	 */
-//	public static void main(String[] args) {
-//		ERDiagramCreator erDiagramCreator = null;
-//
-//		if (args.length > 4) {
-//			String[] schemasToScan = new String[args.length - 4];
-//			for (int i = 4; i < args.length; i++)
-//				schemasToScan[i - 4] = args[i];
-//			String dbType = args[0];
-//			String username = args[1];
-//			String password = args[2];
-//			String url = args[3];
-//			erDiagramCreator = new ERDiagramCreator(DatabaseAbstractionFactory.DBType.valueOf(dbType), username, password, url, schemasToScan);
-//		}
-//
-//		//		List<String> excludeFKForColumnsNamed = new ArrayList<String>();
-//		//		excludeFKForColumnsNamed.add("CREATED_BY");
-//		//		excludeFKForColumnsNamed.add("UPDATED_BY");
-//
-//		GraphFilter filter = new GraphFilter();
-//		filter.addExcludeFKForColumnsNamed("CREATED_BY");
-//		filter.addExcludeFKForColumnsNamed("UPDATED_BY");
-//		filter.setConnectWithFKs(true);
-//		filter.setShowAllColumnsOnTables(false);
-//		filter.setShowLabelsOnFKs(false);
-//		filter.setIncludeTablesWithMoreXRows(1);
-//		erDiagramCreator.createDiagramFile(filter);
-//	}
 
 	public List<String> getAllScannedTables() {
 		List<String> tables = new ArrayList<String>();
-		if (dw != null && dw.schemas != null) {
-			for (String schema : dw.schemas.keySet()) {
-				for (String table : dw.schemas.get(schema).getTables().keySet()) {
+		if (dbWalker != null && dbWalker.getSchemas() != null) {
+			for (String schema : dbWalker.getSchemas().keySet()) {
+				for (String table : dbWalker.getSchemas().get(schema).getTables().keySet()) {
 					tables.add(schema + "." + table);
 				}
 			}
@@ -100,15 +50,16 @@ public class ERDiagramCreator {
 		return tables;
 	}
 
-	public String createGraphvizString(GraphFilter filter) {
+	public String createGraph(DatabaseWalker dbWalker, GraphFilter filter) {
+		
 		return getGraph(getAllScannedTables(), filter);
 	}
 
 	private String getGraph(List<String> tables, GraphFilter filter) {
 		
 		Map<String, Schema> schemas = new HashMap<String, Schema>();
-		if (dw != null && dw.schemas != null) {
-			schemas.putAll(dw.schemas);
+		if (dbWalker != null && dbWalker.getSchemas() != null) {
+			schemas.putAll(dbWalker.getSchemas());
 		}
 
 		GraphvizRenderer renderer = new GraphvizNeatoRenderer();

@@ -1,4 +1,4 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams.database;
+package net.networkdowntime.dbAnalyzer.databases;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -15,32 +15,31 @@ import javax.sql.DataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.Column;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Constraint;
-import net.networkdowntime.dbAnalyzer.erdiagrams.ConstraintType;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Schema;
-import net.networkdowntime.dbAnalyzer.erdiagrams.Table;
+import net.networkdowntime.dbAnalyzer.dbModel.Column;
+import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
+import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
+import net.networkdowntime.dbAnalyzer.dbModel.Table;
 
 public class MySqlAbstraction implements DatabaseAbstraction {
+	private static final Logger LOGGER = LogManager.getLogger(MySqlAbstraction.class.getName());
 
 	private QueryRunner run = new QueryRunner();
-	private boolean debugOutput = false;
 	private DataSource ds;
 
 	@SuppressWarnings("unused")
 	private MySqlAbstraction() {
 	}
 
-	public MySqlAbstraction(boolean debugOutput, String userName, String password, String url) {
-		this.debugOutput = debugOutput;
+	public MySqlAbstraction(String userName, String password, String url) {
 		this.ds = createConnection(userName, password, url);
-		if (debugOutput) {
-			System.out.println("dataSource == null: " + (this.ds == null));
-			System.out.println(testConnection());
-		}
+		LOGGER.debug("dataSource == null: " + (this.ds == null));
+		LOGGER.debug(testConnection());
 	}
 
 	public DataSource getDataSource() {
@@ -49,8 +48,7 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 
 	private DataSource createConnection(String userName, String password, String url) {
 		try {
-			if (debugOutput)
-				System.out.println("Creating MySql data source");
+			LOGGER.debug("Creating MySql data source");
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			MysqlDataSource myDS = new MysqlDataSource();
 			myDS.setUser(userName);
@@ -117,8 +115,7 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 	}
 
 	public Map<String, Schema> getTableNames(List<String> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableNames");
+		LOGGER.debug("Begin getTableNames");
 		long startTime = System.currentTimeMillis();
 
 		Map<String, Schema> schemas = new LinkedHashMap<String, Schema>();
@@ -136,11 +133,9 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 
 				List<Object[]> tableList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
-				if (this.debugOutput)
-					System.out.println("Found tables:");
+				LOGGER.debug("Found tables:");
 				for (Object[] tableInfo : tableList) {
-					if (this.debugOutput)
-						System.out.println("\t" + schema.getName() + "." + tableInfo[0] + ": " + tableInfo[1]);
+					LOGGER.debug("\t" + schema.getName() + "." + tableInfo[0] + ": " + tableInfo[1]);
 
 					BigDecimal numberOfRows = null;
 					if (tableInfo[2] != null) {
@@ -172,14 +167,12 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableNames: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableNames: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 		return schemas;
 	}
 
 	public void getTableColumns(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableColumns");
+		LOGGER.debug("Begin getTableColumns");
 		long startTime = System.currentTimeMillis();
 
 		Connection conn = null;
@@ -196,16 +189,14 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 					String query = "select column_name, ordinal_position, column_default, is_nullable, data_type, column_type, extra, column_comment, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE from information_schema.columns where table_schema = '"
 							+ schema.getName() + "' and table_name = '" + table.getName() + "'";
 
-					if (this.debugOutput)
-						System.out.println(query);
+					LOGGER.debug(query);
 
 					List<Object[]> columnList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 					LinkedHashMap<String, Column> columns = new LinkedHashMap<String, Column>();
 
-					if (this.debugOutput)
-						System.out.println("Found Columns For Table " + schema.getName() + "." + table.getName() + ":");
+					LOGGER.debug("Found Columns For Table " + schema.getName() + "." + table.getName() + ":");
 					for (Object[] columnInfo : columnList) {
-						// if (this.debugOutput) System.out.println("\t" + columnInfo[0] + ": " + columnInfo[4]);
+						// if (this.debugOutput) LOGGER.debug("\t" + columnInfo[0] + ": " + columnInfo[4]);
 						Column col = new Column((String) columnInfo[0]);
 						col.setOrdinalPosition(((BigInteger) columnInfo[1]).intValue());
 						col.setColumnDefault((String) columnInfo[2]);
@@ -246,14 +237,12 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableColumns: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableColumns: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 
 	}
 
 	public void getTableConstrints(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin getTableConstraints");
+		LOGGER.debug("Begin getTableConstraints");
 		long startTime = System.currentTimeMillis();
 
 		Connection conn = null;
@@ -270,10 +259,9 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 
 					List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
-					if (this.debugOutput)
-						System.out.println("Found Constraints For Table " + schema.getName() + "." + tableName + ":");
+					LOGGER.debug("Found Constraints For Table " + schema.getName() + "." + tableName + ":");
 					for (Object[] constriantInfo : constraintList) {
-						// if (this.debugOutput) System.out.println("\t" + constriantInfo[0] + ": " +
+						// if (this.debugOutput) LOGGER.debug("\t" + constriantInfo[0] + ": " +
 						// constriantInfo[1]);
 						Constraint con = new Constraint((String) constriantInfo[0]);
 						if ("PRIMARY KEY".equals(constriantInfo[1])) {
@@ -297,13 +285,11 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End getTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End getTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 	}
 
 	public void followTableConstrints(Map<String, Schema> schemasToScan) {
-		if (this.debugOutput)
-			System.out.println("Begin followTableConstraints");
+		LOGGER.debug("Begin followTableConstraints");
 		long startTime = System.currentTimeMillis();
 
 		Connection conn = null;
@@ -311,25 +297,22 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			conn = ds.getConnection();
 
 			for (Schema schema : schemasToScan.values()) {
-				if (this.debugOutput)
-					System.out.println("Getting constraint references for " + schema.getName());
+				LOGGER.debug("Getting constraint references for " + schema.getName());
 
 				for (Table table : schema.getTables().values()) {
 
-					if (this.debugOutput)
-						System.out.println("Found Constraints For Table " + schema.getName() + "." + table.getName() + ":");
+					LOGGER.debug("Found Constraints For Table " + schema.getName() + "." + table.getName() + ":");
 					for (Constraint con : table.getConstraints().values()) {
 
 						String query = "select " + "column_name, " + "referenced_table_schema, " + "referenced_table_name, " + "referenced_column_name "
 								+ "from information_schema.key_column_usage " + "where table_schema = '" + schema.getName() + "' " + "and table_name = '" + table.getName()
 								+ "' " + "and constraint_name = '" + con.getName() + "'";
 
-						// if (this.debugOutput) System.out.println(query);
+						// if (this.debugOutput) LOGGER.debug(query);
 						List<Object[]> constraintList = (List<Object[]>) run.query(conn, query, new ArrayListHandler());
 
 						for (Object[] constriantInfo : constraintList) {
-							if (this.debugOutput)
-								System.out.println("\t" + con.getName() + " for column " + constriantInfo[0]);
+							LOGGER.debug("\t" + con.getName() + " for column " + constriantInfo[0]);
 							Column col = table.getColumns().get((String) constriantInfo[0]);
 							con.getColumns().add(col);
 							if (constriantInfo[1] != null) {
@@ -354,8 +337,7 @@ public class MySqlAbstraction implements DatabaseAbstraction {
 			}
 		}
 
-		if (this.debugOutput)
-			System.out.println("End followTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
+		LOGGER.debug("End followTableConstraints: " + ((System.currentTimeMillis() - startTime) / 60.0) + " seconds");
 	}
 
 }

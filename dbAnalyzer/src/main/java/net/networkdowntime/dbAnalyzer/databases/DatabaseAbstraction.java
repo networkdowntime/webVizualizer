@@ -1,10 +1,10 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams.database;
+package net.networkdowntime.dbAnalyzer.databases;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.Schema;
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
 
 
 public interface DatabaseAbstraction {
@@ -24,5 +24,10 @@ public interface DatabaseAbstraction {
 
 	public void followTableConstrints(Map<String, Schema> schemasToScan);
 
+	/**
+	 * Tests if the Database connection is working
+	 * 
+	 * @return
+	 */
 	public String testConnection();
 }

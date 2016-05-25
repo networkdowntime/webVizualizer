@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.ERDiagramCreator;
-import net.networkdowntime.dbAnalyzer.erdiagrams.database.DatabaseAbstraction;
-import net.networkdowntime.dbAnalyzer.erdiagrams.database.DatabaseAbstractionFactory;
-import net.networkdowntime.dbAnalyzer.erdiagrams.database.DatabaseAbstractionFactory.DBType;
+import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstraction;
+import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory;
+import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory.DBType;
+import net.networkdowntime.dbAnalyzer.dbModel.DatabaseWalker;
+import net.networkdowntime.dbAnalyzer.graphBuilder.ERDiagramCreator;
+import net.networkdowntime.dbAnalyzer.graphBuilder.GraphBuilder;
 import net.networkdowntime.dbAnalyzer.viewFilter.GraphFilter;
 import net.networkdowntime.webVizualizer.dto.Status;
 
@@ -21,11 +23,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/db/connection")
-public class Connection {
+@RequestMapping("/api/db/dbScanner")
+public class DatabaseScanner {
 
-	static DatabaseAbstraction dba;
-	static ERDiagramCreator creator;
+//	private static DatabaseAbstraction dba;
+	private static GraphBuilder creator;
+	
+	private static DatabaseWalker dbWalker = new DatabaseWalker();
 
 	@RequestMapping(value = "/supportedDatabases", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public List<String> getSupportedDatabases() {
@@ -38,7 +42,17 @@ public class Connection {
 		return types;
 	}
 
-	@RequestMapping(value = "/connect", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" })
+	@RequestMapping(value = "/testConnection", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" })
+	public Status testConnection(@RequestBody Map<String, String> body) {
+		String dbType = body.get("dbType");
+		String userName = body.get("username");
+		String password = body.get("password");
+		String url = body.get("jdbcUrl");
+		
+		return new Status(DatabaseAbstractionFactory.getDatabaseAbstraction(DBType.valueOf(dbType), userName, password, url).testConnection().equals("success"));
+	}
+
+	@RequestMapping(value = "/addConnection", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" })
 	public Status getConnection(@RequestBody Map<String, String> body) {
 		String dbType = body.get("dbType");
 		String userName = body.get("username");
@@ -46,7 +60,9 @@ public class Connection {
 		String url = body.get("jdbcUrl");
 		
 		creator = new ERDiagramCreator();
-		dba = creator.setConnection(DBType.valueOf(dbType), userName, password, url);
+//		dba = creator.setConnection(DBType.valueOf(dbType), userName, password, url);
+		dbWalker.addConnection(DBType.valueOf(dbType), userName, password, url);
+		dbWalker = new DatabaseWalker(dba, new ArrayList<String>());
 
 		return new Status(dba.testConnection().equals("success"));
 	}
@@ -99,7 +115,7 @@ public class Connection {
 		}
 		System.out.println("fkFilter: " + filter.getFkFilter().toString());
 
-		return creator.createGraphvizString(filter);
+		return creator.createGraph(dbWalker, filter);
 	}
 
 }

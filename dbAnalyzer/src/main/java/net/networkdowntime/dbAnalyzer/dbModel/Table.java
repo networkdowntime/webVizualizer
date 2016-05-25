@@ -1,4 +1,4 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams;
+package net.networkdowntime.dbAnalyzer.dbModel;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
