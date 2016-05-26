@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstraction;
 import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory;
 import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory.DBType;
@@ -26,9 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/db/dbScanner")
 public class DatabaseScanner {
 
-//	private static DatabaseAbstraction dba;
+	//	private static DatabaseAbstraction dba;
 	private static GraphBuilder creator;
-	
+
 	private static DatabaseWalker dbWalker = new DatabaseWalker();
 
 	@RequestMapping(value = "/supportedDatabases", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
@@ -48,23 +50,34 @@ public class DatabaseScanner {
 		String userName = body.get("username");
 		String password = body.get("password");
 		String url = body.get("jdbcUrl");
-		
+
 		return new Status(DatabaseAbstractionFactory.getDatabaseAbstraction(DBType.valueOf(dbType), userName, password, url).testConnection().equals("success"));
 	}
 
-	@RequestMapping(value = "/addConnection", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" })
-	public Status getConnection(@RequestBody Map<String, String> body) {
+	@RequestMapping(value = "/connection", method = RequestMethod.POST, produces = { "application/json;charset=UTF-8" })
+	public Status addConnection(@RequestBody Map<String, String> body) {
 		String dbType = body.get("dbType");
 		String userName = body.get("username");
 		String password = body.get("password");
 		String url = body.get("jdbcUrl");
-		
-		creator = new ERDiagramCreator();
-//		dba = creator.setConnection(DBType.valueOf(dbType), userName, password, url);
-		dbWalker.addConnection(DBType.valueOf(dbType), userName, password, url);
-		dbWalker = new DatabaseWalker(dba, new ArrayList<String>());
 
-		return new Status(dba.testConnection().equals("success"));
+		boolean added = false;
+		if (DatabaseAbstractionFactory.getDatabaseAbstraction(DBType.valueOf(dbType), userName, password, url).testConnection().equals("success")) {
+			creator = new ERDiagramCreator();
+			dbWalker.addConnection(DBType.valueOf(dbType), userName, password, url);
+			added = true;
+		}
+		return new Status(added);
+	}
+
+	@RequestMapping(value = "/connection", method = RequestMethod.DELETE)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void deleteConnection(@RequestParam("url") String url, HttpServletResponse response) {
+		boolean deleted = dbWalker.removeConnection(url);
+
+		if (!deleted) {
+			response.setStatus(HttpStatus.NOT_FOUND.ordinal());
+		}
 	}
 
 	@RequestMapping(value = "/scanSchemas", method = RequestMethod.GET)
@@ -92,7 +105,7 @@ public class DatabaseScanner {
 		GraphFilter filter = new GraphFilter();
 		return filter;
 	}
-	
+
 	@RequestMapping(value = "/dot", method = RequestMethod.POST, produces = { "plain/text;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
 	@ResponseBody
 	public String postDot(@RequestBody GraphFilter filter) {
