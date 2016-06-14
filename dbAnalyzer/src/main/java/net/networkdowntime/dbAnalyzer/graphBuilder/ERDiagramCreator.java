@@ -1,12 +1,12 @@
 package net.networkdowntime.dbAnalyzer.graphBuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.TreeSet;
 
-import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstraction;
-import net.networkdowntime.dbAnalyzer.databases.DatabaseAbstractionFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.networkdowntime.dbAnalyzer.dbModel.Column;
 import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
 import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
@@ -14,86 +14,62 @@ import net.networkdowntime.dbAnalyzer.dbModel.DatabaseWalker;
 import net.networkdowntime.dbAnalyzer.dbModel.Schema;
 import net.networkdowntime.dbAnalyzer.dbModel.Table;
 import net.networkdowntime.dbAnalyzer.viewFilter.GraphFilter;
-import net.networkdowntime.renderer.GraphvizNeatoRenderer;
+import net.networkdowntime.renderer.GraphvizDotRenderer;
 import net.networkdowntime.renderer.GraphvizRenderer;
 
 public class ERDiagramCreator implements GraphBuilder {
+	private static final Logger LOGGER = LogManager.getLogger(ERDiagramCreator.class.getName());
 
-	private static final boolean DEBUG_OUTPUT = true;
-	private DatabaseWalker dbWalker;
+	private GraphvizRenderer renderer;
+	private StringBuilder graph = new StringBuilder();
+	private List<String> edgeList = new ArrayList<String>();
 
 	public ERDiagramCreator() {
 	}
 
-	public DatabaseAbstraction setConnection(DatabaseAbstractionFactory.DBType dbType, String userName, String password, String url) {
-		DatabaseAbstraction dbAbstraction = DatabaseAbstractionFactory.getDatabaseAbstraction(DEBUG_OUTPUT, dbType, userName, password, url);
-		return dbAbstraction;
-	}
-
-	public void analyzeDatabase(DatabaseAbstraction dbAbstraction, List<String> schemasToScan) {
-		dbWalker = new DatabaseWalker(dbAbstraction, schemasToScan);
-		dbWalker.startWalking();
-	}
-
-	public List<String> getAllScannedTables() {
-		List<String> tables = new ArrayList<String>();
-		if (dbWalker != null && dbWalker.getSchemas() != null) {
-			for (String schema : dbWalker.getSchemas().keySet()) {
-				for (String table : dbWalker.getSchemas().get(schema).getTables().keySet()) {
-					tables.add(schema + "." + table);
-				}
-			}
-		}
-
-		//		Collections.sort(tables.subList(1, tables.size()));
-
-		return tables;
-	}
-
 	public String createGraph(DatabaseWalker dbWalker, GraphFilter filter) {
-		
-		return getGraph(getAllScannedTables(), filter);
-	}
-
-	private String getGraph(List<String> tables, GraphFilter filter) {
-		
-		Map<String, Schema> schemas = new HashMap<String, Schema>();
-		if (dbWalker != null && dbWalker.getSchemas() != null) {
-			schemas.putAll(dbWalker.getSchemas());
-		}
-
-		GraphvizRenderer renderer = new GraphvizNeatoRenderer();
-
-		StringBuffer graph = new StringBuffer();
+		renderer = new GraphvizDotRenderer();
 		graph.append(renderer.getHeader());
 
-		for (String schemaName : schemas.keySet()) {
-			Schema schema = schemas.get(schemaName);
+		TreeSet<String> sortedTables = new TreeSet<String>((String s1, String s2)->s1.compareTo(s2));
+		sortedTables.addAll(filter.getTablesToInclude());
 
-			if (schemas.size() > 1) {
-				graph.append(renderer.getBeginCluster(schemaName));
-			}
-
-			graph.append(renderer.getLabel(schemaName));
-
-			for (Table table : schema.getTables().values()) {
-
-				if (!filter.skipTable(schema, table)) {
-					graph.append(analyzeTable(renderer, schemaName, table, filter));
-				}
-
-			}
-
-			if (schemas.size() > 1) {
+		String prevSchemaName = null;
+		for (String canonicalTable : sortedTables) {
+			String[] explodedCanonicalTable = canonicalTable.split("\\.");
+			String url = explodedCanonicalTable[0];
+			String schemaName = explodedCanonicalTable[1];
+			String tableName = explodedCanonicalTable[2];
+			
+			if (prevSchemaName != null && !schemaName.equals(prevSchemaName)) { // changed schemas and not first time through, close cluster
 				graph.append(renderer.getEndCluster());
 			}
+			
+			Schema schema = dbWalker.getSchema(url, schemaName);
+			if (schema != null) {
+				Table table = schema.getTables().get(tableName);
+				if (table != null && !filter.skipTable(url, schema, table)) {
+					if (!schemaName.equals(prevSchemaName)) {
+						graph.append(renderer.getBeginCluster(schemaName));
+						graph.append(renderer.getLabel(schemaName));
+					}
+					graph.append(analyzeTable(schemaName, table, filter));
+				}
+			}
+			prevSchemaName = schemaName;
+		}
+		graph.append(renderer.getEndCluster()); // close the last cluster
+
+		for (String edge : edgeList) {
+			graph.append(edge);
 		}
 
 		graph.append(renderer.getFooter());
 		return graph.toString();
+
 	}
 
-	public String analyzeTable(GraphvizRenderer renderer, String schemaName, Table table, GraphFilter filter) {
+	public String analyzeTable(String schemaName, Table table, GraphFilter filter) {
 		StringBuffer sb = new StringBuffer();
 
 		String numberOfRows = "";
@@ -137,14 +113,14 @@ public class ERDiagramCreator implements GraphBuilder {
 		if (filter.isConnectWithFKs()) {
 			for (Constraint con : table.getConstraints().values()) {
 				if (!filter.skipFKForConstraint(con) && con.getConstraintType() == ConstraintType.FOREIGN_KEY && con.getRefTable() != null) {
-					System.out.println("constraint type: " + con.getConstraintType());
-					System.out.println("table name: " + table.getName());
-					System.out.println("con.getRefTable() == null: " + (con.getRefTable() == null));
+					LOGGER.debug("constraint type: " + con.getConstraintType());
+					LOGGER.debug("table name: " + table.getName());
+					LOGGER.debug("con.getRefTable() == null: " + (con.getRefTable() == null));
 					if (con.getRefTable() != null)
-						System.out.println("con.getRefTable().getName(): " + con.getRefTable().getName());
-					System.out.println("constraint name: " + con.getName());
+						LOGGER.debug("con.getRefTable().getName(): " + con.getRefTable().getName());
+					LOGGER.debug("constraint name: " + con.getName());
 
-					sb.append(renderer.addEdge(table.getName(), con.getRefTable().getName(), (filter.isShowLabelsOnFKs()) ? con.getName() : ""));
+					edgeList.add(renderer.addEdge(table.getName(), con.getRefTable().getName(), (filter.isShowLabelsOnFKs()) ? con.getName() : ""));
 				}
 			}
 		}

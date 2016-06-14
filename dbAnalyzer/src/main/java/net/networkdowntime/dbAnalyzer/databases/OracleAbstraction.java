@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +110,8 @@ public class OracleAbstraction implements DatabaseAbstraction {
 		return schemaNames;
 	}
 
-	public Map<String, Schema> getTableNames(List<String> schemasToScan) {
+	@Override
+	public Map<String, Schema> getTableNames(Collection<String> schemasToScan) {
 		LOGGER.debug("Begin getTableNames");
 		long startTime = System.currentTimeMillis();
 

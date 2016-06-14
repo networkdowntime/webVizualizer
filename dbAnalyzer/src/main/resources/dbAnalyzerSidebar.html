@@ -2,14 +2,16 @@
 
 	<div class="collapsible" id="connectionDiv">Connection<span></span></div>
 	<div class="container" id="connectionContainer">
-		<div class="content">
+		<div class="content hidden">
 			<form>
 			<div><select id="dbType"></select></div>
 			<div><input id="username" type="text" placeholder="Username" value=''/></div>
 			<div><input id="password" type="password" placeholder="Password" value=''/></div>
 			<div><input id="jdbcUrl" type="text" placeholder="JDBC URL (jdbc:mysql://localhost/test)" value=''/></div>
 			</form>
-			<div><button id="connect">Connect</button></div>
+			<div><button id="addJdbcUrl">Connect</button></div>
+		</div>
+		<div class="content jdbcUrls" id="jdbcUrls">
 		</div>
 	</div>
 	

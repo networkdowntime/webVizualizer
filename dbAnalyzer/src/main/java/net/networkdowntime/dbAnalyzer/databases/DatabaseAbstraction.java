@@ -1,6 +1,7 @@
 package net.networkdowntime.dbAnalyzer.databases;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ public interface DatabaseAbstraction {
 
 	public List<String> getAllSchemaNamesWithTables();
 	
-	public Map<String, Schema> getTableNames(List<String> schemasToScan);
+	public Map<String, Schema> getTableNames(Collection<String> schemasToScan);
 
 	public void getTableColumns(Map<String, Schema> schemasToScan) throws SQLException;
 

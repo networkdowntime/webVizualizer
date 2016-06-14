@@ -41,7 +41,7 @@ public class GraphFilter implements Serializable {
 	 * A list of the tables that you want to be excluded from the diagram.
 	 * These should be schema.table format
 	 */
-	Set<String> tablesToExclude = new HashSet<String>(); 
+	Set<String> tablesToInclude = new HashSet<String>(); 
 
 	/**
 	 * Allows you to filter tables based on whether or not they have a primary key.
@@ -82,7 +82,7 @@ public class GraphFilter implements Serializable {
 		this.excludeFKForColumnsNamed.add(columnName);
 	}
 
-	public boolean skipTable(Schema schema, Table table) {
+	public boolean skipTable(String url, Schema schema, Table table) {
 		boolean skip = false;
 
 		switch (pkFilter) {
@@ -118,7 +118,7 @@ public class GraphFilter implements Serializable {
 			break;
 		}
 
-		if (tablesToExclude.contains(schema.getName() + "." + table.getName())) {
+		if (!tablesToInclude.contains(url + "." + schema.getName() + "." + table.getName())) {
 			skip = true;
 		}
 		
@@ -165,12 +165,12 @@ public class GraphFilter implements Serializable {
 		this.includeTablesWithMoreXRows = includeTablesWithMoreXRows;
 	}
 
-	public Set<String> getTablesToExclude() {
-		return tablesToExclude;
+	public Set<String> getTablesToInclude() {
+		return tablesToInclude;
 	}
 
-	public void setTablesToExclude(Set<String> tablesToExclude) {
-		this.tablesToExclude = tablesToExclude;
+	public void setTablesToInclude(Set<String> tablesToInclude) {
+		this.tablesToInclude = tablesToInclude;
 	}
 
 	public PkFilter getPkFilter() {
