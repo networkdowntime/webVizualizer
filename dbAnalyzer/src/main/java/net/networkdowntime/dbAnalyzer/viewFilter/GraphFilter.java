@@ -6,14 +6,16 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import net.networkdowntime.dbAnalyzer.api.DatabaseScanner;
 import net.networkdowntime.dbAnalyzer.dbModel.Column;
 import net.networkdowntime.dbAnalyzer.dbModel.Constraint;
 import net.networkdowntime.dbAnalyzer.dbModel.ConstraintType;
 import net.networkdowntime.dbAnalyzer.dbModel.Schema;
 import net.networkdowntime.dbAnalyzer.dbModel.Table;
-
 
 /**
  * The main filter class for database entity relation diagrams.
@@ -24,6 +26,8 @@ import net.networkdowntime.dbAnalyzer.dbModel.Table;
 @XmlRootElement
 public class GraphFilter implements Serializable {
 	private static final long serialVersionUID = 3970369374477127442L;
+	private static final Logger LOGGER = LogManager.getLogger(DatabaseScanner.class.getName());
+
 
 	/**
 	 * Flag that instructs the filter to excludes columns that don't contain a primary key or foreign key constraint.
@@ -41,7 +45,7 @@ public class GraphFilter implements Serializable {
 	 * A list of the tables that you want to be excluded from the diagram.
 	 * These should be schema.table format
 	 */
-	Set<String> tablesToInclude = new HashSet<String>(); 
+	Set<String> tablesToInclude = new HashSet<String>();
 
 	/**
 	 * Allows you to filter tables based on whether or not they have a primary key.
@@ -58,7 +62,7 @@ public class GraphFilter implements Serializable {
 	 * Flag to indicate if you want to see labels for the foreign key constraints.
 	 */
 	boolean showLabelsOnFKs = true;
-	
+
 	/**
 	 * A list of column names for which you do not want to see the foreign key constraints.
 	 */
@@ -77,7 +81,7 @@ public class GraphFilter implements Serializable {
 
 	public GraphFilter() {
 	}
-	
+
 	public void addExcludeFKForColumnsNamed(String columnName) {
 		this.excludeFKForColumnsNamed.add(columnName);
 	}
@@ -88,11 +92,11 @@ public class GraphFilter implements Serializable {
 		switch (pkFilter) {
 		case HasPK:
 			skip = skip || !table.hasPK();
-			System.out.println("HasPK: skip = " + skip);
+			LOGGER.debug("HasPK: skip = " + skip);
 			break;
 		case NoPK:
 			skip = skip || table.hasPK();
-			System.out.println("NoPK: skip = " + skip);
+			LOGGER.debug("NoPK: skip = " + skip);
 			break;
 		default:
 			break;
@@ -101,18 +105,18 @@ public class GraphFilter implements Serializable {
 		switch (fkFilter) {
 		case HasFK:
 			boolean containsNonSkippedFKConstraint = false;
-			
+
 			for (Constraint con : table.getConstraints().values()) {
-				containsNonSkippedFKConstraint = containsNonSkippedFKConstraint || (!skipFKForConstraint(con)  && con.getConstraintType() == ConstraintType.FOREIGN_KEY);
+				containsNonSkippedFKConstraint = containsNonSkippedFKConstraint || (!skipFKForConstraint(con) && con.getConstraintType() == ConstraintType.FOREIGN_KEY);
 			}
 
 			skip = skip || !containsNonSkippedFKConstraint;
 
-			System.out.println("HasFK: skip (" + table.getName() + ") = " + skip);
+			LOGGER.debug("HasFK: skip (" + table.getName() + ") = " + skip);
 			break;
 		case NoFK:
 			skip = skip || table.hasFK();
-			System.out.println("NoFK: skip (" + table.getName() + ") = " + skip);
+			LOGGER.debug("NoFK: skip (" + table.getName() + ") = " + skip);
 			break;
 		default:
 			break;
@@ -121,11 +125,11 @@ public class GraphFilter implements Serializable {
 		if (!tablesToInclude.contains(url + "." + schema.getName() + "." + table.getName())) {
 			skip = true;
 		}
-		
+
 		for (String tableNamePart : excludeTablesContaining) {
 			if (!tableNamePart.isEmpty() && table.getName().contains(tableNamePart)) {
 				skip = true;
-				System.out.println("excludeTablesContaining: skip = " + skip);
+				LOGGER.debug("excludeTablesContaining: skip = " + skip);
 			}
 		}
 

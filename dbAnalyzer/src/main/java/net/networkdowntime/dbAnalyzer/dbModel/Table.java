@@ -11,6 +11,8 @@ public class Table {
 	 */
 	private String name;
 
+	private String canonicalName;
+
 	/**
 	 * The comments for the table
 	 */
@@ -96,6 +98,14 @@ public class Table {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getCanonicalName() {
+		return canonicalName;
+	}
+
+	public void setCanonicalName(String canonicalName) {
+		this.canonicalName = canonicalName;
 	}
 
 	public String getComment() {

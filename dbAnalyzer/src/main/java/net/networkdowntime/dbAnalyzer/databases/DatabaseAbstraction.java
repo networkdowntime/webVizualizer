@@ -7,11 +7,10 @@ import java.util.Map;
 
 import net.networkdowntime.dbAnalyzer.dbModel.Schema;
 
-
 public interface DatabaseAbstraction {
 
 	public List<String> getAllSchemaNamesWithTables();
-	
+
 	public Map<String, Schema> getTableNames(Collection<String> schemasToScan);
 
 	public void getTableColumns(Map<String, Schema> schemasToScan) throws SQLException;

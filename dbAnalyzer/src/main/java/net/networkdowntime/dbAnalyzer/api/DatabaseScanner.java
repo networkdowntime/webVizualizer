@@ -37,9 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class DatabaseScanner {
 	private static final Logger LOGGER = LogManager.getLogger(DatabaseScanner.class.getName());
 
-	//	private static DatabaseAbstraction dba;
-//	private static GraphBuilder creator;
-
 	private static DatabaseWalker dbWalker = new DatabaseWalker();
 
 	@RequestMapping(value = "/supportedDatabases", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
@@ -90,7 +87,7 @@ public class DatabaseScanner {
 
 	@RequestMapping(value = "/connections", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public Set<Url> getConnections() {
-		TreeSet<Url> urls = new TreeSet<Url>((Url u1, Url u2)->u1.getUrl().compareTo(u2.getUrl()));
+		TreeSet<Url> urls = new TreeSet<Url>((Url u1, Url u2) -> u1.getUrl().compareTo(u2.getUrl()));
 		for (String urlString : dbWalker.getUrls()) {
 			Url url = new Url();
 			url.setUrl(urlString);
@@ -103,7 +100,7 @@ public class DatabaseScanner {
 				schema.setSchemaName(schemaName);
 				List<Table> tables = new ArrayList<Table>();
 				schema.setTables(tables);
-				
+
 				for (String tableName : dbWalker.getTables(urlString, schemaName)) {
 					Table table = new Table();
 					table.setUrl(urlString);
@@ -111,12 +108,12 @@ public class DatabaseScanner {
 					table.setTableName(tableName);
 					tables.add(table);
 				}
-				
-				tables.sort((Table t1, Table t2)->t1.getTableName().compareTo(t2.getTableName()));
+
+				tables.sort((Table t1, Table t2) -> t1.getTableName().compareTo(t2.getTableName()));
 				schemas.add(schema);
 			}
-			
-			schemas.sort((Schema s1, Schema s2)->s1.getSchemaName().compareTo(s2.getSchemaName()));
+
+			schemas.sort((Schema s1, Schema s2) -> s1.getSchemaName().compareTo(s2.getSchemaName()));
 			url.setSchemas(schemas);
 			urls.add(url);
 		}
@@ -124,19 +121,19 @@ public class DatabaseScanner {
 	}
 
 	@RequestMapping(value = "/schemasWithTables", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
-	public Map<String, Set<String>> getSchemasWithTables()  {
+	public Map<String, Set<String>> getSchemasWithTables() {
 		return dbWalker.getSchemas();
 	}
 
 	@RequestMapping(value = "/tables", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public Map<String, Set<String>> getScannedTables(@RequestParam("schemas[]") List<String> schemas) {
 		Map<String, Set<String>> urlSchemaMap = new LinkedHashMap<String, Set<String>>();
-		
+
 		for (String str : schemas) {
 			String url = str.substring(0, str.indexOf("."));
 			String schema = str.substring(str.indexOf(".") + 1);
 			LOGGER.debug(str + "; " + url + "; " + schema);
-			
+
 			Set<String> schemaNames;
 			if (urlSchemaMap.containsKey(url)) {
 				schemaNames = urlSchemaMap.get(url);
@@ -146,10 +143,10 @@ public class DatabaseScanner {
 			}
 			schemaNames.add(schema);
 		}
-		
+
 		return dbWalker.getTables(urlSchemaMap);
 	}
-	
+
 	@RequestMapping(value = "/dot", method = RequestMethod.GET, produces = { "application/json;charset=UTF-8" })
 	public GraphFilter getDot() {
 		GraphFilter filter = new GraphFilter();
@@ -159,24 +156,24 @@ public class DatabaseScanner {
 	@RequestMapping(value = "/dot", method = RequestMethod.POST, produces = { "plain/text;charset=UTF-8" }, consumes = { "application/json;charset=UTF-8" })
 	@ResponseBody
 	public String postDot(@RequestBody GraphFilter filter) {
-		System.out.println("showAllColumnsOnTables: " + filter.isShowAllColumnsOnTables());
-		System.out.println("includeTablesWithMoreXRows: " + filter.getIncludeTablesWithMoreXRows());
-		System.out.println("Included Tables:");
+		LOGGER.debug("showAllColumnsOnTables: " + filter.isShowAllColumnsOnTables());
+		LOGGER.debug("includeTablesWithMoreXRows: " + filter.getIncludeTablesWithMoreXRows());
+		LOGGER.debug("Included Tables:");
 		for (String s : filter.getTablesToInclude()) {
-			System.out.println("\t" + s);
+			LOGGER.debug("\t" + s);
 		}
-		System.out.println("pkFilter: " + filter.getPkFilter().toString());
-		System.out.println("connectWithFKs: " + filter.isConnectWithFKs());
-		System.out.println("showLabelsOnFKs: " + filter.isShowLabelsOnFKs());
-		System.out.println("excludeFKForColumnsNamed: ");
+		LOGGER.debug("pkFilter: " + filter.getPkFilter().toString());
+		LOGGER.debug("connectWithFKs: " + filter.isConnectWithFKs());
+		LOGGER.debug("showLabelsOnFKs: " + filter.isShowLabelsOnFKs());
+		LOGGER.debug("excludeFKForColumnsNamed: ");
 		for (String s : filter.getExcludeFKForColumnsNamed()) {
-			System.out.println("\t" + s);
+			LOGGER.debug("\t" + s);
 		}
-		System.out.println("excludeTablesContaining: ");
+		LOGGER.debug("excludeTablesContaining: ");
 		for (String s : filter.getExcludeTablesContaining()) {
-			System.out.println("\t" + s);
+			LOGGER.debug("\t" + s);
 		}
-		System.out.println("fkFilter: " + filter.getFkFilter().toString());
+		LOGGER.debug("fkFilter: " + filter.getFkFilter().toString());
 
 		GraphBuilder builder = new ERDiagramCreator();
 		return builder.createGraph(dbWalker, filter);

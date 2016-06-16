@@ -31,7 +31,7 @@ public class ERDiagramCreator implements GraphBuilder {
 		renderer = new GraphvizDotRenderer();
 		graph.append(renderer.getHeader());
 
-		TreeSet<String> sortedTables = new TreeSet<String>((String s1, String s2)->s1.compareTo(s2));
+		TreeSet<String> sortedTables = new TreeSet<String>((String s1, String s2) -> s1.compareTo(s2));
 		sortedTables.addAll(filter.getTablesToInclude());
 
 		String prevSchemaName = null;
@@ -40,11 +40,11 @@ public class ERDiagramCreator implements GraphBuilder {
 			String url = explodedCanonicalTable[0];
 			String schemaName = explodedCanonicalTable[1];
 			String tableName = explodedCanonicalTable[2];
-			
+
 			if (prevSchemaName != null && !schemaName.equals(prevSchemaName)) { // changed schemas and not first time through, close cluster
 				graph.append(renderer.getEndCluster());
 			}
-			
+
 			Schema schema = dbWalker.getSchema(url, schemaName);
 			if (schema != null) {
 				Table table = schema.getTables().get(tableName);
@@ -53,7 +53,7 @@ public class ERDiagramCreator implements GraphBuilder {
 						graph.append(renderer.getBeginCluster(schemaName));
 						graph.append(renderer.getLabel(schemaName));
 					}
-					graph.append(analyzeTable(schemaName, table, filter));
+					graph.append(analyzeTable(url, schemaName, table, filter));
 				}
 			}
 			prevSchemaName = schemaName;
@@ -69,7 +69,7 @@ public class ERDiagramCreator implements GraphBuilder {
 
 	}
 
-	public String analyzeTable(String schemaName, Table table, GraphFilter filter) {
+	public String analyzeTable(String url, String schemaName, Table table, GraphFilter filter) {
 		StringBuffer sb = new StringBuffer();
 
 		String numberOfRows = "";
@@ -77,7 +77,7 @@ public class ERDiagramCreator implements GraphBuilder {
 			numberOfRows = " (" + table.getNumberOfRows() + " rows)";
 		}
 
-		sb.append(renderer.getBeginRecord(table.getName(), numberOfRows));
+		sb.append(renderer.getBeginRecord(table.getCanonicalName(), table.getName(), numberOfRows));
 
 		int nonDisplayedColumnCount = table.getColumns().size();
 
@@ -120,7 +120,7 @@ public class ERDiagramCreator implements GraphBuilder {
 						LOGGER.debug("con.getRefTable().getName(): " + con.getRefTable().getName());
 					LOGGER.debug("constraint name: " + con.getName());
 
-					edgeList.add(renderer.addEdge(table.getName(), con.getRefTable().getName(), (filter.isShowLabelsOnFKs()) ? con.getName() : ""));
+					edgeList.add(renderer.addEdge(table.getCanonicalName(), con.getRefTable().getCanonicalName(), (filter.isShowLabelsOnFKs()) ? con.getName() : ""));
 				}
 			}
 		}

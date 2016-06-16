@@ -12,7 +12,7 @@ public class DatabaseAbstractionFactory {
 
 	public static DatabaseAbstraction getDatabaseAbstraction(DBType databaseType, String username, String password, String url) {
 		DatabaseAbstraction abstraction = null;
-		
+
 		LOGGER.debug("Attempting to create a DB abstraction of type: " + databaseType.name());
 
 		switch (databaseType) {
@@ -26,7 +26,7 @@ public class DatabaseAbstractionFactory {
 			abstraction = (DatabaseAbstraction) new SqlServerAbstraction(username, password, url);
 			break;
 		}
-		
+
 		return abstraction;
 	}
 }

@@ -16,7 +16,6 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,18 +46,19 @@ public class SqlServerAbstraction implements DatabaseAbstraction {
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int columnCount = rsmd.getColumnCount();
 
-			for (int i = 1; i <= columnCount; i++) {
-				System.out.print(rsmd.getColumnName(i) + ",\t");
-			}
-			LOGGER.debug("");
-
-			while (rs.next()) {
+			if (LOGGER.isDebugEnabled()) {
 				for (int i = 1; i <= columnCount; i++) {
-					System.out.print(rs.getObject(i) + ",\t");
+					LOGGER.debug(rsmd.getColumnName(i) + ",\t");
 				}
 				LOGGER.debug("");
-			}
 
+				while (rs.next()) {
+					for (int i = 1; i <= columnCount; i++) {
+						LOGGER.debug(rs.getObject(i) + ",\t");
+					}
+					LOGGER.debug("");
+				}
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {

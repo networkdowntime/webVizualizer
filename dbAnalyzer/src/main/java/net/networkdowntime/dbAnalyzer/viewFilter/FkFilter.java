@@ -15,13 +15,13 @@ public enum FkFilter implements Serializable {
 	/**
 	 * NoFK indicates that you want to filter out tables that have a foreign key.
 	 */
-	NoFK, 
-	
+	NoFK,
+
 	/**
 	 * HasFK indicates that you want to filter out all tables that don't have a foreign key.
 	 */
-	HasFK, 
-	
+	HasFK,
+
 	/**
 	 * All indicates that you do not want any filtering done for the foreign key.
 	 */

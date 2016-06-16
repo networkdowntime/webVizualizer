@@ -51,6 +51,14 @@ public class DatabaseWalker {
 			getTableColumns(schemas, dbAbstraction);
 			getTableConstrints(schemas, dbAbstraction);
 			followTableConstrints(schemas, dbAbstraction);
+			
+			for (String url1 : urlSchemas.keySet()) {
+				for (Schema schema : urlSchemas.get(url1).values()) {
+					for (Table t : schema.getTables().values()) {
+						t.setCanonicalName(url1 + "." + schema.getName() + "." + t.getName());
+					}
+				}
+			}
 		}
 	}
 
