@@ -45,5 +45,4 @@ public class DbAnalyzerPlugin implements PluginInterface {
 		return builder.toString();
 	}
 
-
 }

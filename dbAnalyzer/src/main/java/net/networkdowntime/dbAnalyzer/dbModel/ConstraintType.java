@@ -1,4 +1,4 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams;
+package net.networkdowntime.dbAnalyzer.dbModel;
 
 /**
  * The types of supported constraints.

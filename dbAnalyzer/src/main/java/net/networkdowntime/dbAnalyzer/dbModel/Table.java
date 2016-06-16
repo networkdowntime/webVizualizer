@@ -1,4 +1,4 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams;
+package net.networkdowntime.dbAnalyzer.dbModel;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
@@ -10,6 +10,8 @@ public class Table {
 	 * The name of the table
 	 */
 	private String name;
+
+	private String canonicalName;
 
 	/**
 	 * The comments for the table
@@ -96,6 +98,14 @@ public class Table {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getCanonicalName() {
+		return canonicalName;
+	}
+
+	public void setCanonicalName(String canonicalName) {
+		this.canonicalName = canonicalName;
 	}
 
 	public String getComment() {

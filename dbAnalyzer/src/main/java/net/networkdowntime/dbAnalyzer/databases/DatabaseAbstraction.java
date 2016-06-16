@@ -1,17 +1,17 @@
-package net.networkdowntime.dbAnalyzer.erdiagrams.database;
+package net.networkdowntime.dbAnalyzer.databases;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import net.networkdowntime.dbAnalyzer.erdiagrams.Schema;
-
+import net.networkdowntime.dbAnalyzer.dbModel.Schema;
 
 public interface DatabaseAbstraction {
 
 	public List<String> getAllSchemaNamesWithTables();
-	
-	public Map<String, Schema> getTableNames(List<String> schemasToScan);
+
+	public Map<String, Schema> getTableNames(Collection<String> schemasToScan);
 
 	public void getTableColumns(Map<String, Schema> schemasToScan) throws SQLException;
 
@@ -24,5 +24,10 @@ public interface DatabaseAbstraction {
 
 	public void followTableConstrints(Map<String, Schema> schemasToScan);
 
+	/**
+	 * Tests if the Database connection is working
+	 * 
+	 * @return
+	 */
 	public String testConnection();
 }
